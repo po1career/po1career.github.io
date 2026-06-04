@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PLK No.1 — Career Team</title>
+  <meta name="description" content="PLK No.1 Career Team — latest updates on local universities, foreign universities, and career activities.">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="fonts/notosanstc.css">
+  <link rel="stylesheet" href="styles.css?v=12">
+</head>
+<body>
+
+  <header class="site">
+    <div class="bar">
+      <div class="brand">
+        <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
+        <div class="titles">
+          <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
+          <div class="dept" id="brand-dept">Career Team</div>
+          <div class="motto" id="brand-motto">Dream high and fly high</div>
+        </div>
+      </div>
+      <nav class="main">
+        <a href="#news" id="nav-news">Latest News</a>
+        <a href="#res-sec" id="nav-res">Resources</a>
+        <a href="admin.html" id="nav-admin">Add Post</a>
+        <button class="langbtn">中文</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <img class="hero-sprig tr" src="images/sprig.svg" alt="" aria-hidden="true">
+    <img class="hero-sprig bl" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="hero-inner">
+      <span class="hero-kicker">🐾 PLK No.1 W.H. Cheung College · Career Team</span>
+      <h1 id="hero-h">Welcome to the CLP Corner!</h1>
+      <p id="hero-p">Here you'll find the latest updates on local universities, mainland universities, foreign universities, and career experience activities.</p>
+    </div>
+  </div>
+
+  <main>
+    <!-- NEWS -->
+    <section id="news">
+      <h2 class="section-title" id="title-news">Latest News</h2>
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section id="res-sec">
+      <h2 class="section-title" id="title-res">Resources / Downloads</h2>
+      <ul class="res-list" id="resources"></ul>
+    </section>
+  </main>
+
+  <footer class="site">
+    <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="inner">
+      <div style="max-width:60ch" id="footer-about"></div>
+      <div class="footer-right">
+        <a class="footlink" href="https://www.plkno1.edu.hk"
+           target="_blank" rel="noopener" aria-label="Visit the school website" title="School website">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>plkno1.edu.hk</span>
+        </a>
+        <a class="footlink" href="https://www.instagram.com/po1.careerteam?igsh=d2cyMHVxNGgydjQy"
+           target="_blank" rel="noopener" aria-label="Follow us on Instagram" title="Follow us on Instagram">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@po1.careerteam</span>
+        </a>
+        <div class="admin-link">
+          <a href="admin.html" id="footer-admin">＋ Staff: Add / manage posts</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SINGLE POST VIEWER -->
+  <div class="overlay" id="overlay">
+    <div class="article">
+      <img id="art-cover" class="cover" src="" alt="">
+      <div class="hd">
+        <button class="closex" id="closex" aria-label="Close">✕</button>
+        <h2 id="art-title"></h2>
+        <div class="meta" id="art-meta"></div>
+      </div>
+      <div class="body" id="art-body"></div>
+    </div>
+  </div>
+
+  <!-- FULL-SIZE PHOTO LIGHTBOX -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" id="lb-close" aria-label="Close">✕</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
+  <script src="posts.js?v=5"></script>
+  <script src="app.js?v=8"></script>
+</body>
+</html>

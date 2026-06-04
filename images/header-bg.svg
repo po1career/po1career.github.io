@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 220" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3d4"/>
+      <stop offset="0.55" stop-color="#fbe7b4"/>
+      <stop offset="1" stop-color="#f6dd9f"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="85%" cy="2%" r="52%">
+      <stop offset="0" stop-color="#ffd25e" stop-opacity="0.92"/>
+      <stop offset="0.5" stop-color="#ffdf86" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffdf86" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="220" fill="url(#sky)"/>
+  <rect width="1600" height="220" fill="url(#sun)"/>
+
+  <!-- soft clouds -->
+  <g fill="#ffffff" opacity="0.78">
+    <ellipse cx="250" cy="70" rx="95" ry="26"/>
+    <ellipse cx="320" cy="82" rx="68" ry="20"/>
+    <ellipse cx="760" cy="52" rx="80" ry="22"/>
+    <ellipse cx="1180" cy="74" rx="120" ry="30"/>
+    <ellipse cx="1260" cy="86" rx="85" ry="22"/>
+  </g>
+
+  <!-- distant hills -->
+  <path d="M0,220 C260,165 470,195 720,172 C980,150 1240,185 1600,160 L1600,220 Z" fill="#bcd6ad" opacity="0.85"/>
+  <path d="M0,220 C320,190 640,208 940,190 C1240,172 1430,200 1600,188 L1600,220 Z" fill="#96bd8c" opacity="0.9"/>
+
+  <!-- birds soaring upward (centre -> up-right, in the lighter zone) -->
+  <g stroke="#6e4d31" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.85">
+    <path d="M820,158 q12,-12 24,0 q12,-12 24,0"/>
+    <path d="M930,132 q10,-10 20,0 q10,-10 20,0"/>
+    <path d="M1030,148 q9,-9 18,0 q9,-9 18,0"/>
+    <path d="M1140,110 q8,-8 16,0 q8,-8 16,0"/>
+    <path d="M1240,126 q7,-7 14,0 q7,-7 14,0"/>
+  </g>
+
+  <!-- dotted dream trail -->
+  <path d="M1150,184 C1260,178 1340,128 1430,86" stroke="#c9a24b" stroke-width="3.4"
+        fill="none" stroke-linecap="round" stroke-dasharray="2 14" opacity="0.9"/>
+
+  <!-- paper plane climbing -->
+  <g transform="translate(1432,84) rotate(-22)">
+    <path d="M0,0 L68,20 L20,20 Z" fill="#d8b25c"/>
+    <path d="M0,40 L68,20 L20,20 Z" fill="#a9842f"/>
+    <path d="M0,0 L0,40 L20,20 Z" fill="#c9a24b"/>
+  </g>
+</svg>
