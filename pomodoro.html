@@ -44,6 +44,12 @@
     .howto-list li::before{counter-increment:step;content:counter(step);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;display:grid;place-items:center;font-weight:800;font-size:.92rem}
     nav.main a.active{background:var(--beige)}
     a.brand{text-decoration:none}
+    .music-sec{max-width:680px;margin:40px auto 0;text-align:left}
+    .music-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:16px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+    .music-caption{color:#3f2f22;margin:0;line-height:1.7}
+    .yt-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;font-weight:800;padding:11px 22px;border-radius:12px;text-decoration:none;box-shadow:0 6px 16px rgba(169,132,47,.3)}
+    .yt-btn:hover{filter:brightness(1.06);text-decoration:none}
+    .yt-btn svg{flex:none}
   </style>
 </head>
 <body>
@@ -111,6 +117,20 @@
         <h2 class="section-title" id="howto-title">How it works</h2>
         <ol class="howto-list" id="howto-list"></ol>
       </section>
+
+      <section class="music-sec">
+        <h2 class="section-title" id="music-title">Focus music &amp; scenery</h2>
+        <div class="music-card">
+          <p class="music-caption" id="music-caption"></p>
+          <a class="yt-btn" href="https://www.youtube.com/@abaointokyo" target="_blank" rel="noopener" aria-label="Open the YouTube channel">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <rect x="1" y="4" width="22" height="16" rx="4.5" fill="#FF0000"></rect>
+              <path d="M10 8.4l6 3.6-6 3.6z" fill="#fff"></path>
+            </svg>
+            <span id="music-btn">Open the channel · @abaointokyo</span>
+          </a>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -138,6 +158,6 @@
     </div>
   </footer>
 
-  <script src="pomodoro.js?v=1"></script>
+  <script src="pomodoro.js?v=2"></script>
 </body>
 </html>

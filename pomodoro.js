@@ -24,6 +24,9 @@
         "After every 4 focus sessions, take a longer 15-minute break.",
         "Repeat. Each completed focus session earns you a 🍅!"
       ],
+      music_title: "Focus music & scenery",
+      music_caption: "Like a little background music while you study? If you enjoy calm melodies and beautiful scenery, the videos on this YouTube channel make a relaxing backdrop for your focus sessions — just play one while the timer runs, then come back here to start your Pomodoro.",
+      music_btn: "Open the channel · @abaointokyo",
       footer_about: "We help students explore their interests, plan their academic pathways, and prepare for university and future careers through guidance, workshops, and information sharing."
     },
     zh: {
@@ -42,6 +45,9 @@
         "每完成 4 個專注時段，給自己 15 分鐘較長的休息。",
         "重複以上步驟。每完成一節專注，就獲得一個 🍅！"
       ],
+      music_title: "專注音樂與風景",
+      music_caption: "想在溫習時播點背景音樂嗎？如果你喜歡恬靜的旋律與優美的風景，這個 YouTube 頻道的影片能為你的專注時段帶來輕鬆舒適的氛圍——計時期間播放一段，再回到這裡開始你的番茄鐘。",
+      music_btn: "前往頻道 · @abaointokyo",
       footer_about: "我們透過輔導、工作坊及資訊分享，協助學生探索興趣、規劃學業路徑，為升學及未來事業作好準備。"
     }
   };
@@ -89,6 +95,9 @@
     setText("lbl-short", t("short_min"));
     setText("lbl-long", t("long_min"));
     setText("howto-title", t("howto_title"));
+    setText("music-title", t("music_title"));
+    setText("music-caption", t("music_caption"));
+    setText("music-btn", t("music_btn"));
     setText("footer-about", t("footer_about"));
     var ol = $("howto-list"); ol.innerHTML = "";
     t("howto_steps").forEach(function (s) { var li = document.createElement("li"); li.textContent = s; ol.appendChild(li); });
