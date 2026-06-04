@@ -13,8 +13,24 @@ Students browse the latest updates, organised into categories, in a feed
 (newest first). Staff post updates either via an admin form or by sending
 Claude the text/poster. Audience: secondary students. Bilingual (English + 中文).
 
+## LIVE SITE — already deployed
+- **Live URL:** https://johnskid.github.io/po1careerteam/
+- **GitHub repo:** https://github.com/johnskid/po1careerteam (PUBLIC, branch `main`, Pages = deploy from main /root)
+- **Owner GitHub:** username `johnskid` (git identity already set: johnskid / s99pm0882@gmail.com)
+- The local folder `/Users/kclee/Desktop/claude/plk-career-team` IS the git repo (has `origin` after first publish via GitHub Desktop).
+
+### How to PUBLISH an update (the loop — tell the user this)
+Editing local files does NOT update the live site by itself. After any change:
+1. Open **GitHub Desktop** → the changed files appear in the **Changes** tab.
+2. Type a Summary → click **Commit to main** → click **Push origin**.
+3. GitHub Pages auto-rebuilds (~1 min) → live site updated.
+> Claude CANNOT push (GitHub Desktop holds the auth; terminal has no stored token).
+> So Claude edits files + previews; the USER does Commit → Push in GitHub Desktop.
+> Remember to BUMP the `?v=N` cache query when editing styles.css/app.js/posts.js,
+> otherwise returning visitors see a stale cached copy even after the push.
+
 ## Tech approach (IMPORTANT decisions)
-- **Static site** — plain HTML/CSS/JS, no backend, no build step. Hosted (planned) on **GitHub Pages** (free, HTTPS).
+- **Static site** — plain HTML/CSS/JS, no backend, no build step. Hosted on **GitHub Pages** (free, HTTPS). DONE.
 - **Privacy first (minors' site):** NO third-party calls. All fonts are **self-hosted** (see below). Do NOT re-introduce Google Fonts `<link>` tags or any external CDN.
 - **No personal data collected.** No student logins, no forms storing PII. Keep it publish-only. If asked to add data collection (sign-up forms, etc.), flag the privacy implications first.
 
@@ -22,7 +38,9 @@ Claude the text/poster. Audience: secondary students. Bilingual (English + 中�
 ```
 plk-career-team/
   index.html            Main page (feed, categories, post viewer, bilingual toggle)
-  admin.html            "Add Post" panel for non-technical staff
+  post-studio-9x4k.html "Add Post" panel for staff — RENAMED from admin.html to an
+                        unguessable, UNLINKED URL (no password; security by obscurity).
+                        Reached only by direct URL: .../po1careerteam/post-studio-9x4k.html
   app.js                Front-end: rendering, i18n (EN/中), filters, post modal
   admin.js              Admin panel logic (localStorage + Export posts.js)
   posts.js              POST DATA (window.SEED_POSTS), TEAM, RESOURCES
@@ -50,7 +68,10 @@ plk-career-team/
 - **Header** has a vivid dawn-sky SVG background (birds soaring, paper plane on a dotted "dream trail", sun glow) with a left-side readability veil. Logo is 86px with a gold ring + shadow.
 - **Footer** (bottom bar, brown) has two icon links styled with the shared `.footlink` class:
   globe → `https://www.plkno1.edu.hk` (text "plkno1.edu.hk"); Instagram → `@po1.careerteam`.
-  Plus a small "Staff: Add / manage posts" link to admin.html. Mission text on the left (language-aware, `#footer-about`).
+  Mission text on the left (language-aware, `#footer-about`).
+- **Public links to the staff page were REMOVED** (header "Add Post" nav link + footer
+  "Staff: Add / manage posts" link both deleted) so visitors don't see the admin tool.
+  The staff page is reached only by its direct unguessable URL (see file structure).
 
 ## Interactions / UX (in app.js + styles.css)
 - **Whole post card is clickable** (role=button, tabindex, Enter/Space) → opens the post modal. "Read more" is now just a visual cue (a `<span>`, not a link).
@@ -67,7 +88,7 @@ plk-career-team/
 
 Labels/icons live in app.js (`T.en`, `T.zh`, `ICON`) and the chips array in `render()`.
 Tag colours in styles.css (`.tag.local/.mainland/.foreign/.career`).
-Admin `<select>` options in admin.html + `cat` map in admin.js must match.
+Admin `<select>` options in post-studio-9x4k.html + `cat` map in admin.js must match.
 
 ## How to ADD A POST (the streamlined workflow the user uses)
 1. User saves a poster/photo into `to-post/` and pastes details in chat.
@@ -81,7 +102,8 @@ Admin `<select>` options in admin.html + `cat` map in admin.js must match.
 ## Conventions / gotchas
 - **Cache-busting:** index.html references `styles.css?v=N`, `posts.js?v=N`, `app.js?v=N`.
   BUMP the version number whenever you edit that file, or the browser serves a stale copy.
-  Current versions (last session): styles.css?v=12, app.js?v=8, posts.js?v=5. admin.html uses styles.css?v=8.
+  Current versions (last session): styles.css?v=12, app.js?v=9, posts.js?v=5.
+  Staff page (post-studio-9x4k.html) uses styles.css?v=8 + fonts.css + notosanstc.css.
 - **Pasted chat images can't be saved to disk** — always ask the user to save image FILES
   (e.g. into `to-post/` or Downloads) and reference by filename.
 - **Bilingual:** every post needs `_en` and `_zh` fields; UI strings live in app.js `T`.
@@ -96,15 +118,20 @@ art + bilingual motto; logo enlarged (86px); full school name applied everywhere
 Interactions: whole-card click, hover-grow, post-photo lightbox.
 Footer: school website + Instagram links.
 2 real posts live: HSUHK admission talk [pinned, category local], HKU Society Game Day [local].
-A timestamped backup zip was created in the parent folder (Desktop/claude/).
+DEPLOYED to GitHub Pages (https://johnskid.github.io/po1careerteam/).
+Staff page renamed admin.html -> post-studio-9x4k.html (unlinked, unguessable).
+Public "Add Post" header link + footer staff link removed.
+Timestamped backup zips exist in parent folder (Desktop/claude/) — regenerate after big changes.
+
+IMPORTANT — UNPUSHED CHANGES may exist: after editing locally, the user must
+Commit + Push in GitHub Desktop for changes to reach the live site. As of the last
+edits (rename + hide links), remind the user to Commit + Push.
 
 NEXT / TODO:
-- [ ] Publish to **GitHub Pages** (user chose this over Google Sites). Needs: user creates
-      GitHub account + repo; git authenticated on this Mac (`gh auth login`); then push.
-      Add a `.nojekyll` file before deploying. Once connected, Claude can push updates
-      (ask permission before each publish).
+- [ ] User to Commit + Push the latest edits (rename staff page, hide admin links) via GitHub Desktop.
 - [ ] Optional cleanup: remove unused Fraunces font files; clear test files from `to-post/`.
 - [ ] Optional: swap the footer globe icon for the school's real crest image if provided.
+- [ ] Optional: delete post-studio-9x4k.html entirely if the "tell Claude -> push" flow is enough.
 
 ## User preferences
 - Wants a streamlined flow: send poster + text → Claude posts it.
