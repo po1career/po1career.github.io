@@ -78,7 +78,6 @@
     setText("brand-motto", tx.motto);
     setText("nav-news", tx.nav_news);
     setText("nav-res", tx.nav_res);
-    setText("nav-admin", tx.nav_admin);
     setText("hero-h", tx.hero_h);
     setText("hero-p", tx.hero_p);
     setText("title-news", tx.news);

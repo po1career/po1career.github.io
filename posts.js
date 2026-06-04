@@ -1,10 +1,11 @@
 /* ============================================================
    SEED POSTS  —  PLK No.1 Career Team
    These are the built-in starter posts.
-   Staff normally add new posts through admin.html (no coding).
-   To make admin-created posts PERMANENT / shared with everyone,
-   use the "Export posts.js" button in the admin panel and replace
-   this file with the downloaded one.
+   Staff add new posts through the (unlinked, private) staff page
+   post-studio-9x4k.html — no coding needed.
+   To make those posts PERMANENT / shared with everyone, use the
+   "Export posts.js" button on that page and replace this file with
+   the downloaded one (then Commit + Push in GitHub Desktop).
    ============================================================ */
 window.SEED_POSTS = [
   {
