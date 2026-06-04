@@ -14,10 +14,17 @@ Students browse the latest updates, organised into categories, in a feed
 Claude the text/poster. Audience: secondary students. Bilingual (English + 中文).
 
 ## LIVE SITE — already deployed
-- **Live URL:** https://johnskid.github.io/po1careerteam/
-- **GitHub repo:** https://github.com/johnskid/po1careerteam (PUBLIC, branch `main`, Pages = deploy from main /root)
-- **Owner GitHub:** username `johnskid` (git identity already set: johnskid / s99pm0882@gmail.com)
-- The local folder `/Users/kclee/Desktop/claude/plk-career-team` IS the git repo (has `origin` after first publish via GitHub Desktop).
+- **Live URL:** https://po1career.github.io  ← clean root URL (org page)
+- **GitHub repo:** https://github.com/po1career/po1career.github.io (PUBLIC, branch `main`, Pages = deploy from main /root)
+- **Owner:** GitHub **organization** `po1career` (created free; owned by personal account `johnskid`,
+  git identity johnskid / s99pm0882@gmail.com). Org page repo MUST stay named `po1career.github.io`
+  to serve at the root — do not rename it.
+- **History:** originally johnskid/po1careerteam (project page) → transferred to org `po1career`
+  → renamed to `po1career.github.io` for the clean root URL. Old URL auto-redirects for a while.
+- The local folder `/Users/kclee/Desktop/claude/plk-career-team` IS the git repo; its `origin`
+  remote was repointed to https://github.com/po1career/po1career.github.io.git (already done).
+- Staff page URL: https://po1career.github.io/post-studio-9x4k.html
+- Pomodoro page URL: https://po1career.github.io/pomodoro.html
 
 ### How to PUBLISH an update (the loop — tell the user this)
 Editing local files does NOT update the live site by itself. After any change:
@@ -38,9 +45,14 @@ Editing local files does NOT update the live site by itself. After any change:
 ```
 plk-career-team/
   index.html            Main page (feed, categories, post viewer, bilingual toggle)
+  pomodoro.html         Pomodoro study timer page (own pomodoro.js; shares header/footer/fonts).
+                        Linked from header nav ("Pomodoro" / 番茄鐘) on both pages.
+                        Includes a "Focus music & scenery" card linking to YouTube @abaointokyo
+                        (plain link, NOT an embed — no third-party load until clicked).
+  pomodoro.js           Timer logic + its own bilingual strings (shares localStorage "clp_lang").
   post-studio-9x4k.html "Add Post" panel for staff — RENAMED from admin.html to an
                         unguessable, UNLINKED URL (no password; security by obscurity).
-                        Reached only by direct URL: .../po1careerteam/post-studio-9x4k.html
+                        Reached only by direct URL: .../post-studio-9x4k.html
   app.js                Front-end: rendering, i18n (EN/中), filters, post modal
   admin.js              Admin panel logic (localStorage + Export posts.js)
   posts.js              POST DATA (window.SEED_POSTS), TEAM, RESOURCES
@@ -102,7 +114,7 @@ Admin `<select>` options in post-studio-9x4k.html + `cat` map in admin.js must m
 ## Conventions / gotchas
 - **Cache-busting:** index.html references `styles.css?v=N`, `posts.js?v=N`, `app.js?v=N`.
   BUMP the version number whenever you edit that file, or the browser serves a stale copy.
-  Current versions (last session): styles.css?v=12, app.js?v=9, posts.js?v=5.
+  Current versions (last session): styles.css?v=12, app.js?v=10, posts.js?v=5, pomodoro.js?v=2.
   Staff page (post-studio-9x4k.html) uses styles.css?v=8 + fonts.css + notosanstc.css.
 - **Pasted chat images can't be saved to disk** — always ask the user to save image FILES
   (e.g. into `to-post/` or Downloads) and reference by filename.
@@ -118,20 +130,26 @@ art + bilingual motto; logo enlarged (86px); full school name applied everywhere
 Interactions: whole-card click, hover-grow, post-photo lightbox.
 Footer: school website + Instagram links.
 2 real posts live: HSUHK admission talk [pinned, category local], HKU Society Game Day [local].
-DEPLOYED to GitHub Pages (https://johnskid.github.io/po1careerteam/).
+DEPLOYED to GitHub Pages at clean root URL https://po1career.github.io (org page; see LIVE SITE section).
 Staff page renamed admin.html -> post-studio-9x4k.html (unlinked, unguessable).
 Public "Add Post" header link + footer staff link removed.
+Added Pomodoro timer page (pomodoro.html) + header nav link on both pages.
+Added "Focus music & scenery" card on Pomodoro page (YouTube @abaointokyo link).
+Footer (main page) has school website + Instagram links (.footlink). NOTE: a visitor
+counter was discussed but NOT added (needs a third-party backend vs our no-third-party
+rule) — left undecided by the user.
 Timestamped backup zips exist in parent folder (Desktop/claude/) — regenerate after big changes.
 
 IMPORTANT — UNPUSHED CHANGES may exist: after editing locally, the user must
 Commit + Push in GitHub Desktop for changes to reach the live site. As of the last
-edits (rename + hide links), remind the user to Commit + Push.
+edits (Pomodoro music card), remind the user to Commit + Push pomodoro.html + pomodoro.js.
 
 NEXT / TODO:
-- [ ] User to Commit + Push the latest edits (rename staff page, hide admin links) via GitHub Desktop.
+- [ ] User to Commit + Push the latest edits (Pomodoro music card) via GitHub Desktop.
+- [ ] Optional: add a visitor counter — needs decision on third-party (real global) vs local-only.
 - [ ] Optional cleanup: remove unused Fraunces font files; clear test files from `to-post/`.
 - [ ] Optional: swap the footer globe icon for the school's real crest image if provided.
-- [ ] Optional: delete post-studio-9x4k.html entirely if the "tell Claude -> push" flow is enough.
+- [ ] Optional: delete the old johnskid/po1careerteam repo (now redundant after transfer).
 
 ## User preferences
 - Wants a streamlined flow: send poster + text → Claude posts it.
