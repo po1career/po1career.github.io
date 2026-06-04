@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Study Timer — PLK No.1 Career Team</title>
+  <meta name="description" content="A Pomodoro study timer for PLK No.1 W.H. Cheung College students — focus, revise, and take healthy breaks.">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="fonts/notosanstc.css">
+  <link rel="stylesheet" href="styles.css?v=12">
+  <style>
+    /* ---- Pomodoro-specific UI (uses the shared palette/fonts) ---- */
+    .pomo-wrap{max-width:720px;margin:0 auto;padding:8px 0 24px;text-align:center}
+    .pomo-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px}
+    .pomo-sub{color:var(--brown-soft);max-width:50ch;margin:0 auto 26px}
+    .pomo-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:24px;box-shadow:var(--shadow);padding:26px 22px 30px}
+    .modes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+    .mode-btn{border:1.5px solid var(--gold);background:#fffdf7;color:var(--brown);padding:8px 18px;border-radius:999px;cursor:pointer;font-weight:700;font-size:.92rem}
+    .mode-btn:hover{background:var(--beige)}
+    .mode-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-color:var(--gold-dark)}
+    .ring-wrap{position:relative;width:260px;height:260px;margin:6px auto 16px}
+    .ring{width:100%;height:100%;transform:rotate(-90deg)}
+    .ring-bg{fill:none;stroke:#efe3c6;stroke-width:14}
+    .ring-fg{fill:none;stroke:var(--gold);stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset .35s linear}
+    .ring-center{position:absolute;inset:0;display:grid;place-items:center}
+    .time{font-family:var(--font-display);font-weight:800;font-size:3.4rem;color:var(--brown);line-height:1}
+    .ring-label{color:var(--brown-soft);font-weight:700;margin-top:4px}
+    .controls{display:flex;gap:12px;justify-content:center;margin-top:4px}
+    .btn-primary{border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;font-weight:800;font-size:1.05rem;padding:12px 38px;cursor:pointer;box-shadow:0 6px 16px rgba(169,132,47,.3)}
+    .btn-primary:hover{filter:brightness(1.06)}
+    .btn-ghost{border:1.5px solid var(--gold);background:#fff;color:var(--brown);border-radius:12px;font-weight:700;padding:12px 26px;cursor:pointer}
+    .btn-ghost:hover{background:var(--beige)}
+    .tomatoes{margin-top:16px;font-size:1.35rem;min-height:1.6rem;letter-spacing:4px}
+    .pomo-settings{max-width:540px;margin:18px auto 0;text-align:left;background:#fffdf8;border:1px solid #ece0c4;border-radius:14px;padding:4px 18px;box-shadow:var(--shadow)}
+    .pomo-settings summary{cursor:pointer;font-weight:700;color:var(--brown);padding:12px 0;list-style:none}
+    .pomo-settings summary::-webkit-details-marker{display:none}
+    .pomo-settings summary::before{content:"⚙️ ";}
+    .settings-grid{display:flex;gap:14px;flex-wrap:wrap;padding:4px 0 16px}
+    .settings-grid label{flex:1;min-width:130px;font-size:.82rem;font-weight:700;color:var(--brown-soft);display:flex;flex-direction:column;gap:6px}
+    .settings-grid input{padding:9px 10px;border:1.5px solid #e0cfa6;border-radius:8px;font:inherit;background:#fffdf7;color:var(--ink)}
+    .howto{max-width:680px;margin:40px auto 0;text-align:left}
+    .howto-list{padding:0;margin:0;list-style:none;counter-reset:step;display:grid;gap:12px}
+    .howto-list li{background:#fffdf8;border:1px solid #ece0c4;border-radius:12px;padding:14px 16px 14px 56px;position:relative;box-shadow:var(--shadow);color:#3f2f22}
+    .howto-list li::before{counter-increment:step;content:counter(step);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;display:grid;place-items:center;font-weight:800;font-size:.92rem}
+    nav.main a.active{background:var(--beige)}
+    a.brand{text-decoration:none}
+  </style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="index.html">
+        <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
+        <div class="titles">
+          <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
+          <div class="dept" id="brand-dept">Career Team</div>
+          <div class="motto" id="brand-motto">Dream high and fly high</div>
+        </div>
+      </a>
+      <nav class="main">
+        <a href="index.html#news" id="nav-news">Latest News</a>
+        <a href="index.html#res-sec" id="nav-res">Resources</a>
+        <a href="pomodoro.html" id="nav-pomodoro" class="active">Pomodoro</a>
+        <button class="langbtn">中文</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="pomo-wrap">
+      <h1 class="pomo-title" id="pg-title">Pomodoro Study Timer</h1>
+      <p class="pomo-sub" id="pg-sub">Study in focused bursts with short breaks — a simple way to revise more effectively.</p>
+
+      <div class="pomo-card">
+        <div class="modes">
+          <button class="mode-btn active" data-mode="focus" id="m-focus">Focus</button>
+          <button class="mode-btn" data-mode="short" id="m-short">Short Break</button>
+          <button class="mode-btn" data-mode="long" id="m-long">Long Break</button>
+        </div>
+
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+            <circle class="ring-bg" cx="120" cy="120" r="108"></circle>
+            <circle class="ring-fg" cx="120" cy="120" r="108"></circle>
+          </svg>
+          <div class="ring-center">
+            <div class="time" id="time">25:00</div>
+            <div class="ring-label" id="ring-label">Focus</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn-primary" id="startBtn">Start</button>
+          <button class="btn-ghost" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="tomatoes" id="tomatoes" title="Completed focus sessions"></div>
+      </div>
+
+      <details class="pomo-settings">
+        <summary id="settings-label">Settings</summary>
+        <div class="settings-grid">
+          <label><span id="lbl-focus">Focus (min)</span><input type="number" id="set-focus" min="1" max="120" value="25"></label>
+          <label><span id="lbl-short">Short break (min)</span><input type="number" id="set-short" min="1" max="60" value="5"></label>
+          <label><span id="lbl-long">Long break (min)</span><input type="number" id="set-long" min="1" max="60" value="15"></label>
+        </div>
+      </details>
+
+      <section class="howto">
+        <h2 class="section-title" id="howto-title">How it works</h2>
+        <ol class="howto-list" id="howto-list"></ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site">
+    <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="inner">
+      <div style="max-width:60ch" id="footer-about"></div>
+      <div class="footer-right">
+        <a class="footlink" href="https://www.plkno1.edu.hk" target="_blank" rel="noopener" aria-label="School website" title="School website">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>plkno1.edu.hk</span>
+        </a>
+        <a class="footlink" href="https://www.instagram.com/po1.careerteam?igsh=d2cyMHVxNGgydjQy" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@po1.careerteam</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="pomodoro.js?v=1"></script>
+</body>
+</html>
