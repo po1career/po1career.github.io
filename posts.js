@@ -102,7 +102,7 @@ window.TEAM = [
 
 /* Resources / downloads list. Add { title_en, title_zh, url } items. */
 window.RESOURCES = [
-  { title_en: "JUPAS Official Website", title_zh: "JUPAS 大學聯招官方網站", url: "https://www.jupas.edu.hk" },
+  { title_en: "JUPAS Official Website", title_zh: "JUPAS 大學聯招官方網站", url: "https://www.jupas.edu.hk/en/" },
   { title_en: "HKEAA — HKDSE", title_zh: "香港考評局 — 文憑試", url: "https://www.hkeaa.edu.hk" },
   { title_en: "Education Bureau — Life Planning", title_zh: "教育局 — 生涯規劃", url: "https://lifeplanning.edb.gov.hk" }
 ];
