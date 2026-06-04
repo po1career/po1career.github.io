@@ -109,7 +109,7 @@
       var card = document.createElement("article");
       card.className = "card";
       var thumb = p.image
-        ? '<div class="thumb"><img src="' + p.image + '" alt=""></div>'
+        ? '<div class="thumb"><img src="' + esc(p.image) + '" alt=""></div>'
         : '<div class="thumb empty">' + (ICON[p.category] || "📰") + "</div>";
       card.innerHTML =
         thumb +
@@ -138,7 +138,7 @@
     rl.innerHTML = "";
     (window.RESOURCES || []).forEach(function (r) {
       var li = document.createElement("li");
-      li.innerHTML = '<a href="' + r.url + '" target="_blank" rel="noopener">' +
+      li.innerHTML = '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' +
         esc(state.lang === "zh" ? (r.title_zh || r.title_en) : r.title_en) + "</a>";
       rl.appendChild(li);
     });
