@@ -10,7 +10,7 @@
   var T = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_team: "Our Team", nav_res: "Resources", nav_pomodoro: "Pomodoro", nav_admin: "Add Post",
+      nav_news: "Latest News", nav_team: "Our Team", nav_res: "Resources", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_admin: "Add Post",
       hero_h: "Welcome to the CLP Corner!",
       hero_p: "Here you'll find the latest updates on local universities, mainland universities, foreign universities, and career experience activities.",
       news: "Latest News", team: "Our Team", res: "Resources / Downloads",
@@ -21,7 +21,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_team: "團隊成員", nav_res: "資源下載", nav_pomodoro: "番茄鐘", nav_admin: "新增貼文",
+      nav_news: "最新消息", nav_team: "團隊成員", nav_res: "資源下載", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_admin: "新增貼文",
       hero_h: "歡迎來到生涯規劃專區！",
       hero_p: "在這裡你可以找到本地大學、內地大學、海外大學及職業體驗活動的最新資訊。",
       news: "最新消息", team: "團隊成員", res: "資源 / 下載",
@@ -79,6 +79,7 @@
     setText("nav-news", tx.nav_news);
     setText("nav-res", tx.nav_res);
     setText("nav-pomodoro", tx.nav_pomodoro);
+    setText("nav-studyplan", tx.nav_studyplan);
     setText("hero-h", tx.hero_h);
     setText("hero-p", tx.hero_p);
     setText("title-news", tx.news);
