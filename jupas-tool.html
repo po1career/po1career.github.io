@@ -5,20 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>JUPAS Programme Finder</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/notosanstc.css">
 <style>
   :root {
-    --bg: #f5f7fa;
-    --card: #ffffff;
-    --ink: #1f2933;
-    --muted: #6b7280;
-    --accent: #2563eb;
-    --accent-soft: #e0ecff;
-    --border: #e3e8ef;
+    --bg: #FAF4E6;            /* cream page background */
+    --card: #FFFDF8;          /* warm near-white cards */
+    --ink: #5B3A24;           /* brown main text */
+    --muted: #8a6f59;         /* muted brown */
+    --accent: #C9A24B;        /* gold — fills, active chips, borders */
+    --accent-dark: #A9842F;   /* deeper gold for gradients/hover */
+    --link: #936c1f;          /* readable gold-brown for link/label text */
+    --accent-soft: #F3E8CE;   /* beige tag background */
+    --border: #E8DCC2;        /* soft beige border */
+    --shadow: 0 8px 24px rgba(91,58,36,0.08);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: "Segoe UI", "PingFang HK", "Microsoft JhengHei", Helvetica, Arial, sans-serif;
+    font-family: "Nunito", "Noto Sans TC", "PingFang HK", Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--ink);
     line-height: 1.5;
@@ -28,7 +33,7 @@
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 12px; margin-bottom: 8px;
   }
-  h1 { font-size: 1.5rem; margin: 0; }
+  h1 { font-size: 1.6rem; margin: 0; font-weight: 800; color: var(--brown, #5B3A24); }
   .subtitle { color: var(--muted); margin: 0 0 20px; font-size: 0.95rem; }
   .lang-toggle {
     border: 1px solid var(--border); background: var(--card);
@@ -36,54 +41,57 @@
   }
   .lang-toggle button {
     border: none; background: transparent; padding: 6px 14px; border-radius: 999px;
-    cursor: pointer; font-size: 0.9rem; color: var(--muted);
+    cursor: pointer; font-size: 0.9rem; color: var(--muted); font-family: inherit; font-weight: 700;
   }
-  .lang-toggle button.active { background: var(--accent); color: #fff; }
-  .home-link { display: inline-block; color: var(--accent); text-decoration: none; font-size: 0.9rem; margin-bottom: 12px; }
+  .lang-toggle button.active { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; }
+  .home-link { display: inline-block; color: var(--link); text-decoration: none; font-size: 0.9rem; margin-bottom: 12px; font-weight: 700; }
   .home-link:hover { text-decoration: underline; }
   .lockscreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .lockbox { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
+  .lockbox { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: var(--shadow); }
   .lock-icon { font-size: 2.2rem; margin-bottom: 8px; }
-  .lockbox h2 { margin: 0; font-size: 1.3rem; }
+  .lockbox h2 { margin: 0; font-size: 1.3rem; font-weight: 800; }
   .lock-zh { margin: 2px 0 14px; color: var(--ink); font-size: 1.05rem; }
   .lock-sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 18px; line-height: 1.5; }
-  .lockbox input { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; margin-bottom: 12px; text-align: center; }
-  .lockbox button { width: 100%; padding: 11px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 1rem; cursor: pointer; }
+  .lockbox input { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; margin-bottom: 12px; text-align: center; font-family: inherit; background: #fffdf7; color: var(--ink); }
+  .lockbox button { width: 100%; padding: 11px; border: none; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; font-size: 1rem; cursor: pointer; font-family: inherit; font-weight: 800; box-shadow: 0 6px 16px rgba(169,132,47,.3); }
   .lockbox button:hover { filter: brightness(1.05); }
   .lock-err { color: #b91c1c; font-size: 0.85rem; min-height: 20px; margin-top: 10px; }
   .lockbox .home-link { margin: 14px 0 0; }
-  .controls { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 20px; }
+  .controls { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow); }
   .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
   .search-box { flex: 1 1 260px; }
   input[type="text"], select {
     width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-    border-radius: 10px; font-size: 0.95rem; font-family: inherit; background: #fff; color: var(--ink);
+    border-radius: 10px; font-size: 0.95rem; font-family: inherit; background: #fffdf7; color: var(--ink);
   }
   .inst-box { flex: 0 1 220px; }
   .cat-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 8px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
-    border: 1px solid var(--border); background: #fff; color: var(--ink);
+    border: 1px solid var(--border); background: #fffdf7; color: var(--ink);
     padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 0.88rem;
+    font-family: inherit; font-weight: 700;
     transition: all .12s ease;
   }
-  .chip:hover { border-color: var(--accent); }
-  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .chip.active { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color: var(--accent-dark); color: #fff; }
   .toolbar { display: flex; align-items: center; justify-content: space-between; margin: 16px 2px 12px; flex-wrap: wrap; gap: 8px; }
   .count { color: var(--muted); font-size: 0.9rem; }
-  .clear-btn { border: none; background: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; }
+  .clear-btn { border: none; background: none; color: var(--link); cursor: pointer; font-size: 0.9rem; font-family: inherit; font-weight: 700; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
   .prog {
-    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
-    display: flex; flex-direction: column; gap: 8px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+    display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow);
+    transition: transform .18s ease, box-shadow .18s ease;
   }
-  .prog .code { font-size: 0.78rem; color: var(--accent); font-weight: 600; letter-spacing: .03em; }
-  .prog .pname { font-weight: 600; font-size: 1.02rem; }
+  .prog:hover { transform: translateY(-6px) scale(1.035); box-shadow: 0 14px 30px rgba(91,58,36,0.14); }
+  .prog .code { font-size: 0.78rem; color: var(--link); font-weight: 800; letter-spacing: .03em; }
+  .prog .pname { font-weight: 800; font-size: 1.02rem; color: var(--ink); }
   .prog .inst { color: var(--muted); font-size: 0.9rem; }
   .prog .meta { color: var(--muted); font-size: 0.85rem; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .tag { background: var(--accent-soft); color: var(--accent); font-size: 0.75rem; padding: 3px 9px; border-radius: 999px; }
-  .prog a.link { margin-top: auto; color: var(--accent); text-decoration: none; font-size: 0.88rem; padding-top: 6px; }
+  .tag { background: var(--accent-soft); color: var(--link); font-size: 0.75rem; padding: 3px 9px; border-radius: 999px; font-weight: 700; }
+  .prog a.link { margin-top: auto; color: var(--link); text-decoration: none; font-size: 0.88rem; padding-top: 6px; font-weight: 700; }
   .prog a.link:hover { text-decoration: underline; }
   .empty, .loading { text-align: center; color: var(--muted); padding: 50px 20px; }
   .err { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 14px; border-radius: 10px; }
