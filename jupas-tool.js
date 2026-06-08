@@ -30,7 +30,7 @@ const STRINGS = {
     empty: 'No programmes match your filters.',
     link: 'Official page ↗',
     duration: 'Duration',
-    footer: 'Sample data — replace programmes.csv with the full JUPAS list. Always verify details on official pages.',
+    footer: 'Disclaimer: This tool is an unofficial study aid prepared by the Career Team of PLK No.1 W.H. Cheung College for the reference of its own students only. It is not affiliated with, endorsed by, or operated by JUPAS or any university. Programme information is compiled from publicly available official sources and may be incomplete, inaccurate, or out of date; programmes, JS codes, and entry requirements change. Always verify details on the official JUPAS website (www.jupas.edu.hk) and the relevant institution\'s website before making any application decision. All programme data, names, and trademarks remain the property of their respective owners. External links are provided for convenience only; we are not responsible for the content of third-party websites. The School and the Career Team accept no liability for any loss or decision arising from the use of this tool.',
     loadErr: 'Could not load programmes.csv. When opening the file directly from your computer, browsers block local file loading. It will work once hosted on GitHub Pages. To preview now, choose the CSV file below:',
   },
   zh: {
@@ -49,7 +49,7 @@ const STRINGS = {
     empty: '沒有符合篩選條件的課程。',
     link: '官方網頁 ↗',
     duration: '修業年期',
-    footer: '示範資料 — 請以完整的 JUPAS 課程清單取代 programmes.csv。詳情請以官方網頁為準。',
+    footer: '免責聲明：本工具由保良局第一張永慶中學升學輔導及生涯規劃組編製，僅供本校學生參考之用，並非 JUPAS（大學聯合招生辦法）或任何大學的官方工具，亦與其並無任何從屬或認可關係。課程資料輯錄自公開的官方資料，可能不完整、不準確或未及更新；課程、JS 編號及入學要求均可能有所變動。在作出任何報讀決定前，請務必於 JUPAS 官方網站（www.jupas.edu.hk）及相關院校網站核實資料。所有課程資料、名稱及商標均屬其各自擁有者所有。外部連結僅為方便瀏覽而提供，本校對第三方網站內容概不負責。本校及生涯規劃組就使用本工具所引致的任何損失或決定概不承擔法律責任。',
     loadErr: '無法載入 programmes.csv。直接開啟本機檔案時，瀏覽器會封鎖本地檔案讀取。上載到 GitHub Pages 後即可正常運作。如需即時預覽，請於下方選擇 CSV 檔案：',
   }
 };
