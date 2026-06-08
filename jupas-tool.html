@@ -103,6 +103,76 @@
   .badge-lic { display: inline-block; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
   .code-row { display: flex; align-items: center; flex-wrap: wrap; }
   footer { margin-top: 30px; color: var(--muted); font-size: 0.8rem; text-align: center; }
+
+  /* ---- decorative polish (CSP-safe: same-origin SVG + CSS gradients only) ---- */
+  /* soft brand glow behind the whole page */
+  body {
+    background:
+      radial-gradient(1200px 420px at 100% -8%, rgba(201,162,75,0.13), transparent 60%),
+      radial-gradient(900px 380px at -8% 2%, rgba(139,168,136,0.11), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+
+  /* hero banner — reuses the site's dawn-sky art with a readability veil */
+  .hero {
+    position: relative; overflow: hidden;
+    border-radius: 22px; border: 1px solid var(--border);
+    box-shadow: var(--shadow); padding: 24px 26px; margin-bottom: 22px;
+    background:
+      linear-gradient(90deg, rgba(255,253,248,0.95) 0%, rgba(255,253,248,0.66) 46%, rgba(255,253,248,0.20) 100%),
+      url("images/header-bg.svg") center/cover no-repeat,
+      var(--accent-soft);
+  }
+  .hero .top { align-items: flex-start; margin-bottom: 0; position: relative; z-index: 1; }
+  .hero-titles { max-width: 62ch; }
+  .hero h1 { font-size: 1.95rem; margin: 0; }
+  .hero .subtitle { margin: 8px 0 0; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;
+    background: rgba(255,255,255,0.72); color: var(--link);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 12px; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.1em;
+  }
+  .hero-sprig {
+    position: absolute; top: -16px; right: -8px; width: 168px;
+    opacity: 0.5; transform: rotate(6deg); pointer-events: none; z-index: 0;
+  }
+
+  /* controls card — slim gold→sage accent strip on top */
+  .controls { position: relative; overflow: hidden; padding-top: 20px; }
+  .controls::before {
+    content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 4px;
+    background: linear-gradient(90deg, var(--accent), #8BA888);
+  }
+
+  /* programme cards — gold edge on hover (pairs with the existing grow) */
+  .prog:hover { border-color: var(--accent); }
+
+  /* lock screen — gradient backdrop, accented card, gold icon disc */
+  .lockscreen {
+    background:
+      radial-gradient(820px 320px at 50% -6%, rgba(201,162,75,0.18), transparent 62%),
+      radial-gradient(640px 260px at 12% 112%, rgba(139,168,136,0.13), transparent 60%),
+      var(--bg);
+  }
+  .lockbox { position: relative; overflow: hidden; }
+  .lockbox::before {
+    content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  }
+  .lock-icon {
+    width: 66px; height: 66px; margin: 6px auto 12px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+    background: radial-gradient(circle at 50% 35%, #fff, var(--accent-soft));
+    border: 1px solid var(--border); box-shadow: 0 6px 16px rgba(169,132,47,0.18);
+  }
+
+  @media (max-width: 540px) {
+    .hero { padding: 20px 18px; }
+    .hero h1 { font-size: 1.55rem; }
+    .hero-sprig { width: 120px; opacity: 0.4; }
+  }
 </style>
 </head>
 <body>
@@ -120,14 +190,26 @@
 </div>
 <div id="app" class="wrap" style="display:none">
   <a href="index.html" class="home-link" id="t-home">← Back to home</a>
-  <header class="top">
-    <h1 id="t-title">JUPAS Programme Finder</h1>
-    <div class="lang-toggle">
-      <button id="lang-en" class="active">EN</button>
-      <button id="lang-zh">中</button>
-    </div>
-  </header>
-  <p class="subtitle" id="t-subtitle">Filter undergraduate programmes by subject area, institution, or keyword.</p>
+  <div class="hero">
+    <img class="hero-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <header class="top">
+      <div class="hero-titles">
+        <span class="hero-eyebrow">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M12 3 1 8l11 5 9-4.09V15h2V8L12 3z" fill="currentColor"></path>
+            <path d="M5 11.6V15c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.4l-7 3.18-7-3.18z" fill="currentColor" opacity=".55"></path>
+          </svg>
+          JUPAS
+        </span>
+        <h1 id="t-title">JUPAS Programme Finder</h1>
+        <p class="subtitle" id="t-subtitle">Filter undergraduate programmes by subject area, institution, or keyword.</p>
+      </div>
+      <div class="lang-toggle">
+        <button id="lang-en" class="active">EN</button>
+        <button id="lang-zh">中</button>
+      </div>
+    </header>
+  </div>
 
   <div class="controls">
     <div class="row">
