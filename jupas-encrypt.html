@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>JUPAS Data Encryptor (staff)</title>
+<style>
+  body { font-family: "Segoe UI","PingFang HK",Helvetica,Arial,sans-serif; background:#f5f7fa; color:#1f2933; margin:0; }
+  .wrap { max-width:560px; margin:0 auto; padding:40px 20px; }
+  .card { background:#fff; border:1px solid #e3e8ef; border-radius:14px; padding:28px; }
+  h1 { font-size:1.3rem; margin:0 0 6px; }
+  p.sub { color:#6b7280; font-size:0.9rem; margin:0 0 22px; }
+  label { display:block; font-size:0.85rem; font-weight:600; margin:16px 0 6px; }
+  input { width:100%; padding:10px 12px; border:1px solid #e3e8ef; border-radius:10px; font-size:0.95rem; box-sizing:border-box; }
+  button { margin-top:20px; width:100%; padding:12px; border:none; border-radius:10px; background:#2563eb; color:#fff; font-size:1rem; cursor:pointer; }
+  button:hover { filter:brightness(1.05); }
+  #status { margin-top:16px; font-size:0.9rem; color:#047857; min-height:22px; }
+  ol { color:#374151; font-size:0.85rem; line-height:1.7; padding-left:20px; }
+  .warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; padding:12px 14px; border-radius:10px; font-size:0.82rem; margin-top:18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🔐 JUPAS Data Encryptor</h1>
+    <p class="sub">Staff tool — locks your programme list with a passcode. Run this after editing the data.</p>
+
+    <label for="csv">1. Choose your edited <code>programmes.csv</code></label>
+    <input type="file" id="csv" accept=".csv">
+
+    <label for="pass">2. Enter the passcode (students will use this to unlock the tool)</label>
+    <input type="text" id="pass" autocomplete="off" placeholder="e.g. PLK-careers-2026">
+
+    <button id="gen">3. Generate programmes.enc.json</button>
+    <div id="status"></div>
+
+    <div class="warn">
+      Keep the passcode consistent — if you change it here, every student must use the new one.
+      The plaintext <code>programmes.csv</code> should stay on your computer; only commit the
+      encrypted <code>programmes.enc.json</code> to the public site.
+    </div>
+
+    <p style="font-size:0.8rem;color:#6b7280;margin-top:18px;">Everything runs locally in your browser — the passcode and data never leave this page.</p>
+  </div>
+</div>
+<script src="jupas-encrypt.js"></script>
+</body>
+</html>
