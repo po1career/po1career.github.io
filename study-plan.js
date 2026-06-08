@@ -62,10 +62,12 @@
   };
 
   var COLORS = [
-    { bg: "#f6ecd2", fg: "#9a7b1f" }, { bg: "#e8f0e6", fg: "#5f7d5c" },
-    { bg: "#f1ddd5", fg: "#9c5b33" }, { bg: "#e3ebf3", fg: "#3f6184" },
-    { bg: "#efe6f0", fg: "#6f4b78" }, { bg: "#eef2e3", fg: "#6f8d3a" },
-    { bg: "#fbe7d6", fg: "#a85c2a" }, { bg: "#e6f0ef", fg: "#3f7d76" }
+    { bg: "#f6ecd2", fg: "#9a7b1f" }, { bg: "#e8f0e6", fg: "#5f7d5c" }, // gold, sage
+    { bg: "#f1ddd5", fg: "#9c5b33" }, { bg: "#e3ebf3", fg: "#3f6184" }, // clay, blue
+    { bg: "#efe6f0", fg: "#6f4b78" }, { bg: "#eef2e3", fg: "#6f8d3a" }, // purple, olive
+    { bg: "#fbe7d6", fg: "#a85c2a" }, { bg: "#e6f0ef", fg: "#3f7d76" }, // orange, teal
+    { bg: "#f7dde6", fg: "#a8456a" }, { bg: "#e2e2f2", fg: "#4a4790" }, // rose, indigo
+    { bg: "#e8e6df", fg: "#6a665a" }, { bg: "#f0dcec", fg: "#8a3d77" }  // stone, plum
   ];
 
   var lang = localStorage.getItem("clp_lang") || "en";
