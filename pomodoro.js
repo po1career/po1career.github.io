@@ -10,7 +10,7 @@
   var P = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_res: "Resources", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", lang: "中文",
+      nav_news: "Latest News", nav_res: "Resources", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_jupas: "JUPAS Finder", lang: "中文",
       title: "Pomodoro Study Timer",
       sub: "Study in focused bursts with short breaks — a simple way to revise more effectively.",
       mode_focus: "Focus", mode_short: "Short Break", mode_long: "Long Break",
@@ -31,7 +31,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_res: "資源下載", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", lang: "EN",
+      nav_news: "最新消息", nav_res: "資源下載", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_jupas: "JUPAS 搜尋器", lang: "EN",
       title: "番茄鐘・專注計時",
       sub: "用「番茄工作法」分段專注、適時休息，讓溫習更有效率。",
       mode_focus: "專注", mode_short: "小休", mode_long: "大休",
@@ -83,6 +83,8 @@
     setText("nav-res", t("nav_res"));
     setText("nav-pomodoro", t("nav_pomodoro"));
     setText("nav-studyplan", t("nav_studyplan"));
+    setText("nav-dse", t("nav_dse"));
+    setText("nav-jupas", t("nav_jupas"));
     document.querySelector(".langbtn").textContent = t("lang");
     setText("pg-title", t("title"));
     setText("pg-sub", t("sub"));
