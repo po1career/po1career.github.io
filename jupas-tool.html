@@ -149,6 +149,11 @@
   /* programme cards — gold edge on hover (pairs with the existing grow) */
   .prog:hover { border-color: var(--accent); }
 
+  /* prominent, concise disclaimer notice at the top */
+  .disclaimer { display: flex; gap: 10px; align-items: flex-start; background: #fbeee2; border: 1px solid #e8c9a8; border-left: 5px solid var(--accent-dark); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .disc-warn { font-size: 1.05rem; line-height: 1.55; flex: none; }
+  .disc-body { margin: 0; color: #7a3517; font-size: 0.86rem; line-height: 1.6; font-weight: 600; text-indent: 1.6em; }
+
   /* lock screen — gradient backdrop, accented card, gold icon disc */
   .lockscreen {
     background:
@@ -211,6 +216,11 @@
     </header>
   </div>
 
+  <div class="disclaimer">
+    <span class="disc-warn" aria-hidden="true">⚠️</span>
+    <p class="disc-body" id="t-footer"></p>
+  </div>
+
   <div class="controls">
     <div class="row">
       <div class="search-box">
@@ -240,10 +250,8 @@
   </div>
 
   <div id="results"></div>
-
-  <footer id="t-footer">Sample data — replace programmes.csv with the full JUPAS list. Always verify details on official pages.</footer>
 </div>
 
-<script src="jupas-tool.js?v=3"></script>
+<script src="jupas-tool.js?v=4"></script>
 </body>
 </html>
