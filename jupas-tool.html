@@ -138,6 +138,12 @@
     position: absolute; top: -16px; right: -8px; width: 168px;
     opacity: 0.5; transform: rotate(6deg); pointer-events: none; z-index: 0;
   }
+  .xlink {
+    display: inline-block; margin-top: 12px; padding: 6px 14px;
+    background: rgba(255,255,255,0.72); border: 1px solid var(--border); border-radius: 999px;
+    color: var(--link); text-decoration: none; font-weight: 800; font-size: 0.85rem;
+  }
+  .xlink:hover { border-color: var(--accent); background: var(--accent-soft); }
 
   /* controls card — slim gold→sage accent strip on top */
   .controls { position: relative; overflow: hidden; padding-top: 20px; }
@@ -208,6 +214,7 @@
         </span>
         <h1 id="t-title">JUPAS Programme Finder</h1>
         <p class="subtitle" id="t-subtitle">Filter undergraduate programmes by subject area, institution, or keyword.</p>
+        <a class="xlink" href="jupas-choices.html">📋 JUPAS Choice Evaluator 選科自評工具 →</a>
       </div>
       <div class="lang-toggle">
         <button id="lang-en" class="active">EN</button>
