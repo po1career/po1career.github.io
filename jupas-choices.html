@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>JUPAS Choice Evaluator</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/notosanstc.css">
+<style>
+  :root {
+    --bg: #FAF4E6;
+    --card: #FFFDF8;
+    --ink: #5B3A24;
+    --muted: #8a6f59;
+    --accent: #C9A24B;
+    --accent-dark: #A9842F;
+    --link: #936c1f;
+    --accent-soft: #F3E8CE;
+    --border: #E8DCC2;
+    --shadow: 0 8px 24px rgba(91,58,36,0.08);
+    --vsafe: #1f7a4d; --vsafe-bg: #e7f6ee;
+    --safe:  #4d7c4d; --safe-bg:  #eef5e9;
+    --mod:   #92660a; --mod-bg:   #fdf3da;
+    --risky: #b3403a; --risky-bg: #fdecea;
+    --unk:   #6b7280; --unk-bg:   #f1f1ef;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Nunito", "Noto Sans TC", "PingFang HK", Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(1200px 420px at 100% -8%, rgba(201,162,75,0.13), transparent 60%),
+      radial-gradient(900px 380px at -8% 2%, rgba(139,168,136,0.11), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+  h1 { font-size: 1.6rem; margin: 0; font-weight: 800; color: var(--ink); }
+  .subtitle { color: var(--muted); margin: 0 0 20px; font-size: 0.95rem; }
+  .lang-toggle { border: 1px solid var(--border); background: var(--card); border-radius: 999px; padding: 4px; display: inline-flex; gap: 2px; }
+  .lang-toggle button { border: none; background: transparent; padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 0.9rem; color: var(--muted); font-family: inherit; font-weight: 700; }
+  .lang-toggle button.active { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; }
+  .home-link { display: inline-block; color: var(--link); text-decoration: none; font-size: 0.9rem; margin-bottom: 12px; font-weight: 700; }
+  .home-link:hover { text-decoration: underline; }
+
+  /* lock screen (same contract as jupas-tool) */
+  .lockscreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+    background:
+      radial-gradient(820px 320px at 50% -6%, rgba(201,162,75,0.18), transparent 62%),
+      radial-gradient(640px 260px at 12% 112%, rgba(139,168,136,0.13), transparent 60%),
+      var(--bg); }
+  .lockbox { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .lockbox::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--accent), var(--accent-dark)); }
+  .lock-icon { width: 66px; height: 66px; margin: 6px auto 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; background: radial-gradient(circle at 50% 35%, #fff, var(--accent-soft)); border: 1px solid var(--border); box-shadow: 0 6px 16px rgba(169,132,47,0.18); }
+  .lockbox h2 { margin: 0; font-size: 1.3rem; font-weight: 800; }
+  .lock-zh { margin: 2px 0 14px; color: var(--ink); font-size: 1.05rem; }
+  .lock-sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 18px; line-height: 1.5; }
+  .lockbox input { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; margin-bottom: 12px; text-align: center; font-family: inherit; background: #fffdf7; color: var(--ink); }
+  .lockbox button { width: 100%; padding: 11px; border: none; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; font-size: 1rem; cursor: pointer; font-family: inherit; font-weight: 800; box-shadow: 0 6px 16px rgba(169,132,47,.3); }
+  .lockbox button:hover { filter: brightness(1.05); }
+  .lock-err { color: #b91c1c; font-size: 0.85rem; min-height: 20px; margin-top: 10px; }
+  .lockbox .home-link { margin: 14px 0 0; }
+
+  /* hero */
+  .hero { position: relative; overflow: hidden; border-radius: 22px; border: 1px solid var(--border); box-shadow: var(--shadow); padding: 24px 26px; margin-bottom: 22px;
+    background: linear-gradient(90deg, rgba(255,253,248,0.95) 0%, rgba(255,253,248,0.66) 46%, rgba(255,253,248,0.20) 100%), url("images/header-bg.svg") center/cover no-repeat, var(--accent-soft); }
+  .hero .top { align-items: flex-start; margin-bottom: 0; position: relative; z-index: 1; }
+  .hero-titles { max-width: 62ch; }
+  .hero h1 { font-size: 1.95rem; margin: 0; }
+  .hero .subtitle { margin: 8px 0 0; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; background: rgba(255,255,255,0.72); color: var(--link); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.1em; }
+  .hero-sprig { position: absolute; top: -16px; right: -8px; width: 168px; opacity: 0.5; transform: rotate(6deg); pointer-events: none; z-index: 0; }
+
+  .disclaimer { display: flex; gap: 10px; align-items: flex-start; background: #fbeee2; border: 1px solid #e8c9a8; border-left: 5px solid var(--accent-dark); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .disc-warn { font-size: 1.05rem; line-height: 1.55; flex: none; }
+  .disc-body { margin: 0; color: #7a3517; font-size: 0.86rem; line-height: 1.6; font-weight: 600; }
+
+  /* panels */
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .panel::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--accent), #8BA888); }
+  .panel h2 { margin: 4px 0 4px; font-size: 1.12rem; font-weight: 800; }
+  .panel .hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 14px; line-height: 1.55; }
+  .panel .hint a { color: var(--link); font-weight: 700; }
+
+  .frow { display: flex; flex-wrap: wrap; gap: 12px; }
+  .fld { display: flex; flex-direction: column; gap: 4px; }
+  .fld label { font-size: 0.78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  input[type="text"], select { padding: 9px 11px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; font-family: inherit; background: #fffdf7; color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid rgba(201,162,75,0.45); }
+
+  /* DSE grades — single aligned grid (7 rows, same structure) */
+  .grades { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 24px; }
+  .grade-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px; align-items: center; gap: 10px; min-height: 42px; }
+  .grade-row .subj, .grade-row select.lv { width: 100%; min-width: 0; }
+  .grade-row .core-name { min-width: 0; font-weight: 700; font-size: 0.93rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding: 9px 11px; border: 1px solid transparent; }
+  .best5 { margin-top: 16px; padding: 12px 14px; border: 1px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .best5 .b5-num { font-size: 1.7rem; font-weight: 800; color: var(--accent-dark); }
+  .best5 .b5-detail { color: var(--muted); font-size: 0.85rem; }
+
+  /* choices table */
+  .tablewrap { overflow-x: auto; }
+  table.choices { border-collapse: collapse; width: 100%; min-width: 920px; }
+  table.choices th { text-align: left; font-size: 0.76rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 8px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  table.choices td { padding: 8px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr.banda { background: rgba(201,162,75,0.07); }
+  tr.band-sep td { padding: 14px 8px 6px; font-size: 0.78rem; font-weight: 800; color: var(--link); text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid var(--accent-soft); }
+  .band-badge { display: inline-block; min-width: 42px; text-align: center; font-weight: 800; font-size: 0.85rem; padding: 4px 8px; border-radius: 8px; background: var(--unk-bg); color: var(--muted); }
+  tr.banda .band-badge { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; }
+  .pp-wrap { position: relative; min-width: 220px; }
+  .pp-in { width: 100%; }
+  .pp-drop { position: absolute; z-index: 30; left: 0; right: -120px; top: calc(100% + 4px); background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 30px rgba(91,58,36,0.18); max-height: 280px; overflow-y: auto; display: none; }
+  .pp-drop button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 8px 10px; cursor: pointer; font-family: inherit; font-size: 0.83rem; color: var(--ink); border-bottom: 1px solid #f3ecd9; }
+  .pp-drop button:hover { background: var(--accent-soft); }
+  .pp-drop .ppc { font-weight: 800; color: var(--link); margin-right: 6px; }
+  .pp-info { font-size: 0.78rem; color: var(--muted); margin-top: 4px; max-width: 340px; line-height: 1.4; }
+  .pp-info a { color: var(--link); font-weight: 700; text-decoration: none; }
+  .pp-info a:hover { text-decoration: underline; }
+  .pp-info .warn { color: #b3403a; font-weight: 700; }
+  td input.score { width: 92px; }
+  td select.cmp { max-width: 230px; }
+  td input.remark { width: 150px; }
+  /* position vs admission score references — factual statistical bands */
+  .pos-badge { display: inline-block; font-size: 0.78rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .p-uq    { background: var(--vsafe-bg); color: var(--vsafe); }
+  .p-m     { background: var(--safe-bg);  color: var(--safe); }
+  .p-lq    { background: var(--mod-bg);   color: var(--mod); }
+  .p-below { background: var(--risky-bg); color: var(--risky); }
+  .p-na    { background: var(--unk-bg);   color: var(--unk); }
+  .p-empty { background: transparent; color: var(--border); border: 1px dashed var(--border); }
+
+  /* summary — factual counts only */
+  .sum-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+  .sum-chips .pos-badge { font-size: 0.85rem; padding: 6px 13px; }
+  .sum-band-label { font-size: 0.78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+  .sum-band-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-top: 1px solid var(--accent-soft); }
+  .sum-band-name { flex: 0 0 175px; font-size: 0.82rem; font-weight: 800; color: var(--link); }
+
+  /* actions */
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn { border: none; border-radius: 10px; padding: 11px 18px; font-family: inherit; font-weight: 800; font-size: 0.95rem; cursor: pointer; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; box-shadow: 0 6px 16px rgba(169,132,47,.3); }
+  .btn:hover { filter: brightness(1.05); }
+  .btn-ghost { background: #fffdf7; color: var(--link); border: 1px solid var(--border); box-shadow: none; }
+  .remember { display: inline-flex; align-items: center; gap: 7px; font-size: 0.9rem; cursor: pointer; margin-left: auto; }
+  .remember input { width: 16px; height: 16px; cursor: pointer; }
+  .file-btn { display: inline-flex; align-items: center; cursor: pointer; }
+  .file-btn input[type=file] { display: none; }
+  .msg { min-height: 22px; margin-top: 10px; font-size: 0.88rem; font-weight: 700; }
+  .msg.ok { color: var(--vsafe); }
+  .msg.err { color: var(--risky); }
+  .shared-note { color: var(--muted); font-size: 0.78rem; margin-top: 10px; }
+
+  footer { margin-top: 30px; color: var(--muted); font-size: 0.74rem; line-height: 1.65; text-align: left; max-width: 760px; margin-left: auto; margin-right: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 540px) {
+    .hero { padding: 20px 18px; }
+    .hero h1 { font-size: 1.55rem; }
+    .hero-sprig { width: 120px; opacity: 0.4; }
+  }
+
+  /* ---- print report (filled by JS just before window.print) ---- */
+  #report { display: none; }
+  @media print {
+    body { background: #fff; }
+    body > #lock, body > #app { display: none !important; }
+    #report { display: block !important; font-size: 11px; color: #000; }
+    #report h1 { font-size: 16px; margin: 0 0 2px; }
+    #report h2 { font-size: 13px; margin: 14px 0 6px; border-bottom: 1.5px solid #000; padding-bottom: 2px; }
+    #report .rp-sub { font-size: 11px; color: #333; margin: 0 0 10px; }
+    #report table { border-collapse: collapse; width: 100%; }
+    #report th, #report td { border: 0.5px solid #888; padding: 3px 5px; text-align: left; vertical-align: top; }
+    #report th { background: #eee; font-size: 10px; }
+    #report .rp-meta td { border: none; padding: 1px 14px 1px 0; font-size: 11.5px; }
+    #report .rp-comment { border: 1px solid #000; height: 110px; margin-top: 4px; }
+    #report .rp-sign { margin-top: 22px; display: flex; gap: 40px; font-size: 11px; }
+    #report .rp-disc { margin-top: 14px; font-size: 8.5px; color: #444; line-height: 1.5; }
+    #report tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div id="lock" class="lockscreen">
+  <div class="lockbox">
+    <div class="lock-icon">🔒</div>
+    <h2>Enter passcode</h2>
+    <p class="lock-zh">請輸入通行碼</p>
+    <p class="lock-sub">For PLK No.1 W.H. Cheung College students only<br>只供保良局第一張永慶中學學生使用</p>
+    <input type="password" id="passcode" autocomplete="off" placeholder="Passcode 通行碼" />
+    <button id="unlock-btn" type="button">Unlock 解鎖</button>
+    <div id="lock-err" class="lock-err"></div>
+    <a href="index.html" class="home-link">← Back to home 返回主頁</a>
+  </div>
+</div>
+
+<div id="app" class="wrap" style="display:none">
+  <a href="index.html" class="home-link" id="t-home">← Back to home</a>
+  <div class="hero">
+    <img class="hero-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <header class="top">
+      <div class="hero-titles">
+        <span class="hero-eyebrow">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm-2.29 13.29L7 13.59l1.41-1.42 1.3 1.3 4.88-4.88L16 10l-6.29 6.29z" fill="currentColor"></path>
+          </svg>
+          JUPAS
+        </span>
+        <h1 id="t-title">JUPAS Choice Evaluator</h1>
+        <p class="subtitle" id="t-subtitle"></p>
+      </div>
+      <div class="lang-toggle">
+        <button id="lang-en" class="active">EN</button>
+        <button id="lang-zh">中</button>
+      </div>
+    </header>
+  </div>
+
+  <div class="disclaimer">
+    <span class="disc-warn" aria-hidden="true">⚠️</span>
+    <p class="disc-body" id="t-disc"></p>
+  </div>
+
+  <!-- 1. student info -->
+  <div class="panel">
+    <h2 id="t-s1"></h2>
+    <div class="frow">
+      <div class="fld"><label for="in-name" id="t-name"></label><input type="text" id="in-name" maxlength="60" style="width:240px"></div>
+      <div class="fld"><label for="in-class" id="t-class"></label><input type="text" id="in-class" maxlength="10" style="width:90px"></div>
+      <div class="fld"><label for="in-cno" id="t-cno"></label><input type="text" id="in-cno" maxlength="4" style="width:90px"></div>
+    </div>
+  </div>
+
+  <!-- 2. DSE results -->
+  <div class="panel">
+    <h2 id="t-s2"></h2>
+    <p class="hint" id="t-s2hint"></p>
+    <div class="grades" id="grades"></div>
+    <div class="best5">
+      <span id="t-b5label" style="font-weight:800"></span>
+      <span class="b5-num" id="best5-val">0</span>
+      <span class="b5-detail" id="best5-detail"></span>
+    </div>
+  </div>
+
+  <!-- 3. choices -->
+  <div class="panel">
+    <h2 id="t-s3"></h2>
+    <p class="hint" id="t-s3hint"></p>
+    <div class="tablewrap">
+      <table class="choices">
+        <thead>
+          <tr>
+            <th id="th-choice"></th>
+            <th id="th-prog"></th>
+            <th id="th-score"></th>
+            <th id="th-pos"></th>
+            <th id="th-remark"></th>
+          </tr>
+        </thead>
+        <tbody id="choice-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. summary -->
+  <div class="panel">
+    <h2 id="t-s4"></h2>
+    <div class="sum-chips" id="sum-chips"></div>
+    <div id="sum-bands"></div>
+  </div>
+
+  <!-- 5. actions -->
+  <div class="panel">
+    <h2 id="t-s5"></h2>
+    <div class="actions">
+      <button class="btn" id="btn-pdf" type="button"></button>
+      <button class="btn" id="btn-csv" type="button"></button>
+      <button class="btn btn-ghost" id="btn-print" type="button"></button>
+      <label class="btn btn-ghost file-btn"><span id="lbl-import"></span><input type="file" id="in-import" accept=".pdf,application/pdf"></label>
+      <button class="btn btn-ghost" id="btn-clear" type="button"></button>
+      <label class="remember"><input type="checkbox" id="in-remember"><span id="lbl-remember"></span></label>
+    </div>
+    <div id="io-msg" class="msg"></div>
+    <p class="shared-note" id="shared-note"></p>
+  </div>
+
+  <footer id="t-footer"></footer>
+</div>
+
+<!-- print-only report, built by JS -->
+<div id="report"></div>
+
+<script src="jupas-choices.js?v=3"></script>
+</body>
+</html>
