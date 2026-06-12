@@ -108,10 +108,24 @@
   table.choices { border-collapse: collapse; width: 100%; min-width: 920px; }
   table.choices th { text-align: left; font-size: 0.76rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 8px; border-bottom: 2px solid var(--border); white-space: nowrap; }
   table.choices td { padding: 8px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  tr.banda { background: rgba(201,162,75,0.07); }
-  tr.band-sep td { padding: 14px 8px 6px; font-size: 0.78rem; font-weight: 800; color: var(--link); text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid var(--accent-soft); }
-  .band-badge { display: inline-block; min-width: 42px; text-align: center; font-weight: 800; font-size: 0.85rem; padding: 4px 8px; border-radius: 8px; background: var(--unk-bg); color: var(--muted); }
-  tr.banda .band-badge { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; }
+  /* per-band colours (A gold · B sage · C blue · D plum · E clay) */
+  tr.band-a { background: rgba(201,162,75,0.08); }
+  tr.band-b { background: rgba(139,168,136,0.10); }
+  tr.band-c { background: rgba(109,147,171,0.09); }
+  tr.band-d { background: rgba(154,122,166,0.09); }
+  tr.band-e { background: rgba(189,125,84,0.08); }
+  tr.band-sep td { padding: 14px 8px 6px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--link); border-bottom: 2px solid var(--accent-soft); }
+  tr.band-sep.band-a td { color: #9a7620; border-bottom-color: rgba(201,162,75,0.45); }
+  tr.band-sep.band-b td { color: #4f6b4a; border-bottom-color: rgba(139,168,136,0.55); }
+  tr.band-sep.band-c td { color: #3f6c87; border-bottom-color: rgba(109,147,171,0.50); }
+  tr.band-sep.band-d td { color: #6f4f7b; border-bottom-color: rgba(154,122,166,0.50); }
+  tr.band-sep.band-e td { color: #9a5a30; border-bottom-color: rgba(189,125,84,0.50); }
+  .band-badge { display: inline-block; min-width: 42px; text-align: center; font-weight: 800; font-size: 0.85rem; padding: 4px 8px; border-radius: 8px; background: var(--unk-bg); color: #fff; }
+  tr.band-a .band-badge { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); }
+  tr.band-b .band-badge { background: #7d9a78; }
+  tr.band-c .band-badge { background: #6189a3; }
+  tr.band-d .band-badge { background: #927ba0; }
+  tr.band-e .band-badge { background: #bd7d54; }
   .pp-wrap { position: relative; min-width: 220px; }
   .pp-in { width: 100%; }
   .pp-drop { position: absolute; z-index: 30; left: 0; right: -120px; top: calc(100% + 4px); background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 30px rgba(91,58,36,0.18); max-height: 280px; overflow-y: auto; display: none; }
@@ -139,7 +153,12 @@
   .sum-chips .pos-badge { font-size: 0.85rem; padding: 6px 13px; }
   .sum-band-label { font-size: 0.78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
   .sum-band-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-top: 1px solid var(--accent-soft); }
-  .sum-band-name { flex: 0 0 175px; font-size: 0.82rem; font-weight: 800; color: var(--link); }
+  .sum-band-name { flex: 0 0 175px; font-size: 0.82rem; font-weight: 800; color: var(--link); padding-left: 10px; border-left: 4px solid var(--border); }
+  .sum-band-row.band-a .sum-band-name { color: #9a7620; border-left-color: var(--accent); }
+  .sum-band-row.band-b .sum-band-name { color: #4f6b4a; border-left-color: #7d9a78; }
+  .sum-band-row.band-c .sum-band-name { color: #3f6c87; border-left-color: #6189a3; }
+  .sum-band-row.band-d .sum-band-name { color: #6f4f7b; border-left-color: #927ba0; }
+  .sum-band-row.band-e .sum-band-name { color: #9a5a30; border-left-color: #bd7d54; }
 
   /* actions */
   .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -294,6 +313,6 @@
 <!-- print-only report, built by JS -->
 <div id="report"></div>
 
-<script src="jupas-choices.js?v=3"></script>
+<script src="jupas-choices.js?v=4"></script>
 </body>
 </html>

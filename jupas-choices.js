@@ -95,7 +95,7 @@ var STRINGS = {
     b5none: 'Enter at least 5 subjects to see your Best 5.',
     b5detail: function (list) { return 'Counted: ' + list; },
     s3: '3 · Your 20 programme choices',
-    s3hint: 'Type a JS code or keyword to search the programme list. Then use each university’s own admission-score calculator — e.g. <a href="https://jupascalculator.com" target="_blank" rel="noopener noreferrer">jupascalculator.com</a> or the calculator on the institution’s admissions website — to work out your weighted score for that programme, enter it, and choose where it sits against the programme’s published admission score references (UQ / Median / LQ of previous intakes).',
+    s3hint: 'Type a JS code or keyword to search the programme list. Then use each university’s own admission-score calculator on its admissions website to work out your weighted score for that programme, enter it, and choose where it sits against the programme’s published admission score references (UQ / Median / LQ of previous intakes).',
     bandRow: function (b) { return 'Band ' + b.name + ' · choices ' + b.from + '–' + b.to; },
     thChoice: 'Choice', thProg: 'Programme (JS code)', thScore: 'Calculated score',
     thPos: 'Position vs admission score references', thRemark: 'Remarks',
@@ -149,7 +149,7 @@ var STRINGS = {
     b5none: '輸入至少五科成績後會顯示最佳五科總分。',
     b5detail: function (list) { return '計入科目：' + list; },
     s3: '3 · 你的 20 個課程選擇',
-    s3hint: '輸入 JS 編號或關鍵字搜尋課程。然後使用各大學的收生分數計算機——例如 <a href="https://jupascalculator.com" target="_blank" rel="noopener noreferrer">jupascalculator.com</a> 或院校收生網頁上的計算機——計算你在該課程的加權分數並填入，再對照該課程公布的收生分數參考（過往年度的上四分位數／中位數／下四分位數），選出你所屬的區間。',
+    s3hint: '輸入 JS 編號或關鍵字搜尋課程。然後使用各大學收生網頁上的收生分數計算機，計算你在該課程的加權分數並填入，再對照該課程公布的收生分數參考（過往年度的上四分位數／中位數／下四分位數），選出你所屬的區間。',
     bandRow: function (b) { return 'Band ' + b.name + ' · 第 ' + b.from + '–' + b.to + ' 志願'; },
     thChoice: '志願', thProg: '課程（JS 編號）', thScore: '計算分數',
     thPos: '對比收生分數參考的位置', thRemark: '備註',
@@ -364,9 +364,10 @@ function buildTable() {
   tbody.innerHTML = '';
   state.choices.forEach(function (ch, i) {
     var band = bandOf(i);
+    var bandCls = 'band-' + band.name.toLowerCase();
     if (i + 1 === band.from) {
       var sep = document.createElement('tr');
-      sep.className = 'band-sep';
+      sep.className = 'band-sep ' + bandCls;
       var sepTd = document.createElement('td');
       sepTd.colSpan = 5;
       sepTd.textContent = t().bandRow(band);
@@ -375,7 +376,7 @@ function buildTable() {
     }
 
     var tr = document.createElement('tr');
-    if (band.name === 'A') tr.className = 'banda';
+    tr.className = bandCls;
 
     var tdN = document.createElement('td');
     var badge = document.createElement('span');
@@ -477,7 +478,7 @@ function updateSummary() {
   bb.innerHTML = '<div class="sum-band-label">' + esc(s.sumByBand) + '</div>';
   BANDS.forEach(function (b) {
     var row = document.createElement('div');
-    row.className = 'sum-band-row';
+    row.className = 'sum-band-row band-' + b.name.toLowerCase();
     var nameEl = document.createElement('span');
     nameEl.className = 'sum-band-name'; nameEl.textContent = s.bandRow(b);
     row.appendChild(nameEl);
@@ -746,7 +747,7 @@ function renderStatic() {
   $('t-s2').textContent = s.s2; $('t-s2hint').textContent = s.s2hint;
   $('t-b5label').textContent = s.b5label;
   $('t-s3').textContent = s.s3;
-  $('t-s3hint').innerHTML = s.s3hint;   // contains a vetted external link (jupascalculator.com)
+  $('t-s3hint').textContent = s.s3hint;
   $('th-choice').textContent = s.thChoice; $('th-prog').textContent = s.thProg;
   $('th-score').textContent = s.thScore; $('th-pos').textContent = s.thPos;
   $('th-remark').textContent = s.thRemark;
