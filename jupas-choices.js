@@ -33,28 +33,17 @@ var CORE = [
 ];
 
 var ELECT_SUBJ = [
-  { key: 'bio',     en: 'Biology',                       zh: '生物' },
-  { key: 'chem',    en: 'Chemistry',                     zh: '化學' },
-  { key: 'phys',    en: 'Physics',                       zh: '物理' },
-  { key: 'econ',    en: 'Economics',                     zh: '經濟' },
-  { key: 'bafs',    en: 'BAFS',                          zh: '企業、會計與財務概論' },
-  { key: 'geog',    en: 'Geography',                     zh: '地理' },
-  { key: 'hist',    en: 'History',                       zh: '歷史' },
-  { key: 'chist',   en: 'Chinese History',               zh: '中國歷史' },
-  { key: 'ict',     en: 'ICT',                           zh: '資訊及通訊科技' },
-  { key: 'ths',     en: 'Tourism & Hospitality Studies', zh: '旅遊與款待' },
-  { key: 'm1',      en: 'Maths Ext. (M1)',               zh: '數學延伸單元一 (M1)' },
-  { key: 'm2',      en: 'Maths Ext. (M2)',               zh: '數學延伸單元二 (M2)' },
-  { key: 'chinlit', en: 'Chinese Literature',            zh: '中國文學' },
-  { key: 'englit',  en: 'Literature in English',         zh: '英語文學' },
-  { key: 'ers',     en: 'Ethics & Religious Studies',    zh: '倫理與宗教' },
-  { key: 'hmsc',    en: 'Health Mgmt & Social Care',     zh: '健康管理與社會關懷' },
-  { key: 'dat',     en: 'Design & Applied Technology',   zh: '設計與應用科技' },
-  { key: 'tl',      en: 'Technology & Living',           zh: '科技與生活' },
-  { key: 'music',   en: 'Music',                         zh: '音樂' },
-  { key: 'va',      en: 'Visual Arts',                   zh: '視覺藝術' },
-  { key: 'pe',      en: 'Physical Education',            zh: '體育' },
-  { key: 'other',   en: 'Other elective',                zh: '其他選修科' }
+  { key: 'bafs',    en: 'BAFS',                  zh: '企業、會計與財務概論' },
+  { key: 'bio',     en: 'Biology',               zh: '生物' },
+  { key: 'chem',    en: 'Chemistry',             zh: '化學' },
+  { key: 'chist',   en: 'Chinese History',       zh: '中國歷史' },
+  { key: 'chinlit', en: 'Chinese Literature',    zh: '中國文學' },
+  { key: 'econ',    en: 'Economics',             zh: '經濟' },
+  { key: 'geog',    en: 'Geography',             zh: '地理' },
+  { key: 'hist',    en: 'History',               zh: '歷史' },
+  { key: 'ict',     en: 'ICT',                   zh: '資訊及通訊科技' },
+  { key: 'm2',      en: 'Maths Ext. (M2)',       zh: '數學延伸單元二 (M2)' },
+  { key: 'phys',    en: 'Physics',               zh: '物理' }
 ];
 
 var N_ELECT = 4, N_CHOICES = 20;
@@ -97,7 +86,7 @@ var STRINGS = {
     s3: '3 · Your 20 programme choices',
     s3hint: 'Type a JS code or keyword to search the programme list. Then use each university’s own admission-score calculator on its admissions website to work out your weighted score for that programme, enter it, and choose where it sits against the programme’s published admission score references (UQ / Median / LQ of previous intakes).',
     bandRow: function (b) { return 'Band ' + b.name + ' · choices ' + b.from + '–' + b.to; },
-    thChoice: 'Choice', thProg: 'Programme (JS code)', thScore: 'Calculated score',
+    thChoice: 'Choice', thProg: 'Programme (JS code)', thIntake: 'First-year intake', thScore: 'Calculated score',
     thPos: 'Position vs admission score references', thRemark: 'Remarks',
     progPh: 'JS code / keyword…',
     notFound: 'Not in our list — double-check the code on jupas.edu.hk',
@@ -151,7 +140,7 @@ var STRINGS = {
     s3: '3 · 你的 20 個課程選擇',
     s3hint: '輸入 JS 編號或關鍵字搜尋課程。然後使用各大學收生網頁上的收生分數計算機，計算你在該課程的加權分數並填入，再對照該課程公布的收生分數參考（過往年度的上四分位數／中位數／下四分位數），選出你所屬的區間。',
     bandRow: function (b) { return 'Band ' + b.name + ' · 第 ' + b.from + '–' + b.to + ' 志願'; },
-    thChoice: '志願', thProg: '課程（JS 編號）', thScore: '計算分數',
+    thChoice: '志願', thProg: '課程（JS 編號）', thIntake: '首年學額', thScore: '計算分數',
     thPos: '對比收生分數參考的位置', thRemark: '備註',
     progPh: 'JS 編號／關鍵字…',
     notFound: '不在清單內——請於 jupas.edu.hk 核對編號',
@@ -202,7 +191,7 @@ function blankState() {
     name: '', klass: '', cno: '',
     core: { chi: '', eng: '', math: '' },
     elect: Array.from({ length: N_ELECT }, function () { return { s: '', lv: '' }; }),
-    choices: Array.from({ length: N_CHOICES }, function () { return { code: '', score: '', cmp: '', remark: '' }; }),
+    choices: Array.from({ length: N_CHOICES }, function () { return { code: '', intake: '', score: '', cmp: '', remark: '' }; }),
     remember: true
   };
 }
@@ -224,6 +213,7 @@ function applyData(d) {
   if (Array.isArray(d.choices)) for (var j = 0; j < N_CHOICES; j++) {
     var c2 = d.choices[j] || {};
     state.choices[j].code = String(c2.code || '').slice(0, 40);
+    state.choices[j].intake = String(c2.intake || '').slice(0, 12);
     state.choices[j].score = String(c2.score || '').slice(0, 12);
     state.choices[j].cmp = MANUAL_CMP.indexOf(c2.cmp) >= 0 ? c2.cmp : '';
     state.choices[j].remark = String(c2.remark || '').slice(0, 120);
@@ -369,7 +359,7 @@ function buildTable() {
       var sep = document.createElement('tr');
       sep.className = 'band-sep ' + bandCls;
       var sepTd = document.createElement('td');
-      sepTd.colSpan = 5;
+      sepTd.colSpan = 6;
       sepTd.textContent = t().bandRow(band);
       sep.appendChild(sepTd);
       tbody.appendChild(sep);
@@ -426,6 +416,12 @@ function buildTable() {
     tdP.appendChild(wrap);
     updateInfo();
 
+    var tdI = document.createElement('td');
+    var ik = document.createElement('input');
+    ik.type = 'text'; ik.className = 'intake'; ik.maxLength = 12; ik.inputMode = 'numeric'; ik.value = ch.intake;
+    ik.addEventListener('input', function () { ch.intake = ik.value; save(); });
+    tdI.appendChild(ik);
+
     var tdS = document.createElement('td');
     var sc = document.createElement('input');
     sc.type = 'text'; sc.className = 'score'; sc.maxLength = 12; sc.inputMode = 'decimal'; sc.value = ch.score;
@@ -445,7 +441,7 @@ function buildTable() {
     rm.addEventListener('input', function () { ch.remark = rm.value; save(); });
     tdM.appendChild(rm);
 
-    tr.appendChild(tdN); tr.appendChild(tdP); tr.appendChild(tdS);
+    tr.appendChild(tdN); tr.appendChild(tdP); tr.appendChild(tdI); tr.appendChild(tdS);
     tr.appendChild(tdC); tr.appendChild(tdM);
     tbody.appendChild(tr);
   });
@@ -499,7 +495,7 @@ function updateSummary() {
 
 // ---------- export: CSV (Excel) ----------
 function csvField(v) {
-  v = String(v == null ? '' : v);
+  v = deSmart(v);
   return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
 }
 
@@ -519,14 +515,12 @@ function exportCSV() {
   row(s.rpBest5, gradeEntries().length ? best5Total() : '');
   row();
   row(s.rpChoices);
-  row(s.thChoice, s.rpBand, 'JS', s.thProg, s.rpInst, s.thScore, s.thPos, s.thRemark);
+  row(s.thChoice, s.rpBand, 'JS', s.thProg, s.rpInst, s.thIntake, s.thScore, s.thPos, s.thRemark);
   state.choices.forEach(function (c, i) {
     var p = c.code.trim() ? findProg(c.code) : null;
     row(choiceLabel(i), bandOf(i).name, c.code, p ? progName(p) : '', p ? progInst(p) : '',
-        c.score, c.cmp ? s.cmpFull[c.cmp] : '', c.remark);
+        c.intake, c.score, c.cmp ? s.cmpFull[c.cmp] : '', c.remark);
   });
-  row();
-  row(s.disc);
 
   var blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   var a = document.createElement('a');
@@ -541,8 +535,15 @@ function exportCSV() {
 function utf8ToB64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function b64ToUtf8(b64) { return decodeURIComponent(escape(atob(b64))); }
 function pdfEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
+// normalise typographic punctuation to plain ASCII (smart apostrophes/quotes/dashes would
+// otherwise render as "?" in the Helvetica PDF). Used by both PDF and CSV exports.
+function deSmart(s) {
+  return String(s == null ? '' : s)
+    .replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-').replace(/…/g, '...').replace(/ /g, ' ');
+}
 function ascii(s) {
-  var o = '', str = String(s);
+  var o = '', str = deSmart(s);
   for (var i = 0; i < str.length; i++) { var c = str.charCodeAt(i); o += (c >= 32 && c < 256) ? str[i] : '?'; }
   return o;
 }
@@ -606,6 +607,7 @@ function pdfLines() {
     var nm = p ? (p.name_en + ' (' + p.institution_en + ')') : '';
     L.push({ t: choiceLabel(i) + '  ' + c.code.trim().toUpperCase() + '  ' + nm.slice(0, 90), size: 10, bold: true, gap: 4 });
     var detail = [];
+    if (c.intake.trim()) detail.push(en.thIntake + ': ' + c.intake.trim());
     if (c.score.trim()) detail.push(en.thScore + ': ' + c.score.trim());
     if (c.cmp) detail.push(en.cmpFull[c.cmp]);
     if (c.remark.trim()) detail.push(c.remark.trim());
@@ -614,7 +616,6 @@ function pdfLines() {
   L.push({ t: en.rpComments + ':', size: 12, bold: true, gap: 16 });
   for (var k = 0; k < 5; k++) L.push({ t: '', size: 11 });
   L.push({ t: en.rpSignS + '      ' + en.rpSignT + '      ' + en.rpDate, size: 10, gap: 8 });
-  L.push({ t: en.disc, size: 7, gap: 12, lh: 9 });
   return L;
 }
 
@@ -626,7 +627,7 @@ function exportPdf() {
     core: state.core, elect: state.elect,
     choices: state.choices.map(function (c) {
       var p = c.code.trim() ? findProg(c.code) : null;
-      return { code: c.code, score: c.score, cmp: c.cmp, remark: c.remark,
+      return { code: c.code, intake: c.intake, score: c.score, cmp: c.cmp, remark: c.remark,
                name_en: p ? p.name_en : '', inst_en: p ? p.institution_en : '',
                name_zh: p ? p.name_zh : '', inst_zh: p ? p.institution_zh : '' };
     }),
@@ -702,13 +703,13 @@ function buildReport() {
   h += '</table>';
 
   h += '<h2>' + esc(s.rpChoices) + '</h2><table><tr><th>' + esc(s.thChoice) + '</th><th>JS</th><th>' +
-    esc(s.thProg) + '</th><th>' + esc(s.thScore) + '</th><th>' + esc(s.thPos) + '</th><th>' +
+    esc(s.thProg) + '</th><th>' + esc(s.thIntake) + '</th><th>' + esc(s.thScore) + '</th><th>' + esc(s.thPos) + '</th><th>' +
     esc(s.thRemark) + '</th></tr>';
   state.choices.forEach(function (c, i) {
     var p = c.code.trim() ? findProg(c.code) : null;
     var pname = p ? (progName(p) + ' — ' + progInst(p)) : '';
     h += '<tr><td><strong>' + choiceLabel(i) + '</strong></td><td>' + esc(c.code) + '</td><td>' +
-      esc(pname) + '</td><td>' + esc(c.score) + '</td><td>' + esc(c.cmp ? s.cmpFull[c.cmp] : '') + '</td><td>' +
+      esc(pname) + '</td><td>' + esc(c.intake) + '</td><td>' + esc(c.score) + '</td><td>' + esc(c.cmp ? s.cmpFull[c.cmp] : '') + '</td><td>' +
       esc(c.remark) + '</td></tr>';
   });
   h += '</table>';
@@ -726,7 +727,6 @@ function buildReport() {
   h += '<h2>' + esc(s.rpComments) + '</h2><div class="rp-comment"></div>';
   h += '<div class="rp-sign"><span>' + esc(s.rpSignS) + '</span><span>' + esc(s.rpSignT) +
     '</span><span>' + esc(s.rpDate) + '</span></div>';
-  h += '<p class="rp-disc">' + esc(s.disc) + '</p>';
 
   $('report').innerHTML = h;
 }
@@ -741,7 +741,6 @@ function renderStatic() {
   $('t-home').textContent = s.home;
   $('t-title').textContent = s.title;
   $('t-subtitle').textContent = s.subtitle;
-  $('t-disc').textContent = s.disc;
   $('t-s1').textContent = s.s1;
   $('t-name').textContent = s.name; $('t-class').textContent = s.klass; $('t-cno').textContent = s.cno;
   $('t-s2').textContent = s.s2; $('t-s2hint').textContent = s.s2hint;
@@ -749,6 +748,7 @@ function renderStatic() {
   $('t-s3').textContent = s.s3;
   $('t-s3hint').textContent = s.s3hint;
   $('th-choice').textContent = s.thChoice; $('th-prog').textContent = s.thProg;
+  $('th-intake').textContent = s.thIntake;
   $('th-score').textContent = s.thScore; $('th-pos').textContent = s.thPos;
   $('th-remark').textContent = s.thRemark;
   $('t-s4').textContent = s.s4;
