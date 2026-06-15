@@ -9,7 +9,7 @@
   <meta name="description" content="A Pomodoro study timer for PLK No.1 W.H. Cheung College students — focus, revise, and take healthy breaks.">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=14">
   <style>
     /* ---- Pomodoro-specific UI (uses the shared palette/fonts) ---- */
     .pomo-wrap{max-width:720px;margin:0 auto;padding:8px 0 24px;text-align:center}
@@ -67,14 +67,28 @@
         </div>
       </a>
       <nav class="main">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+        <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
+        <div class="nav-links">
         <a href="index.html#news" id="nav-news">Latest News</a>
         <a href="index.html#res-sec" id="nav-res">Resources</a>
-        <a href="pomodoro.html" id="nav-pomodoro" class="active">Pomodoro</a>
-        <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
-        <a href="dse-portfolio.html" id="nav-dse">DSE Portfolio</a>
-        <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
-        <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
+          <div class="navgroup-menu">
+            <a href="pomodoro.html" id="nav-pomodoro" class="active">Pomodoro</a>
+            <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
+            <a href="dse-portfolio.html" id="nav-dse">DSE Portfolio</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-jupastools">JUPAS Tools</button>
+          <div class="navgroup-menu">
+            <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
+            <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+          </div>
+        </div>
         <button class="langbtn">中文</button>
+        </div>
       </nav>
     </div>
   </header>
@@ -164,6 +178,6 @@
     </div>
   </footer>
 
-  <script src="pomodoro.js?v=6"></script>
+  <script src="pomodoro.js?v=7"></script>
 </body>
 </html>

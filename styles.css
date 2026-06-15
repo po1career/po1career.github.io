@@ -64,11 +64,64 @@ header.site{
 .brand .school{font-size:.78rem;letter-spacing:.18em;color:var(--gold-dark);font-weight:700;text-transform:uppercase}
 .brand .dept{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--brown);line-height:1.1;letter-spacing:.01em}
 .brand .motto{font-family:var(--font-display);font-style:italic;font-weight:500;font-size:.92rem;color:var(--gold-dark);margin-top:2px;letter-spacing:.02em}
-nav.main{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+nav.main{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;position:relative}
+.nav-links{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 nav.main a{
   color:var(--brown);font-weight:600;padding:8px 12px;border-radius:10px;
 }
 nav.main a:hover{background:var(--beige);text-decoration:none}
+/* hamburger (CSS-only checkbox toggle); hidden on desktop, shown on phones */
+.nav-toggle{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.nav-burger{display:none;cursor:pointer;border:1.5px solid var(--gold);background:#fff;color:var(--brown);
+  border-radius:10px;padding:7px 12px;font-size:1.2rem;line-height:1;user-select:none}
+.nav-burger:hover{background:var(--beige)}
+
+/* ---- grouped dropdown menus (CSS-only: hover on desktop, tap-focus on mobile) ---- */
+.navgroup{position:relative}
+.navgroup-btn{
+  border:none;background:none;font-family:inherit;font-size:1rem;cursor:pointer;
+  color:var(--brown);font-weight:600;padding:8px 12px;border-radius:10px;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.navgroup-btn::after{content:"\25BE";font-size:.7em;opacity:.65}
+.navgroup:hover .navgroup-btn,
+.navgroup:focus-within .navgroup-btn{background:var(--beige)}
+.navgroup-menu{
+  position:absolute;top:calc(100% + 6px);right:0;min-width:178px;
+  background:#fffdf8;border:1px solid #ece0c4;border-radius:12px;
+  box-shadow:0 14px 30px rgba(91,58,36,.18);padding:6px;
+  display:none;flex-direction:column;gap:2px;z-index:60;
+}
+.navgroup-menu::before{content:"";position:absolute;top:-6px;left:0;right:0;height:6px}
+.navgroup:hover .navgroup-menu,
+.navgroup:focus-within .navgroup-menu{display:flex}
+.navgroup-menu a{display:block;white-space:nowrap;padding:9px 14px;border-radius:8px}
+.navgroup-menu a.active{background:var(--beige)}
+
+/* ---- phones: collapse nav into a ☰ menu (groups become inline sections) ---- */
+@media(max-width:720px){
+  .nav-burger{display:inline-flex}
+  .nav-links{
+    display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:210px;
+    flex-direction:column;align-items:stretch;gap:2px;z-index:60;
+    background:#fffdf8;border:1px solid #ece0c4;border-radius:12px;
+    box-shadow:0 14px 30px rgba(91,58,36,.18);padding:8px;
+  }
+  .nav-toggle:checked ~ .nav-links{display:flex}
+  .nav-links > a{padding:10px 12px;border-radius:8px}
+  .nav-links .langbtn{margin-top:6px;align-self:flex-start}
+  /* groups become static sections (label + always-visible children), no hover needed */
+  .nav-links .navgroup{position:static}
+  .nav-links .navgroup-btn{width:100%;justify-content:flex-start;cursor:default;color:var(--gold-dark);
+    font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;padding:10px 12px 4px}
+  .nav-links .navgroup-btn::after{display:none}
+  .nav-links .navgroup-menu{
+    position:static;display:flex;box-shadow:none;border:none;background:none;
+    padding:0 0 4px 10px;min-width:0;
+  }
+  .nav-links .navgroup-menu::before{display:none}
+  .nav-links .navgroup-menu a{white-space:normal}
+}
 .langbtn{
   border:1.5px solid var(--gold);background:#fff;color:var(--brown-soft);
   border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:.85rem;

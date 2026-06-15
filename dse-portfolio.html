@@ -9,7 +9,7 @@
   <meta name="description" content="Track HKDSE past-paper marks across subjects and years, get an estimated grade for each paper, and export/restore your progress — for PLK No.1 W.H. Cheung College students.">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=14">
   <style>
     .dse-wrap{max-width:980px;margin:0 auto;padding:8px 0 40px}
     .dse-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
@@ -120,14 +120,28 @@
         </div>
       </a>
       <nav class="main">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+        <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
+        <div class="nav-links">
         <a href="index.html#news" id="nav-news">Latest News</a>
         <a href="index.html#res-sec" id="nav-res">Resources</a>
-        <a href="pomodoro.html" id="nav-pomodoro">Pomodoro</a>
-        <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
-        <a href="dse-portfolio.html" id="nav-dse" class="active">DSE Portfolio</a>
-        <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
-        <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
+          <div class="navgroup-menu">
+            <a href="pomodoro.html" id="nav-pomodoro">Pomodoro</a>
+            <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
+            <a href="dse-portfolio.html" id="nav-dse" class="active">DSE Portfolio</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-jupastools">JUPAS Tools</button>
+          <div class="navgroup-menu">
+            <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
+            <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+          </div>
+        </div>
         <button class="langbtn">中文</button>
+        </div>
       </nav>
     </div>
   </header>
@@ -217,6 +231,6 @@
   </footer>
 
   <script src="dse-data.js?v=2"></script>
-  <script src="dse-portfolio.js?v=9"></script>
+  <script src="dse-portfolio.js?v=10"></script>
 </body>
 </html>
