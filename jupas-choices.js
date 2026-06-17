@@ -496,6 +496,7 @@ function updateSummary() {
 // ---------- export: CSV (Excel) ----------
 function csvField(v) {
   v = deSmart(v);
+  if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;   // neutralise spreadsheet formula injection (=, +, -, @ …)
   return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
 }
 
