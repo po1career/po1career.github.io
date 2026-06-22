@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Subject Streaming Tool — PLK No.1 Career Team</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/notosanstc.css">
+<style>
+  /* ---- site palette (cream / brown / gold / sage), self-hosted fonts ---- */
+  :root{ --bg:#FAF4E6; --card:#FFFDF8; --ink:#5B3A24; --muted:#8a6f59; --line:#E8DCC2;
+         --border:#E8DCC2;
+         --brand:#C9A24B; --brand-d:#A9842F;
+         --accent:#C9A24B; --accent-dark:#A9842F; --accent-soft:#F3E8CE; --link:#936c1f;
+         --sage:#8BA888; --sage-d:#5f7d59;
+         --good:#5b8a5b; --warn:#c0512b;
+         --chip:#F3E8CE; --chip-on:#C9A24B; --bad:#b3401f;
+         --shadow:0 8px 24px rgba(91,58,36,0.08); }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 "Nunito","Noto Sans TC","PingFang HK",Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink)}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 18px 80px}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  header h1{font-size:1.75rem;margin:0 0 4px;font-weight:800;color:var(--ink)}
+  header p{margin:0;color:var(--muted)}
+  .home-link{display:inline-block;color:var(--link);text-decoration:none;font-size:0.9rem;margin-bottom:12px;font-weight:700}
+  .home-link:hover{text-decoration:underline}
+  .langtog{flex:none;display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card);padding:3px}
+  .langbtn{border:0;background:transparent;padding:6px 14px;cursor:pointer;font:inherit;font-weight:700;color:var(--muted);border-radius:999px}
+  .langbtn.on{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff}
+  .disc{background:#fbeee2;border:1px solid #e8c9a8;border-left:4px solid var(--accent-dark);
+        border-radius:10px;padding:12px 14px;margin:16px 0 4px;color:#7a3517;font-size:13.5px}
+  .contra{background:#f7e6e0;border:1px solid #e3b9a8;border-left:4px solid var(--bad);
+          border-radius:10px;padding:11px 14px;margin:4px 0 12px;color:#8a1c12;font-size:13.5px}
+  .contra div+div{margin-top:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:20px;margin:16px 0;box-shadow:var(--shadow)}
+  .q{font-weight:600;margin:0 0 4px}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 14px}
+  .remark{color:var(--warn);font-size:13px;margin:0 0 12px;font-weight:500}
+  .selrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--ink)}
+  .selrow select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;max-width:100%}
+  .step{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;
+        background:var(--brand);color:#fff;border-radius:50%;font-size:13px;margin-right:8px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:12px 12px;cursor:pointer}
+  .opt.on{border-color:var(--brand);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--brand)}
+  .opt b{display:block}.opt span{color:var(--muted);font-size:12px}
+
+  /* ---- the two-divider ranked list ---- */
+  .zonekey{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px;font-size:12px}
+  .zk{padding:3px 9px;border-radius:6px;font-weight:600}
+  .zk.acc{background:#e9f0e6;color:var(--sage-d)} .zk.rather{background:#fdf0db;color:var(--warn)} .zk.dnw{background:#f7e6e0;color:var(--bad)}
+  .ranklist{margin-top:4px}
+  .rankrow{border:1px solid #cdddc4;border-radius:9px;padding:8px 10px;margin-bottom:6px;background:#eef3ea}
+  .rankrow.acc{background:#eef3ea;border-color:#cdddc4}
+  .rankrow.rather{background:#fdf0db;border-color:#f0d29a}
+  .rankrow.dnw{background:#f7e6e0;border-color:#e3b9a8}
+  .rankrow.drag{cursor:grab}
+  .rankrow.dragover{outline:2px dashed var(--brand);outline-offset:1px}
+  .rankhead{display:flex;align-items:center;gap:8px}
+  .rankrow .ord{width:24px;height:24px;line-height:24px;text-align:center;background:var(--sage-d);
+                color:#fff;border-radius:50%;font-size:12px;font-weight:600;flex:none}
+  .rankrow .ordband{width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;
+                    font-size:13px;font-weight:700;flex:none;color:#fff}
+  .rankrow .ordband.rather{background:var(--warn)} .rankrow .ordband.dnw{background:var(--bad)}
+  .rankrow .nm{flex:1;font-weight:500}
+  .rankrow .nm small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
+  .rowbtns{display:flex;gap:4px}
+  .rankrow button,.divider button{border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;
+                width:26px;height:26px;font-size:13px}
+  .rankrow button:hover,.divider button:hover{border-color:var(--brand)}
+  .rankrow button:disabled,.divider button:disabled{opacity:.35;cursor:not-allowed}
+  .divider{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px;
+           padding:5px 8px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:.03em}
+  .divider.rather{background:#fff0db;color:var(--warn);border:1px dashed var(--warn)}
+  .divider.dnw{background:#fde0de;color:var(--bad);border:1px dashed var(--bad)}
+  .divider .dlab{flex:1;text-align:center}
+  .marksrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:7px 0 0 30px;font-size:12.5px;color:var(--muted)}
+  .marksrow label{display:flex;align-items:center;gap:5px}
+  .marksrow input{width:64px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;font:inherit}
+  .marksrow .hylab{font-weight:600;color:var(--ink)}
+  .marksrow .mknote{color:var(--warn);font-size:11.5px}
+  .listtools{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+  .tool{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;cursor:pointer;
+        font:inherit;font-size:12.5px;color:var(--brand);font-weight:600}
+  .tool:hover{border-color:var(--brand)}
+  .ranklist.nomarks .marksrow{display:none}
+  #orderNudge{color:var(--warn)}
+  @media(max-width:430px){
+    .rankrow .nm{font-size:14px}
+    .marksrow{margin-left:6px;gap:7px}
+    .marksrow input{width:52px}
+    .rankrow button,.divider button{width:30px;height:30px}
+    .listtools .tool{flex:1 1 auto;text-align:center}
+  }
+
+  .meta input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit}
+  .meta{display:flex;gap:8px;flex-wrap:wrap}
+  .go{display:block;width:100%;padding:14px;border:0;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+      color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;box-shadow:0 6px 16px rgba(169,132,47,.3)}
+  .go:hover{filter:brightness(1.06)} .go:disabled{background:#dcc99a;filter:none;box-shadow:none;cursor:not-allowed}
+  #out{display:none}
+  .row{display:flex;gap:10px;align-items:baseline;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .row:nth-child(odd){background:#fdf8ee}
+  .rk{font-weight:700;color:var(--brand);width:38px;flex:none}
+  .cl{color:var(--muted);font-size:12px;width:80px;flex:none}
+  .why{color:var(--good);font-size:12px;margin-left:auto;text-align:right}
+  @media(max-width:620px){
+    .row{flex-wrap:wrap} .cl{width:auto}
+    .why{margin-left:50px;text-align:left;width:100%;margin-top:2px}
+  }
+  .adv{background:#fff8ec;border:1px solid #ffe2b8;border-radius:10px;padding:12px 14px;margin-top:14px}
+  .adv b{color:var(--warn)} .adv ul{margin:6px 0 0;padding-left:18px} .adv li{margin:4px 0}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .btn{padding:11px 16px;border-radius:10px;border:1px solid var(--brand);background:var(--card);
+       color:var(--link);font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--accent-soft)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-color:var(--accent-dark);color:#fff;box-shadow:0 6px 16px rgba(169,132,47,.3)}
+  .btn.primary:hover{filter:brightness(1.06);background:linear-gradient(135deg,var(--accent),var(--accent-dark))}
+  .warnmsg{color:var(--bad);font-size:13px;margin-top:8px;min-height:18px}
+  details{margin-top:14px} summary{cursor:pointer;color:var(--brand);font-weight:600}
+  .full{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:8px}
+  .full table{width:100%;border-collapse:collapse;font-size:13px}
+  .full td{padding:4px 8px;border-bottom:1px solid var(--line)}
+
+  /* ---- printable reply slip (answers + signatures), bilingual ---- */
+  #printArea{max-width:820px;margin:0 auto;padding:10px;color:#000}
+  .pdf-head{text-align:center;margin-bottom:8px}
+  .pdf-head .sch{font-weight:700;font-size:15px}
+  .pdf-head .ttl{font-size:13px;margin-top:2px}
+  #printArea table{width:100%;border-collapse:collapse;margin:8px 0}
+  #printArea .stu td{padding:4px 6px;font-size:12px}
+  #printArea h3{font-size:13px;margin:14px 0 4px;border-bottom:1px solid #000;padding-bottom:3px}
+  #printArea .kv td{border:1px solid #999;padding:4px 8px;font-size:12px}
+  #printArea .kv .k{width:42%;font-weight:600;background:#f3f3f3}
+  #printArea .marks th,#printArea .marks td{border:1px solid #999;padding:4px 8px;font-size:12px;text-align:left;vertical-align:top}
+  #printArea .marks .zh{color:#555;font-size:10px}
+  #printArea .marks .note{color:#b00;font-size:10px}
+  .pdf-note{font-size:10px;color:#444;margin-top:10px}
+  .sigrow{display:flex;align-items:flex-end;gap:10px;margin:18px 0}
+  .sigrow .lab{white-space:nowrap;font-weight:600;font-size:12px}
+  .sigrow .line{flex:1;border-bottom:1px solid #000;min-height:1px}
+  .pdf-sig{margin-top:24px}
+  @media screen{ #printArea{display:none} }
+  @media print{
+    .wrap{display:none !important}
+    #printArea{display:block !important}
+    @page{margin:14mm}
+    .pdf-sig{page-break-inside:avoid}
+  }
+
+  /* ---- soft brand glow behind the page (CSP-safe gradients only) ---- */
+  body{
+    background:
+      radial-gradient(1200px 420px at 100% -8%, rgba(201,162,75,0.13), transparent 60%),
+      radial-gradient(900px 380px at -8% 2%, rgba(139,168,136,0.11), transparent 55%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+
+  /* ---- passcode lock screen (matches the JUPAS / DSE gate) ---- */
+  .lockscreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+    background:
+      radial-gradient(820px 320px at 50% -6%, rgba(201,162,75,0.18), transparent 62%),
+      radial-gradient(640px 260px at 12% 112%, rgba(139,168,136,0.13), transparent 60%),
+      var(--bg); }
+  .lockbox{ position:relative; overflow:hidden; background:var(--card); border:1px solid var(--border);
+    border-radius:16px; padding:36px 28px; max-width:380px; width:100%; text-align:center; box-shadow:var(--shadow); }
+  .lockbox::before{ content:""; position:absolute; left:0; top:0; width:100%; height:5px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-dark)); }
+  .lock-icon{ width:66px; height:66px; margin:6px auto 12px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:1.7rem;
+    background:radial-gradient(circle at 50% 35%, #fff, var(--accent-soft));
+    border:1px solid var(--border); box-shadow:0 6px 16px rgba(169,132,47,0.18); }
+  .lockbox h2{ margin:0; font-size:1.3rem; font-weight:800; color:var(--ink); }
+  .lock-zh{ margin:2px 0 14px; color:var(--ink); font-size:1.05rem; }
+  .lock-sub{ color:var(--muted); font-size:0.85rem; margin:0 0 18px; line-height:1.5; }
+  .lockbox input{ width:100%; padding:11px 12px; border:1px solid var(--border); border-radius:10px;
+    font-size:1rem; margin-bottom:12px; text-align:center; font-family:inherit; background:#fffdf7; color:var(--ink); }
+  .lockbox button{ width:100%; padding:11px; border:none; border-radius:10px;
+    background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; font-size:1rem;
+    cursor:pointer; font-family:inherit; font-weight:800; box-shadow:0 6px 16px rgba(169,132,47,.3); }
+  .lockbox button:hover{ filter:brightness(1.05); }
+  .lock-err{ color:#b91c1c; font-size:0.85rem; min-height:20px; margin-top:10px; }
+  .lockbox .home-link{ margin:14px 0 0; }
+</style>
+</head>
+<body>
+<div id="lock" class="lockscreen">
+  <div class="lockbox">
+    <div class="lock-icon">🔒</div>
+    <h2>Enter passcode</h2>
+    <p class="lock-zh">請輸入通行碼</p>
+    <p class="lock-sub">For PLK No.1 W.H. Cheung College students only<br>只供保良局第一張永慶中學學生使用</p>
+    <input type="password" id="passcode" autocomplete="off" placeholder="Passcode 通行碼" />
+    <button id="unlock-btn" type="button">Unlock 解鎖</button>
+    <div id="lock-err" class="lock-err"></div>
+    <a href="index.html" class="home-link">← Back to home 返回主頁</a>
+  </div>
+</div>
+<div class="wrap" id="app" style="display:none">
+<a href="index.html" class="home-link">← Back to home 返回主頁</a>
+<div class="topbar">
+  <header>
+    <h1 data-i18n="title"></h1>
+    <p data-i18n="sub"></p>
+  </header>
+  <div class="langtog">
+    <button class="langbtn on" data-l="en">EN</button>
+    <button class="langbtn" data-l="zh">中文</button>
+  </div>
+</div>
+
+<div class="disc" data-i18n="disclaimer"></div>
+
+<div class="card meta">
+  <input id="m_class" data-i18n-ph="meta_class" size="10">
+  <input id="m_no" data-i18n-ph="meta_no" size="6">
+  <input id="m_name" data-i18n-ph="meta_name" size="20">
+  <input id="m_sex" data-i18n-ph="meta_sex" size="6">
+</div>
+
+<div class="card">
+  <p class="q"><span class="step">1</span><span data-i18n="q1"></span></p>
+  <div class="opts" id="q_size">
+    <div class="opt" data-v="3"><b data-i18n="opt3"></b></div>
+    <div class="opt" data-v="2"><b data-i18n="opt2"></b></div>
+    <div class="opt" data-v="open"><b data-i18n="optOpen"></b></div>
+  </div>
+  <div id="firmWrap" style="display:none;margin-top:10px">
+    <p class="hint" data-i18n="size_firm_q" style="margin-bottom:6px"></p>
+    <div class="opts" id="q_firm">
+      <div class="opt on" data-v="firm"><b data-i18n="firm"></b><span data-i18n="firm_s"></span></div>
+      <div class="opt" data-v="flex"><b data-i18n="flex"></b><span data-i18n="flex_s"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <p class="q"><span class="step">2</span><span data-i18n="q2"></span></p>
+  <p class="hint" data-i18n="q2h"></p>
+  <div class="zonekey">
+    <span class="zk acc" data-i18n="zoneAccept"></span>
+    <span class="zk rather" data-i18n="zoneRather"></span>
+    <span class="zk dnw" data-i18n="zoneDnw"></span>
+  </div>
+  <p class="hint" data-i18n="zoneOrderNote" style="margin:0 0 8px"></p>
+  <div class="listtools">
+    <button class="tool" id="sortMarks" data-i18n="sortMarks"></button>
+    <button class="tool" id="toggleMarks"></button>
+  </div>
+  <div class="ranklist" id="rankList"></div>
+  <div class="warnmsg" id="dnwWarn"></div>
+  <div id="mustWrap" class="selrow" style="margin-top:10px;display:none">
+    <span data-i18n="musthave_q"></span> <select id="m_must"></select>
+  </div>
+  <p class="hint" data-i18n="marks_hint" style="margin-top:12px;margin-bottom:0"></p>
+</div>
+
+<div class="card">
+  <p class="q"><span class="step">3</span><span data-i18n="q4"></span></p>
+  <p class="remark" data-i18n="q4remark"></p>
+  <div class="opts" id="q_m23">
+    <div class="opt" data-v="Y"><b data-i18n="m2y"></b></div>
+    <div class="opt" data-v="N"><b data-i18n="m2n"></b></div>
+  </div>
+  <div id="m2sWrap" style="display:none;margin-top:10px">
+    <p class="hint" data-i18n="m2strength_q" style="margin-bottom:6px"></p>
+    <div class="opts" id="q_m2s">
+      <div class="opt on" data-v="block"><b data-i18n="m2block"></b><span data-i18n="m2block_s"></span></div>
+      <div class="opt" data-v="tie"><b data-i18n="m2tie"></b><span data-i18n="m2tie_s"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <p class="q"><span class="step">4</span><span data-i18n="qCareer"></span></p>
+  <div class="opts" id="q_career">
+    <div class="opt" data-v="science"><b data-i18n="carSci"></b></div>
+    <div class="opt" data-v="business"><b data-i18n="carBiz"></b></div>
+    <div class="opt" data-v="arts"><b data-i18n="carArts"></b></div>
+    <div class="opt on" data-v="undecided"><b data-i18n="carUnd"></b></div>
+  </div>
+</div>
+
+<div class="card">
+  <p class="q"><span class="step">5</span><span data-i18n="qPair"></span></p>
+  <p class="hint" data-i18n="qPairH"></p>
+  <div class="opts" id="q_pair">
+    <div class="opt on" data-v="none"><b data-i18n="pairNone"></b></div>
+    <div class="opt" data-v="together"><b data-i18n="pairTogether"></b></div>
+  </div>
+  <div id="pairPickWrap" class="selrow" style="display:none;margin-top:10px">
+    <select id="pairA"></select> <span data-i18n="pairAnd"></span> <select id="pairB"></select>
+  </div>
+</div>
+
+<div id="contraBox"></div>
+<div class="warnmsg" id="orderNudge"></div>
+<button class="go" id="go" disabled data-i18n="go"></button>
+
+<div class="card" id="out">
+  <h2 id="outHead" style="margin-top:0"></h2>
+  <p class="hint" id="topcap"></p>
+  <div id="topList"></div>
+  <div id="advBox"></div>
+  <div class="actions">
+    <button class="btn primary" id="dl"></button>
+    <button class="btn" id="dlMarks"></button>
+    <button class="btn" id="pdf"></button>
+    <button class="btn" id="restart"></button>
+  </div>
+  <details>
+    <summary id="showFull"></summary>
+    <div class="full"><table id="fullTable"></table></div>
+  </details>
+  <p class="hint" id="submitNote" style="margin-top:14px"></p>
+</div>
+</div>
+
+<div id="printArea"></div>
+
+<script>
+const COMBOS = [{"code":1,"cls":"F.4A","m2_3":false,"subs":["BAFS","Econ","C. hist"],"n":3,"has_m26":false},{"code":2,"cls":"F.4A","m2_3":false,"subs":["BAFS","Econ","ICT"],"n":3,"has_m26":false},{"code":3,"cls":"F.4A","m2_3":false,"subs":["BAFS","Econ","Chem"],"n":3,"has_m26":false},{"code":4,"cls":"F.4A","m2_3":false,"subs":["BAFS","Econ","Hist"],"n":3,"has_m26":false},{"code":5,"cls":"F.4A","m2_3":false,"subs":["BAFS","Geog","Econ"],"n":3,"has_m26":false},{"code":6,"cls":"F.4A","m2_3":false,"subs":["BAFS","Geog","C. hist"],"n":3,"has_m26":false},{"code":7,"cls":"F.4A","m2_3":false,"subs":["BAFS","Geog","ICT"],"n":3,"has_m26":false},{"code":8,"cls":"F.4A","m2_3":false,"subs":["BAFS","Geog","Chem"],"n":3,"has_m26":false},{"code":9,"cls":"F.4A","m2_3":false,"subs":["BAFS","Geog","Hist"],"n":3,"has_m26":false},{"code":10,"cls":"F.4A","m2_3":false,"subs":["BAFS","Geog","Bio"],"n":3,"has_m26":false},{"code":11,"cls":"F.4A","m2_3":false,"subs":["BAFS","Chem","C. hist"],"n":3,"has_m26":false},{"code":12,"cls":"F.4A","m2_3":false,"subs":["BAFS","Chem","ICT"],"n":3,"has_m26":false},{"code":13,"cls":"F.4A","m2_3":false,"subs":["BAFS","Chem","Hist"],"n":3,"has_m26":false},{"code":14,"cls":"F.4A","m2_3":false,"subs":["BAFS","C. Lit","Econ"],"n":3,"has_m26":false},{"code":15,"cls":"F.4A","m2_3":false,"subs":["BAFS","C. Lit","C. hist"],"n":3,"has_m26":false},{"code":16,"cls":"F.4A","m2_3":false,"subs":["BAFS","C. Lit","ICT"],"n":3,"has_m26":false},{"code":17,"cls":"F.4A","m2_3":false,"subs":["BAFS","C. Lit","Chem"],"n":3,"has_m26":false},{"code":18,"cls":"F.4A","m2_3":false,"subs":["BAFS","C. Lit","Hist"],"n":3,"has_m26":false},{"code":19,"cls":"F.4A","m2_3":false,"subs":["BAFS","C. Lit","Bio"],"n":3,"has_m26":false},{"code":20,"cls":"F.4A","m2_3":false,"subs":["BAFS","M2(6)","Econ"],"n":3,"has_m26":true},{"code":21,"cls":"F.4A","m2_3":false,"subs":["BAFS","M2(6)","C. hist"],"n":3,"has_m26":true},{"code":22,"cls":"F.4A","m2_3":false,"subs":["BAFS","M2(6)","ICT"],"n":3,"has_m26":true},{"code":23,"cls":"F.4A","m2_3":false,"subs":["BAFS","M2(6)","Chem"],"n":3,"has_m26":true},{"code":24,"cls":"F.4A","m2_3":false,"subs":["BAFS","M2(6)","Hist"],"n":3,"has_m26":true},{"code":25,"cls":"F.4A","m2_3":false,"subs":["BAFS","M2(6)","Bio"],"n":3,"has_m26":true},{"code":26,"cls":"F.4A/4D","m2_3":false,"subs":["Phy","BAFS","Econ"],"n":3,"has_m26":false},{"code":27,"cls":"F.4A/4D","m2_3":false,"subs":["Phy","BAFS","C. hist"],"n":3,"has_m26":false},{"code":28,"cls":"F.4A/4D","m2_3":false,"subs":["Phy","BAFS","ICT"],"n":3,"has_m26":false},{"code":29,"cls":"F.4A/4D","m2_3":false,"subs":["Phy","BAFS","Chem"],"n":3,"has_m26":false},{"code":30,"cls":"F.4A/4D","m2_3":false,"subs":["Phy","BAFS","Hist"],"n":3,"has_m26":false},{"code":31,"cls":"F.4A/4D","m2_3":false,"subs":["Phy","BAFS","Bio"],"n":3,"has_m26":false},{"code":32,"cls":"F.4A/4F","m2_3":false,"subs":["Bio","BAFS","Econ"],"n":3,"has_m26":false},{"code":33,"cls":"F.4A/4F","m2_3":false,"subs":["Bio","BAFS","Chem"],"n":3,"has_m26":false},{"code":34,"cls":"F.4C/4D/4F","m2_3":false,"subs":["Phy","Chem","Bio"],"n":3,"has_m26":false},{"code":35,"cls":"F.4D","m2_3":false,"subs":["Phy","Econ","C. hist"],"n":3,"has_m26":false},{"code":36,"cls":"F.4D","m2_3":false,"subs":["Phy","Econ","ICT"],"n":3,"has_m26":false},{"code":37,"cls":"F.4D","m2_3":false,"subs":["Phy","Econ","Chem"],"n":3,"has_m26":false},{"code":38,"cls":"F.4D","m2_3":false,"subs":["Phy","Econ","Hist"],"n":3,"has_m26":false},{"code":39,"cls":"F.4D","m2_3":false,"subs":["Phy","Geog","Econ"],"n":3,"has_m26":false},{"code":40,"cls":"F.4D","m2_3":false,"subs":["Phy","Geog","C. hist"],"n":3,"has_m26":false},{"code":41,"cls":"F.4D","m2_3":false,"subs":["Phy","Geog","ICT"],"n":3,"has_m26":false},{"code":42,"cls":"F.4D","m2_3":false,"subs":["Phy","Geog","Bio"],"n":3,"has_m26":false},{"code":43,"cls":"F.4D","m2_3":false,"subs":["Phy","Geog","Chem"],"n":3,"has_m26":false},{"code":44,"cls":"F.4D","m2_3":false,"subs":["Phy","Geog","Hist"],"n":3,"has_m26":false},{"code":45,"cls":"F.4D","m2_3":false,"subs":["Phy","Chem","C. hist"],"n":3,"has_m26":false},{"code":46,"cls":"F.4D","m2_3":false,"subs":["Phy","Chem","ICT"],"n":3,"has_m26":false},{"code":47,"cls":"F.4D","m2_3":false,"subs":["Phy","Chem","Hist"],"n":3,"has_m26":false},{"code":48,"cls":"F.4D","m2_3":false,"subs":["Phy","C. Lit","Econ"],"n":3,"has_m26":false},{"code":49,"cls":"F.4D","m2_3":false,"subs":["Phy","C. Lit","C. hist"],"n":3,"has_m26":false},{"code":50,"cls":"F.4D","m2_3":false,"subs":["Phy","C. Lit","ICT"],"n":3,"has_m26":false},{"code":51,"cls":"F.4D","m2_3":false,"subs":["Phy","C. Lit","Bio"],"n":3,"has_m26":false},{"code":52,"cls":"F.4D","m2_3":false,"subs":["Phy","C. Lit","Chem"],"n":3,"has_m26":false},{"code":53,"cls":"F.4D","m2_3":false,"subs":["Phy","C. Lit","Hist"],"n":3,"has_m26":false},{"code":54,"cls":"F.4D","m2_3":false,"subs":["Phy","M2(6)","Econ"],"n":3,"has_m26":true},{"code":55,"cls":"F.4D","m2_3":false,"subs":["Phy","M2(6)","C. hist"],"n":3,"has_m26":true},{"code":56,"cls":"F.4D","m2_3":false,"subs":["Phy","M2(6)","ICT"],"n":3,"has_m26":true},{"code":57,"cls":"F.4D","m2_3":false,"subs":["Phy","M2(6)","Bio"],"n":3,"has_m26":true},{"code":58,"cls":"F.4D","m2_3":false,"subs":["Phy","M2(6)","Chem"],"n":3,"has_m26":true},{"code":59,"cls":"F.4D","m2_3":false,"subs":["Phy","M2(6)","Hist"],"n":3,"has_m26":true},{"code":60,"cls":"F.4D/4F","m2_3":false,"subs":["Phy","Econ","Bio"],"n":3,"has_m26":false},{"code":61,"cls":"F.4F","m2_3":false,"subs":["Bio","Econ","C. hist"],"n":3,"has_m26":false},{"code":62,"cls":"F.4F","m2_3":false,"subs":["Bio","Econ","ICT"],"n":3,"has_m26":false},{"code":63,"cls":"F.4F","m2_3":false,"subs":["Bio","Econ","Chem"],"n":3,"has_m26":false},{"code":64,"cls":"F.4F","m2_3":false,"subs":["Bio","Econ","Hist"],"n":3,"has_m26":false},{"code":65,"cls":"F.4F","m2_3":false,"subs":["Bio","Geog","Econ"],"n":3,"has_m26":false},{"code":66,"cls":"F.4F","m2_3":false,"subs":["Bio","Geog","C. hist"],"n":3,"has_m26":false},{"code":67,"cls":"F.4F","m2_3":false,"subs":["Bio","Geog","ICT"],"n":3,"has_m26":false},{"code":68,"cls":"F.4F","m2_3":false,"subs":["Bio","Geog","Chem"],"n":3,"has_m26":false},{"code":69,"cls":"F.4F","m2_3":false,"subs":["Bio","Geog","Hist"],"n":3,"has_m26":false},{"code":70,"cls":"F.4F","m2_3":false,"subs":["Bio","Phy","C. hist"],"n":3,"has_m26":false},{"code":71,"cls":"F.4F","m2_3":false,"subs":["Bio","Phy","ICT"],"n":3,"has_m26":false},{"code":72,"cls":"F.4F","m2_3":false,"subs":["Bio","Phy","Hist"],"n":3,"has_m26":false},{"code":73,"cls":"F.4F","m2_3":false,"subs":["Bio","Chem","C. hist"],"n":3,"has_m26":false},{"code":74,"cls":"F.4F","m2_3":false,"subs":["Bio","Chem","ICT"],"n":3,"has_m26":false},{"code":75,"cls":"F.4F","m2_3":false,"subs":["Bio","Chem","Hist"],"n":3,"has_m26":false},{"code":76,"cls":"F.4F","m2_3":false,"subs":["Bio","C. Lit","Econ"],"n":3,"has_m26":false},{"code":77,"cls":"F.4F","m2_3":false,"subs":["Bio","C. Lit","C. hist"],"n":3,"has_m26":false},{"code":78,"cls":"F.4F","m2_3":false,"subs":["Bio","C. Lit","ICT"],"n":3,"has_m26":false},{"code":79,"cls":"F.4F","m2_3":false,"subs":["Bio","C. Lit","Chem"],"n":3,"has_m26":false},{"code":80,"cls":"F.4F","m2_3":false,"subs":["Bio","C. Lit","Hist"],"n":3,"has_m26":false},{"code":81,"cls":"F.4F","m2_3":false,"subs":["Bio","BAFS","C. hist"],"n":3,"has_m26":false},{"code":82,"cls":"F.4F","m2_3":false,"subs":["Bio","BAFS","ICT"],"n":3,"has_m26":false},{"code":83,"cls":"F.4F","m2_3":false,"subs":["Bio","BAFS","Hist"],"n":3,"has_m26":false},{"code":84,"cls":"F.4F","m2_3":false,"subs":["Bio","M2(6)","Econ"],"n":3,"has_m26":true},{"code":85,"cls":"F.4F","m2_3":false,"subs":["Bio","M2(6)","C. hist"],"n":3,"has_m26":true},{"code":86,"cls":"F.4F","m2_3":false,"subs":["Bio","M2(6)","ICT"],"n":3,"has_m26":true},{"code":87,"cls":"F.4F","m2_3":false,"subs":["Bio","M2(6)","Chem"],"n":3,"has_m26":true},{"code":88,"cls":"F.4F","m2_3":false,"subs":["Bio","M2(6)","Hist"],"n":3,"has_m26":true},{"code":89,"cls":"F.4A","m2_3":true,"subs":["BAFS","Econ","C. hist"],"n":3,"has_m26":false},{"code":90,"cls":"F.4A","m2_3":true,"subs":["BAFS","Econ","ICT"],"n":3,"has_m26":false},{"code":91,"cls":"F.4A","m2_3":true,"subs":["BAFS","Econ","Chem"],"n":3,"has_m26":false},{"code":92,"cls":"F.4A","m2_3":true,"subs":["BAFS","Econ","Hist"],"n":3,"has_m26":false},{"code":93,"cls":"F.4A","m2_3":true,"subs":["BAFS","Geog","Econ"],"n":3,"has_m26":false},{"code":94,"cls":"F.4A","m2_3":true,"subs":["BAFS","Geog","C. hist"],"n":3,"has_m26":false},{"code":95,"cls":"F.4A","m2_3":true,"subs":["BAFS","Geog","ICT"],"n":3,"has_m26":false},{"code":96,"cls":"F.4A","m2_3":true,"subs":["BAFS","Geog","Chem"],"n":3,"has_m26":false},{"code":97,"cls":"F.4A","m2_3":true,"subs":["BAFS","Geog","Hist"],"n":3,"has_m26":false},{"code":98,"cls":"F.4A","m2_3":true,"subs":["BAFS","Geog","Bio"],"n":3,"has_m26":false},{"code":99,"cls":"F.4A","m2_3":true,"subs":["BAFS","Chem","C. hist"],"n":3,"has_m26":false},{"code":100,"cls":"F.4A","m2_3":true,"subs":["BAFS","Chem","ICT"],"n":3,"has_m26":false},{"code":101,"cls":"F.4A","m2_3":true,"subs":["BAFS","Chem","Hist"],"n":3,"has_m26":false},{"code":102,"cls":"F.4A","m2_3":true,"subs":["BAFS","C. Lit","Econ"],"n":3,"has_m26":false},{"code":103,"cls":"F.4A","m2_3":true,"subs":["BAFS","C. Lit","C. hist"],"n":3,"has_m26":false},{"code":104,"cls":"F.4A","m2_3":true,"subs":["BAFS","C. Lit","ICT"],"n":3,"has_m26":false},{"code":105,"cls":"F.4A","m2_3":true,"subs":["BAFS","C. Lit","Chem"],"n":3,"has_m26":false},{"code":106,"cls":"F.4A","m2_3":true,"subs":["BAFS","C. Lit","Hist"],"n":3,"has_m26":false},{"code":107,"cls":"F.4A","m2_3":true,"subs":["BAFS","C. Lit","Bio"],"n":3,"has_m26":false},{"code":108,"cls":"F.4A/4D","m2_3":true,"subs":["Phy","BAFS","Econ"],"n":3,"has_m26":false},{"code":109,"cls":"F.4A/4D","m2_3":true,"subs":["Phy","BAFS","C. hist"],"n":3,"has_m26":false},{"code":110,"cls":"F.4A/4D","m2_3":true,"subs":["Phy","BAFS","ICT"],"n":3,"has_m26":false},{"code":111,"cls":"F.4A/4D","m2_3":true,"subs":["Phy","BAFS","Chem"],"n":3,"has_m26":false},{"code":112,"cls":"F.4A/4D","m2_3":true,"subs":["Phy","BAFS","Hist"],"n":3,"has_m26":false},{"code":113,"cls":"F.4A/4D","m2_3":true,"subs":["Phy","BAFS","Bio"],"n":3,"has_m26":false},{"code":114,"cls":"F.4A/4F","m2_3":true,"subs":["Bio","BAFS","Econ"],"n":3,"has_m26":false},{"code":115,"cls":"F.4A/4F","m2_3":true,"subs":["Bio","BAFS","Chem"],"n":3,"has_m26":false},{"code":116,"cls":"F.4C/4D/4F","m2_3":true,"subs":["Phy","Chem","Bio"],"n":3,"has_m26":false},{"code":117,"cls":"F.4D","m2_3":true,"subs":["Phy","Econ","C. hist"],"n":3,"has_m26":false},{"code":118,"cls":"F.4D","m2_3":true,"subs":["Phy","Econ","ICT"],"n":3,"has_m26":false},{"code":119,"cls":"F.4D","m2_3":true,"subs":["Phy","Econ","Chem"],"n":3,"has_m26":false},{"code":120,"cls":"F.4D","m2_3":true,"subs":["Phy","Econ","Hist"],"n":3,"has_m26":false},{"code":121,"cls":"F.4D","m2_3":true,"subs":["Phy","Geog","Econ"],"n":3,"has_m26":false},{"code":122,"cls":"F.4D","m2_3":true,"subs":["Phy","Geog","C. hist"],"n":3,"has_m26":false},{"code":123,"cls":"F.4D","m2_3":true,"subs":["Phy","Geog","ICT"],"n":3,"has_m26":false},{"code":124,"cls":"F.4D","m2_3":true,"subs":["Phy","Geog","Bio"],"n":3,"has_m26":false},{"code":125,"cls":"F.4D","m2_3":true,"subs":["Phy","Geog","Chem"],"n":3,"has_m26":false},{"code":126,"cls":"F.4D","m2_3":true,"subs":["Phy","Geog","Hist"],"n":3,"has_m26":false},{"code":127,"cls":"F.4D","m2_3":true,"subs":["Phy","Chem","C. hist"],"n":3,"has_m26":false},{"code":128,"cls":"F.4D","m2_3":true,"subs":["Phy","Chem","ICT"],"n":3,"has_m26":false},{"code":129,"cls":"F.4D","m2_3":true,"subs":["Phy","Chem","Hist"],"n":3,"has_m26":false},{"code":130,"cls":"F.4D","m2_3":true,"subs":["Phy","C. Lit","Econ"],"n":3,"has_m26":false},{"code":131,"cls":"F.4D","m2_3":true,"subs":["Phy","C. Lit","C. hist"],"n":3,"has_m26":false},{"code":132,"cls":"F.4D","m2_3":true,"subs":["Phy","C. Lit","ICT"],"n":3,"has_m26":false},{"code":133,"cls":"F.4D","m2_3":true,"subs":["Phy","C. Lit","Bio"],"n":3,"has_m26":false},{"code":134,"cls":"F.4D","m2_3":true,"subs":["Phy","C. Lit","Chem"],"n":3,"has_m26":false},{"code":135,"cls":"F.4D","m2_3":true,"subs":["Phy","C. Lit","Hist"],"n":3,"has_m26":false},{"code":136,"cls":"F.4D/4F","m2_3":true,"subs":["Phy","Econ","Bio"],"n":3,"has_m26":false},{"code":137,"cls":"F.4F","m2_3":true,"subs":["Bio","Econ","C. hist"],"n":3,"has_m26":false},{"code":138,"cls":"F.4F","m2_3":true,"subs":["Bio","Econ","ICT"],"n":3,"has_m26":false},{"code":139,"cls":"F.4F","m2_3":true,"subs":["Bio","Econ","Chem"],"n":3,"has_m26":false},{"code":140,"cls":"F.4F","m2_3":true,"subs":["Bio","Econ","Hist"],"n":3,"has_m26":false},{"code":141,"cls":"F.4F","m2_3":true,"subs":["Bio","Geog","Econ"],"n":3,"has_m26":false},{"code":142,"cls":"F.4F","m2_3":true,"subs":["Bio","Geog","C. hist"],"n":3,"has_m26":false},{"code":143,"cls":"F.4F","m2_3":true,"subs":["Bio","Geog","ICT"],"n":3,"has_m26":false},{"code":144,"cls":"F.4F","m2_3":true,"subs":["Bio","Geog","Chem"],"n":3,"has_m26":false},{"code":145,"cls":"F.4F","m2_3":true,"subs":["Bio","Geog","Hist"],"n":3,"has_m26":false},{"code":146,"cls":"F.4F","m2_3":true,"subs":["Bio","Phy","C. hist"],"n":3,"has_m26":false},{"code":147,"cls":"F.4F","m2_3":true,"subs":["Bio","Phy","ICT"],"n":3,"has_m26":false},{"code":148,"cls":"F.4F","m2_3":true,"subs":["Bio","Phy","Hist"],"n":3,"has_m26":false},{"code":149,"cls":"F.4F","m2_3":true,"subs":["Bio","Chem","C. hist"],"n":3,"has_m26":false},{"code":150,"cls":"F.4F","m2_3":true,"subs":["Bio","Chem","ICT"],"n":3,"has_m26":false},{"code":151,"cls":"F.4F","m2_3":true,"subs":["Bio","Chem","Hist"],"n":3,"has_m26":false},{"code":152,"cls":"F.4F","m2_3":true,"subs":["Bio","C. Lit","Econ"],"n":3,"has_m26":false},{"code":153,"cls":"F.4F","m2_3":true,"subs":["Bio","C. Lit","C. hist"],"n":3,"has_m26":false},{"code":154,"cls":"F.4F","m2_3":true,"subs":["Bio","C. Lit","ICT"],"n":3,"has_m26":false},{"code":155,"cls":"F.4F","m2_3":true,"subs":["Bio","C. Lit","Chem"],"n":3,"has_m26":false},{"code":156,"cls":"F.4F","m2_3":true,"subs":["Bio","C. Lit","Hist"],"n":3,"has_m26":false},{"code":157,"cls":"F.4F","m2_3":true,"subs":["Bio","BAFS","C. hist"],"n":3,"has_m26":false},{"code":158,"cls":"F.4F","m2_3":true,"subs":["Bio","BAFS","ICT"],"n":3,"has_m26":false},{"code":159,"cls":"F.4F","m2_3":true,"subs":["Bio","BAFS","Hist"],"n":3,"has_m26":false},{"code":160,"cls":"F.4B/4E","m2_3":false,"subs":["Econ","C. hist"],"n":2,"has_m26":false},{"code":161,"cls":"F.4B/4E","m2_3":false,"subs":["Econ","ICT"],"n":2,"has_m26":false},{"code":162,"cls":"F.4B/4E","m2_3":false,"subs":["Econ","Bio"],"n":2,"has_m26":false},{"code":163,"cls":"F.4B/4E","m2_3":false,"subs":["Econ","Chem"],"n":2,"has_m26":false},{"code":164,"cls":"F.4B/4E","m2_3":false,"subs":["Econ","Hist"],"n":2,"has_m26":false},{"code":165,"cls":"F.4B/4E","m2_3":false,"subs":["Geog","Econ"],"n":2,"has_m26":false},{"code":166,"cls":"F.4B/4E","m2_3":false,"subs":["Geog","C. hist"],"n":2,"has_m26":false},{"code":167,"cls":"F.4B/4E","m2_3":false,"subs":["Geog","ICT"],"n":2,"has_m26":false},{"code":168,"cls":"F.4B/4E","m2_3":false,"subs":["Geog","Bio"],"n":2,"has_m26":false},{"code":169,"cls":"F.4B/4E","m2_3":false,"subs":["Geog","Chem"],"n":2,"has_m26":false},{"code":170,"cls":"F.4B/4E","m2_3":false,"subs":["Geog","Hist"],"n":2,"has_m26":false},{"code":171,"cls":"F.4B/4E","m2_3":false,"subs":["Phy","Econ"],"n":2,"has_m26":false},{"code":172,"cls":"F.4B/4E","m2_3":false,"subs":["Phy","C. hist"],"n":2,"has_m26":false},{"code":173,"cls":"F.4B/4E","m2_3":false,"subs":["Phy","ICT"],"n":2,"has_m26":false},{"code":174,"cls":"F.4B/4E","m2_3":false,"subs":["Phy","Bio"],"n":2,"has_m26":false},{"code":175,"cls":"F.4B/4E","m2_3":false,"subs":["Phy","Chem"],"n":2,"has_m26":false},{"code":176,"cls":"F.4B/4E","m2_3":false,"subs":["Phy","Hist"],"n":2,"has_m26":false},{"code":177,"cls":"F.4B/4E","m2_3":false,"subs":["Chem","C. hist"],"n":2,"has_m26":false},{"code":178,"cls":"F.4B/4E","m2_3":false,"subs":["Chem","ICT"],"n":2,"has_m26":false},{"code":179,"cls":"F.4B/4E","m2_3":false,"subs":["Chem","Bio"],"n":2,"has_m26":false},{"code":180,"cls":"F.4B/4E","m2_3":false,"subs":["Chem","Hist"],"n":2,"has_m26":false},{"code":181,"cls":"F.4B/4E","m2_3":false,"subs":["C. Lit","Econ"],"n":2,"has_m26":false},{"code":182,"cls":"F.4B/4E","m2_3":false,"subs":["C. Lit","C. hist"],"n":2,"has_m26":false},{"code":183,"cls":"F.4B/4E","m2_3":false,"subs":["C. Lit","ICT"],"n":2,"has_m26":false},{"code":184,"cls":"F.4B/4E","m2_3":false,"subs":["C. Lit","Bio"],"n":2,"has_m26":false},{"code":185,"cls":"F.4B/4E","m2_3":false,"subs":["C. Lit","Chem"],"n":2,"has_m26":false},{"code":186,"cls":"F.4B/4E","m2_3":false,"subs":["C. Lit","Hist"],"n":2,"has_m26":false},{"code":187,"cls":"F.4B/4E","m2_3":false,"subs":["BAFS","Econ"],"n":2,"has_m26":false},{"code":188,"cls":"F.4B/4E","m2_3":false,"subs":["BAFS","C. hist"],"n":2,"has_m26":false},{"code":189,"cls":"F.4B/4E","m2_3":false,"subs":["BAFS","ICT"],"n":2,"has_m26":false},{"code":190,"cls":"F.4B/4E","m2_3":false,"subs":["BAFS","Bio"],"n":2,"has_m26":false},{"code":191,"cls":"F.4B/4E","m2_3":false,"subs":["BAFS","Chem"],"n":2,"has_m26":false},{"code":192,"cls":"F.4B/4E","m2_3":false,"subs":["BAFS","Hist"],"n":2,"has_m26":false},{"code":193,"cls":"F.4B/4E","m2_3":true,"subs":["Econ","C. hist"],"n":2,"has_m26":false},{"code":194,"cls":"F.4B/4E","m2_3":true,"subs":["Econ","ICT"],"n":2,"has_m26":false},{"code":195,"cls":"F.4B/4E","m2_3":true,"subs":["Econ","Bio"],"n":2,"has_m26":false},{"code":196,"cls":"F.4B/4E","m2_3":true,"subs":["Econ","Chem"],"n":2,"has_m26":false},{"code":197,"cls":"F.4B/4E","m2_3":true,"subs":["Econ","Hist"],"n":2,"has_m26":false},{"code":198,"cls":"F.4B/4E","m2_3":true,"subs":["Geog","Econ"],"n":2,"has_m26":false},{"code":199,"cls":"F.4B/4E","m2_3":true,"subs":["Geog","C. hist"],"n":2,"has_m26":false},{"code":200,"cls":"F.4B/4E","m2_3":true,"subs":["Geog","ICT"],"n":2,"has_m26":false},{"code":201,"cls":"F.4B/4E","m2_3":true,"subs":["Geog","Bio"],"n":2,"has_m26":false},{"code":202,"cls":"F.4B/4E","m2_3":true,"subs":["Geog","Chem"],"n":2,"has_m26":false},{"code":203,"cls":"F.4B/4E","m2_3":true,"subs":["Geog","Hist"],"n":2,"has_m26":false},{"code":204,"cls":"F.4B/4E","m2_3":true,"subs":["Phy","Econ"],"n":2,"has_m26":false},{"code":205,"cls":"F.4B/4E","m2_3":true,"subs":["Phy","C. hist"],"n":2,"has_m26":false},{"code":206,"cls":"F.4B/4E","m2_3":true,"subs":["Phy","ICT"],"n":2,"has_m26":false},{"code":207,"cls":"F.4B/4E","m2_3":true,"subs":["Phy","Bio"],"n":2,"has_m26":false},{"code":208,"cls":"F.4B/4E","m2_3":true,"subs":["Phy","Chem"],"n":2,"has_m26":false},{"code":209,"cls":"F.4B/4E","m2_3":true,"subs":["Phy","Hist"],"n":2,"has_m26":false},{"code":210,"cls":"F.4B/4E","m2_3":true,"subs":["Chem","C. hist"],"n":2,"has_m26":false},{"code":211,"cls":"F.4B/4E","m2_3":true,"subs":["Chem","ICT"],"n":2,"has_m26":false},{"code":212,"cls":"F.4B/4E","m2_3":true,"subs":["Chem","Bio"],"n":2,"has_m26":false},{"code":213,"cls":"F.4B/4E","m2_3":true,"subs":["Chem","Hist"],"n":2,"has_m26":false},{"code":214,"cls":"F.4B/4E","m2_3":true,"subs":["C. Lit","Econ"],"n":2,"has_m26":false},{"code":215,"cls":"F.4B/4E","m2_3":true,"subs":["C. Lit","C. hist"],"n":2,"has_m26":false},{"code":216,"cls":"F.4B/4E","m2_3":true,"subs":["C. Lit","ICT"],"n":2,"has_m26":false},{"code":217,"cls":"F.4B/4E","m2_3":true,"subs":["C. Lit","Bio"],"n":2,"has_m26":false},{"code":218,"cls":"F.4B/4E","m2_3":true,"subs":["C. Lit","Chem"],"n":2,"has_m26":false},{"code":219,"cls":"F.4B/4E","m2_3":true,"subs":["C. Lit","Hist"],"n":2,"has_m26":false},{"code":220,"cls":"F.4B/4E","m2_3":true,"subs":["BAFS","Econ"],"n":2,"has_m26":false},{"code":221,"cls":"F.4B/4E","m2_3":true,"subs":["BAFS","C. hist"],"n":2,"has_m26":false},{"code":222,"cls":"F.4B/4E","m2_3":true,"subs":["BAFS","ICT"],"n":2,"has_m26":false},{"code":223,"cls":"F.4B/4E","m2_3":true,"subs":["BAFS","Bio"],"n":2,"has_m26":false},{"code":224,"cls":"F.4B/4E","m2_3":true,"subs":["BAFS","Chem"],"n":2,"has_m26":false},{"code":225,"cls":"F.4B/4E","m2_3":true,"subs":["BAFS","Hist"],"n":2,"has_m26":false}];
+// ---- scoring constants (MUST match generate_v3.py) ----
+const W_TOP=100, W_STEP=9, W_FLOOR=4, P_DNW=1000000, P_MUST=100000, SIZE_FIRM=10000,
+      SIZE_SLIGHT=250, M2_3_BLOCK=2000, M2_3_TIE=6, P_RATHER=400, P_PAIR=40, B_CAREER=8;
+const CAREER={ science:["Bio","Chem","Phy","M2(6)"], business:["BAFS","Econ","ICT"], arts:["C. hist","C. Lit","Hist","Geog"] };
+function weightsOf(liked){ const w={}; liked.forEach((s,i)=>{ if(w[s]===undefined) w[s]=Math.max(W_FLOOR, W_TOP-i*W_STEP); }); return w; }
+function scoreCombo(c,w,dnw,must,rather,size,sizeFirm,m2_3,m2Block,career,pairType,pair){
+  let s=0; for(const sub of c.subs) s+=(w[sub]||0);
+  for(const sub of c.subs){ if(dnw.includes(sub)) s-=P_DNW; if(rather.includes(sub)) s-=P_RATHER; }
+  if(must && !c.subs.includes(must)) s-=P_MUST;
+  if((size==="2"||size==="3") && c.n===+size) s+= sizeFirm?SIZE_FIRM:SIZE_SLIGHT;
+  if(c.m2_3){ const d=m2Block?M2_3_BLOCK:M2_3_TIE; s+= m2_3==="Y"?d : m2_3==="N"?-d : 0; }
+  if(CAREER[career]) for(const sub of c.subs) if(CAREER[career].includes(sub)) s+=B_CAREER;
+  if(pairType && pair && pair[0] && pair[1]){ const ina=c.subs.includes(pair[0]), inb=c.subs.includes(pair[1]);
+    if(pairType==="together" && ina!==inb) s-=P_PAIR; else if(pairType==="apart" && ina&&inb) s-=P_PAIR; }
+  return s;
+}
+function generate(liked,dnw,must,rather,size,sizeFirm,m2_3,m2Block,career,pairType,pair){
+  const w=weightsOf(liked);
+  const scored=COMBOS.map(c=>({sc:scoreCombo(c,w,dnw,must,rather,size,sizeFirm,m2_3,m2Block,career,pairType,pair), c}));
+  scored.sort((a,b)=> b.sc-a.sc || a.c.code-b.c.code);
+  const rank={}; scored.forEach((o,i)=> rank[o.c.code]=i+1);
+  return {scored, rank};
+}
+// ---- UI wiring ----
+const SUBJECTS = ["BAFS", "Bio", "Chem", "C. hist", "C. Lit", "Econ", "Geog", "Hist", "ICT", "Phy", "M2(6)"];
+const SUBJ = {"BAFS": {"en": "Business, Accounting & Financial Studies", "zh": "企業、會計與財務概論"}, "Bio": {"en": "Biology", "zh": "生物"}, "Chem": {"en": "Chemistry", "zh": "化學"}, "C. hist": {"en": "Chinese History", "zh": "中國歷史"}, "C. Lit": {"en": "Chinese Literature", "zh": "中國文學"}, "Econ": {"en": "Economics", "zh": "經濟"}, "Geog": {"en": "Geography", "zh": "地理"}, "Hist": {"en": "History", "zh": "歷史"}, "ICT": {"en": "Information & Communication Technology", "zh": "資訊及通訊科技"}, "Phy": {"en": "Physics", "zh": "物理"}, "M2(6)": {"en": "Mathematics Module 2 (M2)", "zh": "數學單元二 M2"}};
+const T = {"en": {"title": "F.4 Subject Priority Helper — Full Ranking", "sub": "PLK No.1 W.H. Cheung College · Rank every elective and set two lines for a precise 1–225 priority order. For your reference only, to review and talk through with your parents.", "disclaimer": "⚠️ For reference only. This helper cannot take into account every consideration involved in choosing your subjects, and bears no responsibility for your final decision. Please discuss with your parents and confirm your choice together with them.", "meta_class": "Class (e.g. 3A)", "meta_no": "Class no.", "meta_name": "Full English name", "meta_sex": "Gender (M/F)", "q1": "How many elective subjects do you want?", "opt3": "3 electives (excluding M2(3))", "opt2": "2 electives", "optOpen": "Open to both", "q2": "Rank ALL your elective subjects, then set the two lines.", "q2h": "Order every subject from most to least preferred (drag, or use ▲▼). Then move the two lines: above the first line = you're fine with it (ranked by preference); between the lines = you'd rather not; below the second line = you won't take it (at most 3).", "zoneAccept": "Acceptable — ranked by preference", "zoneRather": "Rather not — I'd prefer to avoid", "zoneDnw": "Won't take — do-not-want (max 3)", "lineRather": "—— rather-not line ——", "lineDnw": "—— won't-take line ——", "marks_hint": "For every subject below, enter your HALF-YEARLY EXAM mark and class rank. Special cases — Chinese Literature: use your Chinese Language mark/rank · ICT: enter your Computer Literacy grade · M2(6): use your Mathematics mark/rank.", "zoneOrderNote": "Tip: order matters in the green zone only — in the amber and red zones, only which zone a subject is in affects your result.", "sortMarks": "↓ Sort by my marks", "showMarks": "Show marks", "hideMarks": "Hide marks", "toTop": "Move to top", "orderNudge": "Your subjects are still in the default order — drag them (or use the arrows) into your real order of preference first.", "dlMarks": "⬇ Download my marks (CSV)", "hy_label": "Half-yearly Exam", "mark_label": "Mark", "rank_label": "Rank", "grade_label": "Grade", "q3warn": "You can mark at most 3 subjects as won't-take.", "q4": "Do you want to study M2(3)?", "q4remark": "Remark: M2(3) requires strong Mathematics — places are limited and allocated by maths merit.", "m2y": "Yes", "m2n": "No", "go": "Generate my priority list", "outHead": "Your priority list is ready", "topcap": "Your top choices (this is your #1 onwards):", "dl": "⬇ Download my full 225 list (CSV)", "pdf": "⬇ Download reply slip (PDF)", "restart": "Start over", "showFull": "See my full 1–225 ranking", "submitNote": "Submit the downloaded list on the official online form. Your teacher can re-check it for consistency — it is built to be contradiction-free.", "advHead": "Worth knowing", "m26note": "full elective (only in 4A / 4D / 4F)", "your": "your ", "size_firm_q": "How firm is this?", "firm": "Firm", "firm_s": "stick to this number", "flex": "Flexible", "flex_s": "switch if a clearly better combo exists", "musthave_q": "Is one subject a must-have (non-negotiable)?", "musthave_none": "— no must-have —", "m2strength_q": "How important is M2(3) compared with your subject choices?", "m2block": "Very important", "m2block_s": "put M2(3) combos first, ahead of subjects", "m2tie": "Minor", "m2tie_s": "only break ties between otherwise-similar combos", "qCareer": "Which direction are you leaning? (a gentle tie-breaker only)", "carSci": "Science / Engineering", "carBiz": "Business / Commerce", "carArts": "Arts / Humanities", "carUnd": "Undecided", "qPair": "One pairing rule (optional)", "qPairH": "e.g. keep two subjects together. Leave on 'No rule' to skip.", "pairNone": "No rule", "pairTogether": "Keep together", "pairAnd": "and", "slip_accept": "Acceptable subjects (in order)", "slip_rather": "Rather-not subjects", "slip_dnw": "Won't-take subjects", "contraMustM26": "⚠️ You set M2(6) as a must-have but chose 2 electives. M2(6) is only offered in the 3-elective classes (4A / 4D / 4F), so no 2-elective combination can contain it — choose 3 electives, or pick a different must-have.", "contraM26": "⚠️ You ranked Mathematics Module 2 (M2(6)) as acceptable but chose 2 electives. Of the four 3-elective classes (4A / 4C / 4D / 4F), M2(6) is offered only in 4A, 4D and 4F — not in the pure-science class 4C, and not in the 2-elective classes 4B / 4E. So M2(6) cannot appear in a 2-elective combination. To take M2(6), choose 3 electives; otherwise it stays near the bottom of your list.", "contra3anchor": "⚠️ You chose 3 electives but put Business, Accounting & Financial Studies, Physics and Biology all in won't-take. Each of the four 3-elective classes is anchored on one of these (4A → BAFS, 4C → Physics + Chemistry + Biology, 4D → Physics, 4F → Biology), so no 3-elective combination can avoid all three. To take 3 electives, please accept at least one of them — or choose 2 electives instead."}, "zh": {"title": "中四選科優次助手——完整排序版", "sub": "保良局第一張永慶中學 · 把所有選修科排序，再設定兩條分界線，得出精準的 1–225 志願次序。僅供參考，宜與家長一同檢視及商討。", "disclaimer": "⚠️ 僅供參考。本助手未能涵蓋選科時的所有考慮因素，對你的最終決定概不負責。請與家長商討，並一同確認你的選擇。", "meta_class": "班別（例如 3A）", "meta_no": "班號", "meta_name": "英文全名", "meta_sex": "性別 (M/F)", "q1": "你想修讀多少個選修科？", "opt3": "3 個選修科（不包括 M2(3)）", "opt2": "2 個選修科", "optOpen": "兩者皆可", "q2": "把所有選修科排序，再設定兩條分界線。", "q2h": "請把每一科由最喜歡到最不喜歡排序（可拖曳，或用 ▲▼）。然後移動兩條分界線：第一條線以上＝可接受（按喜好排序）；兩線之間＝較不想修讀；第二條線以下＝不想修讀（最多 3 個）。", "zoneAccept": "可接受——按喜好排序", "zoneRather": "較不想修讀——寧願避免", "zoneDnw": "不想修讀——絕對不選（最多 3 個）", "lineRather": "—— 較不想修讀分界線 ——", "lineDnw": "—— 不想修讀分界線 ——", "marks_hint": "請為下方每一科填上「半年考」成績及班內名次。特別情況——中國文學：請填中國語文的成績／名次 · 資訊及通訊科技：請填普通電腦科成績等級 · M2(6)：請填數學的成績／名次。", "zoneOrderNote": "提示：次序只在綠色（可接受）區域有作用——在橙色及紅色區域，只有「屬於哪個區域」會影響結果。", "sortMarks": "↓ 按我的成績排序", "showMarks": "顯示成績", "hideMarks": "隱藏成績", "toTop": "移到最前", "orderNudge": "你的科目仍是預設次序——請先把它們（拖曳或用箭咀）排成你真正的喜好次序。", "dlMarks": "⬇ 下載我的成績（CSV）", "hy_label": "半年考成績", "mark_label": "成績", "rank_label": "名次", "grade_label": "等級", "q3warn": "最多只能把 3 個科目列為「不想修讀」。", "q4": "你想修讀 M2(3) 嗎？", "q4remark": "備註：M2(3) 需要較強的數學能力——學額有限，並按數學成績優次分配。", "m2y": "想", "m2n": "不想", "go": "產生我的志願次序", "outHead": "你的志願次序已完成", "topcap": "你的首選組合（由第 1 志願起）：", "dl": "⬇ 下載我的完整 225 志願（CSV）", "pdf": "⬇ 下載回條（PDF）", "restart": "重新開始", "showFull": "查看我的完整 1–225 排序", "submitNote": "請把下載的清單填入官方網上選科表。老師可覆核其一致性——本清單按設計不會自相矛盾。", "advHead": "值得留意", "m26note": "完整選修科（只設於 4A / 4D / 4F）", "your": "你的 ", "size_firm_q": "這個決定有多堅定？", "firm": "堅定", "firm_s": "就要這個數目", "flex": "可調整", "flex_s": "若有明顯更好的組合可改變", "musthave_q": "有沒有一科是必修（不可妥協）的？", "musthave_none": "— 沒有必修科 —", "m2strength_q": "M2(3) 相對於你的科目選擇有多重要？", "m2block": "非常重要", "m2block_s": "把含 M2(3) 的組合排在科目之前", "m2tie": "次要", "m2tie_s": "只用來在相近的組合之間分高下", "qCareer": "你較傾向哪個方向？（只作輕微的分高下準則）", "carSci": "理科／工程", "carBiz": "商科／商業", "carArts": "文科／人文", "carUnd": "未定", "qPair": "一條配對規則（可選）", "qPairH": "例如：把兩科保持在一起。選「不設規則」即略過。", "pairNone": "不設規則", "pairTogether": "保持在一起", "pairAnd": "與", "slip_accept": "可接受的科目（按次序）", "slip_rather": "較不想修讀的科目", "slip_dnw": "不想修讀的科目", "contraMustM26": "⚠️ 你把 M2(6) 設為必修，但又選了 2 個選修科。M2(6) 只設於 3 選修科的班別（4A／4D／4F），故任何 2 選修科組合都不會包含它——請改選 3 個選修科，或選擇其他必修科。", "contraM26": "⚠️ 你把數學單元二（M2(6)）列為可接受，但又選了 2 個選修科。在四個 3 選修科班別（4A / 4C / 4D / 4F）中，M2(6) 只設於 4A、4D 及 4F——不設於純理科的 4C 班，亦不設於 2 選修科的 4B / 4E 班，故不會出現在 2 選修科的組合中。若想修讀 M2(6)，請改選 3 個選修科；否則它只會排在清單的較後位置。", "contra3anchor": "⚠️ 你選了 3 個選修科，但把企業、會計與財務概論、物理及生物全部列為不想修讀。四個 3 選修科班別各以其中一科為必修（4A → 企會財、4C → 物理＋化學＋生物、4D → 物理、4F → 生物），因此沒有任何 3 選修科組合能同時避開這三科。若要修讀 3 個選修科，請至少接受其中一科；或改選 2 個選修科。"}};
+// which Half-yearly result to enter for the trickier subjects (record-only)
+const MARKINFO = {
+  "C. Lit": {en:"use Chinese Language", zh:"填中國語文", type:"mr"},
+  "ICT":    {en:"Computer Literacy grade", zh:"普通電腦科等級", type:"grade"},
+  "M2(6)":  {en:"use Mathematics", zh:"填數學", type:"mr"},
+};
+function markInfo(s){ return MARKINFO[s] || {en:"", zh:"", type:"mr"}; }
+let LANG='en', LAST=null, dragFrom=null;
+// S.order = all 11 electives ranked (0 = most preferred). Two lines split it into three zones:
+//   acceptable = order[0 .. ratherAt-1]  (ranked -> liked weights)
+//   rather-not = order[ratherAt .. dnwAt-1]
+//   won't-take = order[dnwAt ..]          (<=3)
+const S = { size:null, size_firm:true, order:SUBJECTS.slice(), ratherAt:SUBJECTS.length, dnwAt:SUBJECTS.length,
+            must:null, m2_3:null, m2_3_block:true, career:'undecided', pair_type:null, pair:[null,null], marks:{},
+            manualOrder:false, marksHidden:false };
+function zonesOf(){ return { acc:S.order.slice(0,S.ratherAt), rather:S.order.slice(S.ratherAt,S.dnwAt), dnw:S.order.slice(S.dnwAt) }; }
+const DEFAULT_ORDER = SUBJECTS.slice();
+function orderIsDefault(){ return S.order.length===DEFAULT_ORDER.length && S.order.every((s,i)=>s===DEFAULT_ORDER[i]); }
+// #1 helpful starting order: float Direction-aligned subjects to the top (only until the student ranks manually)
+function seedByDirection(dir){ if(!CAREER[dir]) return;
+  const a=S.order.filter(s=>CAREER[dir].includes(s)), b=S.order.filter(s=>!CAREER[dir].includes(s)); S.order=[...a,...b]; }
+// #1/#5 bulk sort by entered Half-yearly mark (desc; blanks last; stable)
+function sortByMarks(){ S.manualOrder=true;
+  S.order = S.order.map((s,i)=>[s,i]).sort((p,q)=>{
+    const mp=parseFloat((S.marks[p[0]]||{}).mark), mq=parseFloat((S.marks[q[0]]||{}).mark);
+    return (isNaN(mq)?-1:mq)-(isNaN(mp)?-1:mp) || p[1]-q[1];
+  }).map(x=>x[0]);
+  renderList(); refresh(); }
+// #5 collapse the marks rows to shorten the page
+function toggleMarks(){ S.marksHidden=!S.marksHidden;
+  document.getElementById('rankList').classList.toggle('nomarks', S.marksHidden); updateToolLabels(); }
+function updateToolLabels(){ document.getElementById('toggleMarks').textContent = S.marksHidden?T[LANG].showMarks:T[LANG].hideMarks; }
+
+const subjName = s => (SUBJ[s] ? SUBJ[s][LANG] : s);
+const joinSubs = arr => arr.map(subjName).join(LANG==='zh' ? '、' : ', ');
+const val = id => document.getElementById(id).value.trim();
+const L = (en,zh) => `${en}　${zh}`;
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function fillSelect(sel, items, noneLabel, current){
+  sel.innerHTML='';
+  if(noneLabel!=null){ const o=document.createElement('option'); o.value=''; o.textContent=noneLabel; sel.appendChild(o); }
+  items.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=subjName(s); sel.appendChild(o); });
+  sel.value = (current && items.includes(current)) ? current : '';
+}
+function fillMustSelect(){
+  const acc=zonesOf().acc;
+  if(!acc.includes(S.must)) S.must=null;
+  fillSelect(document.getElementById('m_must'), acc, T[LANG].musthave_none, S.must);
+  document.getElementById('mustWrap').style.display = acc.length ? 'flex' : 'none';
+}
+function fillPairSelects(){
+  fillSelect(document.getElementById('pairA'), SUBJECTS, '—', S.pair[0]);
+  fillSelect(document.getElementById('pairB'), SUBJECTS, '—', S.pair[1]);
+}
+
+function applyLang(){
+  document.documentElement.lang = LANG==='zh' ? 'zh-Hant' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=> el.textContent = T[LANG][el.dataset.i18n] || '');
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=> el.placeholder = T[LANG][el.dataset.i18nPh] || '');
+  ['outHead','topcap','showFull','submitNote'].forEach(id=> document.getElementById(id).textContent = T[LANG][id]);
+  ['dl','dlMarks','pdf','restart'].forEach(id=> document.getElementById(id).textContent = T[LANG][id]);
+  document.querySelectorAll('.langbtn').forEach(b=> b.classList.toggle('on', b.dataset.l===LANG));
+  renderList(); updateContra(); fillPairSelects(); updateToolLabels();
+  document.getElementById('orderNudge').textContent = (S.size && orderIsDefault()) ? T[LANG].orderNudge : '';
+  if(LAST) renderResults();
+}
+document.querySelectorAll('.langbtn').forEach(b=> b.onclick = ()=>{ LANG=b.dataset.l; applyLang(); });
+
+function pickOne(boxId, fn){
+  document.querySelectorAll('#'+boxId+' .opt').forEach(el=>{
+    el.onclick=()=>{ document.querySelectorAll('#'+boxId+' .opt').forEach(x=>x.classList.toggle('on',x===el));
+      fn(el.dataset.v); refresh(); };
+  });
+}
+pickOne('q_size', v=>{ S.size=v; document.getElementById('firmWrap').style.display=(v==='2'||v==='3')?'block':'none'; });
+pickOne('q_firm', v=>{ S.size_firm=(v==='firm'); });
+pickOne('q_m23', v=>{ S.m2_3=v; document.getElementById('m2sWrap').style.display=(v==='Y'||v==='N')?'block':'none'; });
+pickOne('q_m2s', v=>{ S.m2_3_block=(v==='block'); });
+pickOne('q_career', v=>{ S.career=v; if(!S.manualOrder){ seedByDirection(v); renderList(); } });
+pickOne('q_pair', v=>{ S.pair_type=(v==='none'?null:v); document.getElementById('pairPickWrap').style.display=(v==='none')?'none':'flex'; });
+document.getElementById('m_must').onchange = e=>{ S.must = e.target.value || null; };
+document.getElementById('pairA').onchange = e=>{ S.pair[0] = e.target.value || null; };
+document.getElementById('pairB').onchange = e=>{ S.pair[1] = e.target.value || null; };
+
+function flash(){ const w=document.getElementById('dnwWarn'); w.textContent=T[LANG].q3warn; setTimeout(()=>w.textContent='',1800); }
+
+function marksRowEl(s){
+  const mi=markInfo(s), mk=(S.marks[s] = S.marks[s] || {mark:'',rank:'',grade:''});
+  const marks=document.createElement('div'); marks.className='marksrow';
+  const hy = `<span class="hylab">${T[LANG].hy_label}:</span>`;
+  const note = mi[LANG] ? `<span class="mknote">${esc(mi[LANG])}</span>` : '';
+  if(mi.type==='grade'){
+    marks.innerHTML = `${hy}${note}<label>${T[LANG].grade_label} <input type="text" data-mk="grade" value="${esc(mk.grade)}" maxlength="3"></label>`;
+  } else {
+    marks.innerHTML = `${hy}${note}<label>${T[LANG].mark_label} <input type="number" min="0" max="100" data-mk="mark" value="${esc(mk.mark)}"></label>`
+      + `<label>${T[LANG].rank_label} <input type="number" min="1" data-mk="rank" value="${esc(mk.rank)}"></label>`;
+  }
+  marks.querySelectorAll('input').forEach(inp=>{
+    inp.oninput=()=>{ S.marks[s][inp.dataset.mk]=inp.value; };
+    inp.onchange=()=>{                       // #7 light validation on blur
+      if(inp.type==='number'){ let v=inp.value.trim();
+        if(v!==''){ let n=parseFloat(v); if(!isNaN(n)){
+          if(inp.dataset.mk==='mark') n=Math.max(0,Math.min(100,n));
+          if(inp.dataset.mk==='rank') n=Math.max(1,Math.round(n));
+          inp.value=String(n); } }
+      } else { inp.value=inp.value.toUpperCase(); }
+      S.marks[s][inp.dataset.mk]=inp.value; };
+  });
+  return marks;
+}
+function mkBtn(t,fn,dis){ const b=document.createElement('button'); b.textContent=t; b.onclick=fn; if(dis) b.disabled=true; return b; }
+
+// reorder a subject; the two lines stay at their indices so a subject changes ZONE as it crosses one
+function moveItem(from,to){ const n=S.order.length; if(to<0||to>=n||from===to||from<0||from>=n) return;
+  S.manualOrder=true; const [x]=S.order.splice(from,1); S.order.splice(to,0,x); renderList(); refresh(); }
+function moveRather(d){ S.manualOrder=true; S.ratherAt=Math.max(0,Math.min(S.dnwAt,S.ratherAt+d)); renderList(); refresh(); }
+function moveDnw(d){ S.manualOrder=true; let nd=Math.max(S.ratherAt,Math.min(S.order.length,S.dnwAt+d));
+  if(S.order.length-nd>3){ nd=S.order.length-3; flash(); } S.dnwAt=nd; renderList(); refresh(); }
+
+function renderList(){
+  const host=document.getElementById('rankList'); host.innerHTML='';
+  host.classList.toggle('nomarks', S.marksHidden);
+  const addDivider=(kind)=>{
+    const d=document.createElement('div'); d.className='divider '+kind;
+    d.innerHTML=`<span class="dlab">${kind==='rather'?T[LANG].lineRather:T[LANG].lineDnw}</span>`;
+    const ctr=document.createElement('span'); ctr.className='rowbtns';
+    const at = kind==='rather'?S.ratherAt:S.dnwAt;
+    const upDis = kind==='rather' ? S.ratherAt<=0 : S.dnwAt<=S.ratherAt;
+    const dnDis = kind==='rather' ? S.ratherAt>=S.dnwAt : S.dnwAt>=S.order.length;
+    ctr.append(mkBtn('▲',()=> kind==='rather'?moveRather(-1):moveDnw(-1), upDis),
+               mkBtn('▼',()=> kind==='rather'?moveRather(1):moveDnw(1), dnDis));
+    d.appendChild(ctr);
+    d.addEventListener('dragover',e=>e.preventDefault());
+    d.addEventListener('drop',e=>{ e.preventDefault(); if(dragFrom!=null){ moveItem(dragFrom, dragFrom<at?Math.max(0,at-1):at); } dragFrom=null; });
+    host.appendChild(d);
+  };
+  S.order.forEach((s,i)=>{
+    if(i===S.ratherAt) addDivider('rather');
+    if(i===S.dnwAt) addDivider('dnw');
+    const zone = i<S.ratherAt?'acc':(i<S.dnwAt?'rather':'dnw');
+    const li=document.createElement('div'); li.className='rankrow drag '+zone; li.draggable=true; li.dataset.i=i;
+    li.addEventListener('dragstart',()=>{ dragFrom=i; });
+    li.addEventListener('dragend',()=>{ dragFrom=null; document.querySelectorAll('.rankrow').forEach(r=>r.classList.remove('dragover')); });
+    li.addEventListener('dragover',e=>{ e.preventDefault(); li.classList.add('dragover'); });
+    li.addEventListener('dragleave',()=>li.classList.remove('dragover'));
+    li.addEventListener('drop',e=>{ e.preventDefault(); li.classList.remove('dragover'); if(dragFrom!=null) moveItem(dragFrom,i); dragFrom=null; });
+    const badge = zone==='acc' ? `<span class="ord">${i+1}</span>`
+                                : `<span class="ordband ${zone}">${zone==='rather'?'~':'✕'}</span>`;
+    const note = s==='M2(6)' ? `<small>${T[LANG].m26note}</small>` : '';
+    const head=document.createElement('div'); head.className='rankhead';
+    head.innerHTML=`${badge}<span class="nm">${esc(subjName(s))}${note}</span>`;
+    const ctr=document.createElement('span'); ctr.className='rowbtns';
+    const top=mkBtn('⤒',()=>moveItem(i,0), i===0); top.title=T[LANG].toTop;
+    ctr.append(top, mkBtn('▲',()=>moveItem(i,i-1), i===0), mkBtn('▼',()=>moveItem(i,i+1), i===S.order.length-1));
+    head.appendChild(ctr); li.appendChild(head);
+    li.appendChild(marksRowEl(s)); host.appendChild(li);
+  });
+  if(S.ratherAt===S.order.length) addDivider('rather');
+  if(S.dnwAt===S.order.length) addDivider('dnw');
+  fillMustSelect();
+}
+
+function ready(){ return S.size && S.m2_3; }
+function contradictions(){
+  const z=zonesOf(), m=[];
+  if(S.size==='2' && (z.acc.includes('M2(6)') || S.must==='M2(6)')) m.push(T[LANG].contraM26);
+  if(S.size==='2' && S.must==='M2(6)') m.push(T[LANG].contraMustM26);
+  if(S.size==='3' && ['BAFS','Phy','Bio'].every(s=>z.dnw.includes(s))) m.push(T[LANG].contra3anchor);
+  return m;
+}
+function updateContra(){
+  const m=contradictions();
+  document.getElementById('contraBox').innerHTML =
+    m.length ? `<div class="contra">${m.map(x=>`<div>${x}</div>`).join('')}</div>` : '';
+}
+function refresh(){ document.getElementById('go').disabled=!ready(); updateContra();
+  document.getElementById('orderNudge').textContent = (S.size && orderIsDefault()) ? T[LANG].orderNudge : ''; }
+
+function advisories(liked,dnw,must,size,m2_3,scored){
+  const z = LANG==='zh', adv=[];
+  const wantN = (size==='2'||size==='3') ? +size : null;
+  if(size==='2' && (liked.includes('M2(6)') || must==='M2(6)')) adv.push(T[LANG].contraM26);
+  if(size==='2' && must==='M2(6)') adv.push(T[LANG].contraMustM26);
+  if(size==='3' && ['BAFS','Phy','Bio'].every(s=>dnw.includes(s))) adv.push(T[LANG].contra3anchor);
+  if(m2_3==='Y') adv.push(T[LANG].q4remark);
+  if(must){ const mn=subjName(must);
+    adv.push(z ? `必修科：所有不含「${mn}」的組合都排在含有它的組合之後（共 ${scored.filter(o=>o.c.subs.includes(must)).length} 個含 ${mn} 的組合）。`
+               : `Must-have: every combination without ${mn} sits below all ${scored.filter(o=>o.c.subs.includes(must)).length} combinations that include it.`); }
+  if(wantN && liked.length>=wantN){
+    const dream=liked.slice(0,wantN).slice().sort().join('|');
+    const offered=COMBOS.some(c=>c.n===wantN && c.subs.slice().sort().join('|')===dream);
+    if(!offered){ const names=liked.slice(0,wantN).map(subjName).join(z?'、':', ');
+      adv.push(z ? `你最理想的 ${wantN} 科組合（${names}）並非學校提供的組合——上方第 1 志願是最接近的選擇。`
+                 : `Your ideal ${wantN}-subject set (${names}) is not an offered combination — your #1 above is the closest available.`); }
+  }
+  if(dnw.length){
+    const clean=scored.filter(o=>!o.c.subs.some(s=>dnw.includes(s)));
+    const first=clean.length+1, names=dnw.map(subjName).join(z?'、':', ');
+    adv.push(z ? `所有包含 ${names} 的組合，都排在 ${clean.length} 個不含它們的組合之後（不想修讀的組合由第 ${first} 位開始）。`
+               : `Every combination containing ${names} sits below all ${clean.length} combinations without them (unwanted combinations start at #${first}).`);
+    if(wantN && first<=60){ const cleanN=clean.filter(o=>o.c.n===wantN).length, other=wantN===3?'2':'3';
+      adv.push(z ? `提提你：在這些「不想修讀」之下，你只有 ${cleanN} 個沒有衝突的 ${wantN} 科組合；不想修讀的組合最高去到第 ${first} 位。若覺得太高，可考慮把其中一個移回上方，或改選 ${other} 個選修科。`
+                 : `Heads-up: with these won't-take subjects you only have ${cleanN} clean ${wantN}-elective option(s); they reach as high as #${first}. If that feels high, consider moving one back up or trying ${other} electives.`); }
+  }
+  return adv;
+}
+
+function renderResults(){
+  const {scored,liked,dnw,must,size,m2_3}=LAST;
+  const tl=document.getElementById('topList'); tl.innerHTML='';
+  scored.slice(0,12).forEach((o,i)=>{
+    const c=o.c, why=c.subs.filter(s=>liked.includes(s)).map(subjName);
+    const bits=[]; if(why.length) bits.push(T[LANG].your + why.join(LANG==='zh'?'、':' + '));
+    if(c.m2_3) bits.push('M2(3)'); if(c.has_m26) bits.push('M2(6)');
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<span class="rk">#${i+1}</span><span class="cl">${c.cls}</span>`+
+      `<span>${joinSubs(c.subs)}</span>`+(bits.length?`<span class="why">${bits.join(' · ')}</span>`:'');
+    tl.appendChild(row);
+  });
+  const adv=advisories(liked,dnw,must,size,m2_3,scored);
+  document.getElementById('advBox').innerHTML = adv.length
+    ? `<div class="adv"><b>${T[LANG].advHead}</b><ul>${adv.map(a=>`<li>${a}</li>`).join('')}</ul></div>` : '';
+  const ft=document.getElementById('fullTable'); ft.innerHTML='';
+  scored.forEach((o,i)=>{ const c=o.c; const tr=document.createElement('tr');
+    tr.innerHTML=`<td>#${i+1}</td><td>${c.cls}</td><td>${c.m2_3?'M2(3)':''}</td><td>${joinSubs(c.subs)}</td>`; ft.appendChild(tr); });
+}
+
+document.getElementById('go').onclick=()=>{
+  const z=zonesOf();
+  const g=generate(z.acc,z.dnw,S.must,z.rather,S.size,S.size_firm,S.m2_3,S.m2_3_block,S.career,S.pair_type,S.pair);
+  LAST={scored:g.scored, rank:g.rank, liked:[...z.acc], dnw:[...z.dnw], must:S.must, rather:[...z.rather],
+        size:S.size, size_firm:S.size_firm, m2_3:S.m2_3, m2_3_block:S.m2_3_block, career:S.career,
+        pair_type:S.pair_type, pair:[...S.pair]};
+  renderResults();
+  document.getElementById('out').style.display='block';
+  document.getElementById('out').scrollIntoView({behavior:'smooth'});
+};
+
+// ---- CSV download: full 1-225 priority, auditor schema, incl. gender ----
+// guards against CSV-formula injection (leading = + - @ tab) as well as quoting
+function csvCell(v){ v=String(v==null?'':v); if(/^[=+\-@\t\r]/.test(v)) v="'"+v; return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+document.getElementById('dl').onclick=()=>{
+  if(!LAST) return;
+  const rank=LAST.rank, cls=val('m_class'), no=val('m_no'), nm=val('m_name'), sx=val('m_sex');
+  const rows=[["Class (3A-3E)","Class no","---","FULL English Name ","Gender (M or F)"],
+              [cls,no,"---",nm,sx],
+              ["Code","Class","M2(3)","Elective Subjects","Order of preference (1 - 225)"]];
+  COMBOS.slice().sort((a,b)=>a.code-b.code).forEach(c=>
+    rows.push([c.code,c.cls,c.m2_3?"M2(3)":"---",c.subs.join(", "),rank[c.code]]));
+  const csv=rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+  const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=`F4_selection_${cls||"student"}_${no||""}.csv`.replace(/_+\./,".");
+  a.click();
+};
+
+// ---- #2 marks export: the Half-yearly marks as DATA (the slip PDF is only an image) ----
+function downloadMarksCSV(){
+  const z=zonesOf(), accIdx={}; z.acc.forEach((s,i)=>accIdx[s]=i+1);
+  const zoneOf=s=> z.acc.includes(s)?"Acceptable":(z.rather.includes(s)?"Rather-not":"Won't-take");
+  const cls=val('m_class'), no=val('m_no'), nm=val('m_name'), sx=val('m_sex');
+  const rows=[["Class","Class no","Name","Gender (M or F)"],[cls,no,nm,sx],[],
+              ["Subject","Zone","Preference order (acceptable only)","Half-yearly mark","Class rank","Grade (ICT)"]];
+  S.order.forEach(s=>{ const mk=S.marks[s]||{};
+    rows.push([SUBJ[s].en, zoneOf(s), accIdx[s]||"", mk.mark||"", mk.rank||"", mk.grade||""]); });
+  const csv=rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+  const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=`F4_marks_${cls||"student"}_${no||""}.csv`.replace(/_+\./,".");
+  a.click();
+}
+document.getElementById('dlMarks').onclick=downloadMarksCSV;
+document.getElementById('sortMarks').onclick=sortByMarks;
+document.getElementById('toggleMarks').onclick=toggleMarks;
+
+// ---- bilingual reply slip (answers + Half-yearly marks + signatures), condensed to one A4 ----
+const subjEn = s => esc(SUBJ[s].en), subjZh = s => esc(SUBJ[s].zh);
+const PDF_STYLE = "*{box-sizing:border-box;font-family:'PingFang HK','Microsoft JhengHei','Heiti TC',sans-serif}"
+  + ".doc{width:1240px;padding:44px 56px;color:#000;font-size:18px;line-height:1.38}"
+  + ".pdf-head{text-align:center;margin-bottom:8px}.pdf-head .sch{font-weight:700;font-size:25px}"
+  + ".pdf-head .ttl{font-size:19px;margin-top:3px}"
+  + "table{width:100%;border-collapse:collapse;margin:7px 0}.stu td{padding:3px 4px;font-size:17px}"
+  + "h3{font-size:18px;margin:13px 0 4px;border-bottom:1.5px solid #000;padding-bottom:3px}"
+  + ".kv td{border:1px solid #888;padding:4px 8px;font-size:17px}.kv .k{width:38%;font-weight:600;background:#f1f1f1}"
+  + ".mk th,.mk td{border:1px solid #888;padding:4px 8px;font-size:16px;text-align:left;vertical-align:top}"
+  + ".mk .zh{color:#444;font-size:13px}.mk .note{color:#b00;font-size:12px}"
+  + ".note2{font-size:13px;color:#444;margin-top:8px}"
+  + ".sigrow{display:flex;align-items:flex-end;gap:10px;margin:15px 0}.sigrow .lab{white-space:nowrap;font-weight:600;font-size:17px}"
+  + ".sigrow .line{flex:1;border-bottom:1.5px solid #000;height:1px}.pdf-sig{margin-top:16px}";
+
+function marksCell(s){
+  const mi=markInfo(s), mk=S.marks[s]||{};
+  return mi.type==='grade'
+    ? `${L('Grade','成績等級')}: <b>${esc(mk.grade)||'＿＿'}</b>`
+    : `${L('Mark','成績')}: <b>${esc(mk.mark)||'＿＿'}</b>ㅤ${L('Rank','名次')}: <b>${esc(mk.rank)||'＿＿'}</b>`;
+}
+function subjRow(s, ord){
+  const mi=markInfo(s);
+  const note = mi.en ? `<br/><span class="note">(${esc(mi.en)} ${esc(mi.zh)})</span>` : '';
+  const oc = ord==null ? '' : `<td>${ord}</td>`;
+  return `<tr>${oc}<td>${subjEn(s)}<br/><span class="zh">${subjZh(s)}</span>${note}</td><td>${marksCell(s)}</td></tr>`;
+}
+function buildSlipHTML(){
+  const z=zonesOf();
+  const cls=esc(val('m_class')), no=esc(val('m_no')), nm=esc(val('m_name')), sx=esc(val('m_sex'));
+  const sizeTxt = S.size==='3'?L('3 electives','3 個選修科'):S.size==='2'?L('2 electives','2 個選修科'):S.size==='open'?L('Open to both','兩者皆可'):'—';
+  const m2Txt = S.m2_3==='Y'?L('Yes','想'):S.m2_3==='N'?L('No','不想'):'—';
+  const firmTxt = (S.size==='2'||S.size==='3') ? (S.size_firm?L('firm','堅定'):L('flexible','可調整')) : '—';
+  const m2sTxt = (S.m2_3==='Y'||S.m2_3==='N') ? (S.m2_3_block?L('very important','非常重要'):L('minor','次要')) : '—';
+  const mustTxt = S.must ? `${subjEn(S.must)} ${subjZh(S.must)}` : '—';
+  const careerTxt = {science:L('Science / Engineering','理科／工程'),business:L('Business / Commerce','商科／商業'),arts:L('Arts / Humanities','文科／人文'),undecided:L('Undecided','未定')}[S.career] || '—';
+  const pairTxt = (S.pair_type==='together' && S.pair[0] && S.pair[1])
+    ? `${L('keep together','保持一起')}: ${subjEn(S.pair[0])} + ${subjEn(S.pair[1])}` : '—';
+  const acceptRows = z.acc.length ? z.acc.map((s,i)=>subjRow(s,i+1)).join('') : `<tr><td colspan="3">—</td></tr>`;
+  const ratherRows = z.rather.length ? z.rather.map(s=>subjRow(s,null)).join('') : `<tr><td colspan="2">${L('None','沒有')}</td></tr>`;
+  const dnwRows = z.dnw.length ? z.dnw.map(s=>subjRow(s,null)).join('') : `<tr><td colspan="2">${L('None','沒有')}</td></tr>`;
+  const sig = [["Parent's Name","家長姓名"],["Parent's Signature","家長簽署"],["Date","日期"],["Student's Signature","學生簽署"]]
+    .map(p=>`<div class="sigrow"><span class="lab">${p[0]}　${p[1]}：</span><span class="line"></span></div>`).join('');
+  return `
+    <div class="pdf-head">
+      <div class="sch">PLK No.1 W.H. Cheung College　保良局第一張永慶中學</div>
+      <div class="ttl">F.4 Subject Selection — Student Reply Slip　中四選科 — 學生回條</div>
+    </div>
+    <table class="stu"><tr>
+      <td>${L('Class','班別')}: <b>${cls||'＿＿＿'}</b></td>
+      <td>${L('No.','班號')}: <b>${no||'＿＿'}</b></td>
+      <td>${L('Name','姓名')}: <b>${nm||'＿＿＿＿＿'}</b></td>
+      <td>${L('Gender','性別')}: <b>${sx||'＿＿'}</b></td>
+    </tr></table>
+    <table class="kv">
+      <tr><td class="k">${L('Electives','選修科數目')}</td><td>${sizeTxt} (${firmTxt})</td>
+          <td class="k">M2(3)</td><td>${m2Txt} (${m2sTxt})</td></tr>
+      <tr><td class="k">${L('Must-have','必修科')}</td><td>${mustTxt}</td>
+          <td class="k">${L('Direction','方向')}</td><td>${careerTxt}</td></tr>
+      <tr><td class="k">${L('Pairing rule','配對規則')}</td><td colspan="3">${pairTxt}</td></tr>
+    </table>
+    <h3>${L('Acceptable subjects (in order) &amp; Half-yearly Exam results','可接受的科目（按次序）及半年考成績')}</h3>
+    <table class="mk"><thead><tr>
+      <th>${L('Order','次序')}</th><th>${L('Subject','科目')}</th><th>${L('Half-yearly Exam result','半年考成績')}</th>
+    </tr></thead><tbody>${acceptRows}</tbody></table>
+    <h3>${L('Rather-not subjects &amp; Half-yearly Exam results','較不想修讀的科目及半年考成績')}</h3>
+    <table class="mk"><thead><tr>
+      <th>${L('Subject','科目')}</th><th>${L('Half-yearly Exam result','半年考成績')}</th>
+    </tr></thead><tbody>${ratherRows}</tbody></table>
+    <h3>${L('Won&apos;t-take subjects &amp; Half-yearly Exam results','不想修讀的科目及半年考成績')}</h3>
+    <table class="mk"><thead><tr>
+      <th>${L('Subject','科目')}</th><th>${L('Half-yearly Exam result','半年考成績')}</th>
+    </tr></thead><tbody>${dnwRows}</tbody></table>
+    <p class="note2">${L('The full 1–225 priority order is exported separately as a CSV file and submitted on the official online form.','完整 1–225 志願次序另以 CSV 檔匯出，並於官方網上選科表提交。')}</p>
+    <div class="pdf-sig">${sig}</div>`;
+}
+function slipSVG(){
+  const w=1240, h=1754;
+  const inner = `<div xmlns="http://www.w3.org/1999/xhtml" class="doc"><style>${PDF_STYLE}</style>${buildSlipHTML()}</div>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><foreignObject x="0" y="0" width="${w}" height="${h}">${inner}</foreignObject></svg>`;
+}
+function downloadJpegPDF(dataURL, iw, ih, name){
+  const bin=atob(dataURL.split(',')[1]);
+  const pw=(iw*72/150).toFixed(2), ph=(ih*72/150).toFixed(2);   // 150 dpi -> ~595x842 pt (A4)
+  let pdf=''; const off=[]; const add=s=>{ pdf+=s; };
+  add('%PDF-1.3\n');
+  off[1]=pdf.length; add('1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n');
+  off[2]=pdf.length; add('2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n');
+  off[3]=pdf.length; add(`3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${pw} ${ph}]/Resources<</XObject<</Im0 4 0 R>>>>/Contents 5 0 R>>\nendobj\n`);
+  off[4]=pdf.length; add(`4 0 obj\n<</Type/XObject/Subtype/Image/Width ${iw}/Height ${ih}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${bin.length}>>\nstream\n`+bin+'\nendstream\nendobj\n');
+  const cont=`q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`;
+  off[5]=pdf.length; add(`5 0 obj\n<</Length ${cont.length}>>\nstream\n${cont}\nendstream\nendobj\n`);
+  const xref=pdf.length;
+  add('xref\n0 6\n0000000000 65535 f \n');
+  for(let i=1;i<=5;i++) add(String(off[i]).padStart(10,'0')+' 00000 n \n');
+  add(`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${xref}\n%%EOF`);
+  const bytes=new Uint8Array(pdf.length);
+  for(let i=0;i<pdf.length;i++) bytes[i]=pdf.charCodeAt(i)&255;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+  a.download=name+'.pdf'; a.click();
+}
+function buildPDF(){
+  const cls=val('m_class'), no=val('m_no');
+  const fname=`F4_reply_slip_${cls||'student'}_${no||''}`.replace(/_+$/,'');
+  const img=new Image();
+  img.onload=()=>{
+    try{
+      const c=document.createElement('canvas'); c.width=1240; c.height=1754;
+      const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,1240,1754); ctx.drawImage(img,0,0);
+      downloadJpegPDF(c.toDataURL('image/jpeg',0.92), 1240, 1754, fname);
+    }catch(e){ document.getElementById('printArea').innerHTML=buildSlipHTML(); window.print(); }
+  };
+  img.onerror=()=>{ document.getElementById('printArea').innerHTML=buildSlipHTML(); window.print(); };
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(slipSVG());
+}
+document.getElementById('pdf').onclick=buildPDF;
+document.getElementById('restart').onclick=()=>location.reload();
+
+// ---- light source/devtools deterrents (NOT real protection; see README) ----
+document.addEventListener('contextmenu', e=>e.preventDefault());
+document.addEventListener('keydown', e=>{
+  const k=(e.key||'').toLowerCase();
+  if(k==='f12' || (e.ctrlKey && (k==='u'||k==='s')) || (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k)))
+    e.preventDefault();
+});
+
+applyLang();
+</script>
+
+<!-- ---- passcode gate (deterrent only; client-side source is always readable) ---- -->
+<script>
+(function(){
+  var STORED='b5c420ee2fab1b2ca51dbf0a98cf5678ea44652ec86736edc2f727e3e68d4517'; // SHA-256 of the passcode
+  var KEY='streaming_pass';
+  var lock=document.getElementById('lock'), app=document.getElementById('app');
+  var inp=document.getElementById('passcode'), btn=document.getElementById('unlock-btn'), err=document.getElementById('lock-err');
+  function reveal(){ lock.style.display='none'; app.style.display='block'; }
+  function sha256hex(str){
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+    });
+  }
+  function tryUnlock(){
+    err.textContent='';
+    var v=inp.value||'';
+    if(!v) return;
+    sha256hex(v).then(function(h){
+      if(h===STORED){ try{ localStorage.setItem(KEY,h); }catch(e){} reveal(); }
+      else { err.textContent='Incorrect passcode　通行碼不正確'; inp.value=''; inp.focus(); }
+    }).catch(function(){ err.textContent='This browser cannot verify the passcode.'; });
+  }
+  try{ if(localStorage.getItem(KEY)===STORED) reveal(); }catch(e){}
+  btn.addEventListener('click', tryUnlock);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); tryUnlock(); } });
+  inp.focus();
+})();
+</script>
+</body>
+</html>
