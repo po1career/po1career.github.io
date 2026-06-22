@@ -195,8 +195,8 @@
     $("lbl-remember").textContent = t().rememberLbl; $("shared-note").textContent = t().sharedNote;
     document.title = t().title + " — PLK No.1 Career Team";
     var navTx = lang === "zh"
-      ? { news: "最新消息", res: "資源下載", studytools: "學習工具", jupastools: "JUPAS 工具", pomodoro: "番茄鐘", studyplan: "溫習計劃", dse: "DSE 試卷組合", streaming: "選科工具", jupas: "JUPAS 搜尋器", jupaschoices: "JUPAS 選科" }
-      : { news: "Latest News", res: "Resources", studytools: "Study Tools", jupastools: "JUPAS Tools", pomodoro: "Pomodoro", studyplan: "Study Plan", dse: "DSE Portfolio", streaming: "Streaming Tool", jupas: "JUPAS Finder", jupaschoices: "JUPAS Choices" };
+      ? { news: "最新消息", res: "實用連結", studytools: "學習工具", jupastools: "JUPAS 工具", pomodoro: "番茄鐘", studyplan: "溫習計劃", dse: "DSE 試卷組合", streaming: "選科工具", jupas: "JUPAS 搜尋器", jupaschoices: "JUPAS 選科" }
+      : { news: "Latest News", res: "Useful Links", studytools: "Study Tools", jupastools: "JUPAS Tools", pomodoro: "Pomodoro", studyplan: "Study Plan", dse: "DSE Portfolio", streaming: "Streaming Tool", jupas: "JUPAS Finder", jupaschoices: "JUPAS Choices" };
     ["news", "res", "studytools", "jupastools", "pomodoro", "studyplan", "dse", "streaming", "jupas", "jupaschoices"].forEach(function (k) { var el = $("nav-" + k); if (el) el.textContent = navTx[k]; });
     var bs = $("brand-school"), bd = $("brand-dept"), bm = $("brand-motto");
     if (bs) bs.textContent = lang === "zh" ? "保良局第一張永慶中學" : "PLK No.1 W.H. Cheung College";

@@ -10,7 +10,7 @@
   var T = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_team: "Our Team", nav_res: "Resources", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_admin: "Add Post",
+      nav_news: "Latest News", nav_team: "Our Team", nav_res: "Useful Links", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_admin: "Add Post",
       hero_h: "Welcome to the CLP Corner!",
       hero_p: "Your Career Team hub — university and career news, helpful resources, and study & planning tools, all in one place.",
       title_tools: "Our Tools", students_only: "students only",
@@ -23,7 +23,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_team: "團隊成員", nav_res: "資源下載", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_admin: "新增貼文",
+      nav_news: "最新消息", nav_team: "團隊成員", nav_res: "實用連結", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_admin: "新增貼文",
       hero_h: "歡迎來到生涯規劃專區！",
       hero_p: "升學輔導及生涯規劃組的資訊平台——大學及職業資訊、實用資源，以及溫習與規劃工具，一站式集合。",
       title_tools: "學習與規劃工具", students_only: "只限學生",
@@ -95,7 +95,6 @@
     setText("hero-h", tx.hero_h);
     setText("hero-p", tx.hero_p);
     setText("title-news", tx.news);
-    setText("title-res", tx.res);
     setText("title-tools", tx.title_tools);
     setText("sub-tools", tx.sub_tools);
     setText("footer-about", tx.footer_about);
@@ -146,16 +145,6 @@
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPost(p); }
       };
       grid.appendChild(card);
-    });
-
-    // resources
-    var rl = document.getElementById("resources");
-    rl.innerHTML = "";
-    (window.RESOURCES || []).forEach(function (r) {
-      var li = document.createElement("li");
-      li.innerHTML = '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' +
-        esc(state.lang === "zh" ? (r.title_zh || r.title_en) : r.title_en) + "</a>";
-      rl.appendChild(li);
     });
 
     renderTools();
