@@ -1,57 +1,130 @@
 <!DOCTYPE html>
-<!--
-  TEMPORARY "coming soon" placeholder — home page hidden 2026-06-22.
-  The real homepage is backed up (unpublished) at ~/Desktop/claude/index.home.bak.html.
-  To restore: copy that file back over this index.html (ask Claude, or do it in Finder).
--->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="robots" content="noindex">
   <title>PLK No.1 — Career Team</title>
+  <meta name="description" content="PLK No.1 Career Team — latest updates on local universities, foreign universities, and career activities.">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
-  <style>
-    :root{ --bg:#FAF4E6; --card:#FFFDF8; --brown:#5B3A24; --brown-soft:#8a6f59;
-           --gold:#C9A24B; --gold-dark:#A9842F; --beige:#F3E8CE; --border:#E8DCC2; --link:#936c1f; }
-    *{box-sizing:border-box}
-    body{ margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
-      font-family:"Nunito","Noto Sans TC","PingFang HK",Helvetica,Arial,sans-serif; color:var(--brown);
-      background:
-        radial-gradient(1000px 380px at 100% -8%, rgba(201,162,75,0.14), transparent 60%),
-        radial-gradient(820px 340px at -8% 4%, rgba(139,168,136,0.12), transparent 55%),
-        var(--bg); }
-    .box{ position:relative; overflow:hidden; background:var(--card); border:1px solid var(--border);
-      border-radius:22px; box-shadow:0 12px 36px rgba(91,58,36,0.10); padding:40px 34px;
-      max-width:460px; width:100%; text-align:center; }
-    .box::before{ content:""; position:absolute; left:0; top:0; width:100%; height:6px;
-      background:linear-gradient(90deg, var(--gold), var(--gold-dark)); }
-    .logo{ width:96px; height:96px; border-radius:50%; object-fit:cover; display:block; margin:6px auto 14px;
-      border:3px solid var(--gold); box-shadow:0 6px 16px rgba(169,132,47,.25); }
-    .school{ font-weight:800; font-size:1.15rem; }
-    .dept{ color:var(--brown-soft); font-weight:700; margin-top:2px; font-size:0.95rem; }
-    h1{ font-size:1.55rem; margin:22px 0 6px; font-weight:800; }
-    .zh{ font-size:1.15rem; margin:0 0 16px; color:var(--brown); }
-    p.msg{ color:var(--brown-soft); line-height:1.75; margin:0; font-size:0.95rem; }
-    .badge{ display:inline-block; margin-top:20px; background:var(--beige); color:var(--link);
-      border-radius:999px; padding:6px 16px; font-weight:800; font-size:0.8rem; letter-spacing:.04em; }
-  </style>
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
-  <main class="box">
-    <img class="logo" src="images/logo.jpg" alt="Career Team logo">
-    <div class="school">PLK No.1 W.H. Cheung College</div>
-    <div class="dept">Career Team · 升學輔導及生涯規劃組</div>
-    <h1>We'll be back soon</h1>
-    <p class="zh">網站維護中，敬請期待</p>
-    <p class="msg">
-      Our website is being updated and will be available again shortly. Thank you for your patience.<br>
-      本網站正在更新，稍後將重新開放，敬請耐心等候。
-    </p>
-    <span class="badge">Coming soon · 即將回來</span>
+
+  <header class="site">
+    <div class="bar">
+      <div class="brand">
+        <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
+        <div class="titles">
+          <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
+          <div class="dept" id="brand-dept">Career Team</div>
+          <div class="motto" id="brand-motto">Dream high and fly high</div>
+        </div>
+      </div>
+      <nav class="main">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+        <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
+        <div class="nav-links">
+        <a href="#news" id="nav-news">Latest News</a>
+        <a href="#res-sec" id="nav-res">Resources</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
+          <div class="navgroup-menu">
+            <a href="pomodoro.html" id="nav-pomodoro">Pomodoro</a>
+            <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
+            <a href="dse-portfolio.html" id="nav-dse">DSE Portfolio</a>
+            <a href="streaming-tool.html" id="nav-streaming">Streaming Tool</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-jupastools">JUPAS Tools</button>
+          <div class="navgroup-menu">
+            <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
+            <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+          </div>
+        </div>
+        <button class="langbtn">中文</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <img class="hero-sprig tr" src="images/sprig.svg" alt="" aria-hidden="true">
+    <img class="hero-sprig bl" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="hero-inner">
+      <span class="hero-kicker">🐾 PLK No.1 W.H. Cheung College · Career Team</span>
+      <h1 id="hero-h">Welcome to the CLP Corner!</h1>
+      <p id="hero-p">The Career Team's corner for our students — the latest news on local, mainland and overseas universities and career experiences, useful resources, and a suite of study and subject-planning tools (revision timer, study planner, DSE portfolio, plus JUPAS and subject-streaming helpers) to support your journey.</p>
+    </div>
+  </div>
+
+  <main>
+    <!-- NEWS -->
+    <section id="news">
+      <h2 class="section-title" id="title-news">Latest News</h2>
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section id="res-sec">
+      <h2 class="section-title" id="title-res">Resources / Downloads</h2>
+      <ul class="res-list" id="resources"></ul>
+    </section>
   </main>
+
+  <footer class="site">
+    <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="inner">
+      <div style="max-width:60ch" id="footer-about"></div>
+      <div class="footer-right">
+        <a class="footlink" href="https://www.plkno1.edu.hk"
+           target="_blank" rel="noopener" aria-label="Visit the school website" title="School website">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>plkno1.edu.hk</span>
+        </a>
+        <a class="footlink" href="https://www.instagram.com/po1.careerteam?igsh=d2cyMHVxNGgydjQy"
+           target="_blank" rel="noopener" aria-label="Follow us on Instagram" title="Follow us on Instagram">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@po1.careerteam</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SINGLE POST VIEWER -->
+  <div class="overlay" id="overlay">
+    <div class="article">
+      <img id="art-cover" class="cover" src="" alt="">
+      <div class="hd">
+        <button class="closex" id="closex" aria-label="Close">✕</button>
+        <h2 id="art-title"></h2>
+        <div class="meta" id="art-meta"></div>
+      </div>
+      <div class="body" id="art-body"></div>
+    </div>
+  </div>
+
+  <!-- FULL-SIZE PHOTO LIGHTBOX -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" id="lb-close" aria-label="Close">✕</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
+  <script src="posts.js?v=6"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>
