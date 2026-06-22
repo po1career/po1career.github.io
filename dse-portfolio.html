@@ -9,7 +9,7 @@
   <meta name="description" content="Track HKDSE past-paper marks across subjects and years, get an estimated grade for each paper, and export/restore your progress — for PLK No.1 W.H. Cheung College students.">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
   <style>
     .dse-wrap{max-width:980px;margin:0 auto;padding:8px 0 40px}
     .dse-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
@@ -108,6 +108,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content 跳至內容</a>
 
   <header class="site">
     <div class="bar">
@@ -147,13 +148,13 @@
     </div>
   </header>
 
-  <main>
+  <main id="main">
     <div id="dse-lock" class="lockscreen">
       <div class="lockbox">
         <div class="lock-icon">🔒</div>
         <h2>Enter passcode</h2>
         <p class="lock-zh">請輸入通行碼</p>
-        <p class="lock-sub">For PLK No.1 W.H. Cheung College students only<br>只供保良局第一張永慶中學學生使用</p>
+        <p class="lock-sub">For PLK No.1 W.H. Cheung College students only<br>只供保良局第一張永慶中學學生使用<br><br>🔑 No passcode yet? Ask your Career teacher.<br>未有通行碼？請向升學輔導老師索取。</p>
         <input type="password" id="passcode" autocomplete="off" placeholder="Passcode 通行碼">
         <button id="unlock-btn" type="button">Unlock 解鎖</button>
         <div id="lock-err" class="lock-err"></div>
@@ -210,7 +211,8 @@
   <footer class="site">
     <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
     <div class="inner">
-      <div style="max-width:60ch" id="footer-about"></div>
+      <div style="max-width:46ch" id="footer-about"></div>
+      <div class="footer-links" id="footer-links"></div>
       <div class="footer-right">
         <a class="footlink" href="https://www.plkno1.edu.hk" target="_blank" rel="noopener noreferrer" aria-label="School website" title="School website">
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -233,5 +235,7 @@
 
   <script src="dse-data.js?v=2"></script>
   <script src="dse-portfolio.js?v=11"></script>
+  <script src="tools-data.js?v=1"></script>
+  <script src="footer-tools.js?v=1"></script>
 </body>
 </html>

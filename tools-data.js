@@ -1,0 +1,28 @@
+/* ============================================================
+   SINGLE SOURCE OF TRUTH for the site's tools.
+   Consumed by:
+     - app.js          → homepage "Our Tools" cards (renderTools)
+     - footer-tools.js → footer quick-links on every page
+   Load this BEFORE app.js and footer-tools.js.
+   Add / edit a tool here ONLY.
+   ============================================================ */
+window.SITE_TOOLS = [
+  { id: "pomodoro", href: "pomodoro.html", group: "studytools", icon: "⏱️", gated: false,
+    name: { en: "Pomodoro Timer", zh: "番茄鐘" }, aud: { en: "All forms", zh: "各級適用" },
+    desc: { en: "Focus in timed bursts with short breaks.", zh: "以計時專注配短休息，提升溫習效率。" } },
+  { id: "studyplan", href: "study-plan.html", group: "studytools", icon: "🗓️", gated: false,
+    name: { en: "Study Plan", zh: "溫習計劃" }, aud: { en: "All forms", zh: "各級適用" },
+    desc: { en: "Turn your exam dates into a revision timetable.", zh: "按考試日期生成溫習時間表。" } },
+  { id: "dse", href: "dse-portfolio.html", group: "studytools", icon: "📊", gated: true,
+    name: { en: "DSE Portfolio", zh: "DSE 試卷組合" }, aud: { en: "F.4–F.6", zh: "中四至中六" },
+    desc: { en: "Record past-paper marks and see an estimated grade.", zh: "記錄歷屆試卷分數，估算等級。" } },
+  { id: "streaming", href: "streaming-tool.html", group: "studytools", icon: "🧭", gated: true,
+    name: { en: "Subject Streaming", zh: "選科工具" }, aud: { en: "F.3", zh: "中三" },
+    desc: { en: "Rank your F.4 electives into a full priority order.", zh: "為中四選修科排出完整志願次序。" } },
+  { id: "jupas", href: "jupas-tool.html", group: "jupastools", icon: "🔍", gated: true,
+    name: { en: "JUPAS Finder", zh: "JUPAS 搜尋器" }, aud: { en: "F.5–F.6", zh: "中五至中六" },
+    desc: { en: "Search university programmes by subject, school or keyword.", zh: "按學科、院校或關鍵字搜尋大學課程。" } },
+  { id: "jupaschoices", href: "jupas-choices.html", group: "jupastools", icon: "📋", gated: true,
+    name: { en: "JUPAS Choices", zh: "JUPAS 選科" }, aud: { en: "F.6", zh: "中六" },
+    desc: { en: "Organise and review your 20 JUPAS choices with your teacher.", zh: "整理並與老師檢視你的 20 個 JUPAS 志願。" } }
+];

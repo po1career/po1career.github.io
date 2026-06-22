@@ -9,7 +9,7 @@
   <meta name="description" content="A Pomodoro study timer for PLK No.1 W.H. Cheung College students — focus, revise, and take healthy breaks.">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
   <style>
     /* ---- Pomodoro-specific UI (uses the shared palette/fonts) ---- */
     .pomo-wrap{max-width:720px;margin:0 auto;padding:8px 0 24px;text-align:center}
@@ -55,6 +55,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content 跳至內容</a>
 
   <header class="site">
     <div class="bar">
@@ -94,7 +95,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="main">
     <div class="pomo-wrap">
       <h1 class="pomo-title" id="pg-title">Pomodoro Study Timer</h1>
       <p class="pomo-sub" id="pg-sub">Study in focused bursts with short breaks — a simple way to revise more effectively.</p>
@@ -158,7 +159,8 @@
   <footer class="site">
     <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
     <div class="inner">
-      <div style="max-width:60ch" id="footer-about"></div>
+      <div style="max-width:46ch" id="footer-about"></div>
+      <div class="footer-links" id="footer-links"></div>
       <div class="footer-right">
         <a class="footlink" href="https://www.plkno1.edu.hk" target="_blank" rel="noopener" aria-label="School website" title="School website">
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -180,5 +182,7 @@
   </footer>
 
   <script src="pomodoro.js?v=8"></script>
+  <script src="tools-data.js?v=1"></script>
+  <script src="footer-tools.js?v=1"></script>
 </body>
 </html>

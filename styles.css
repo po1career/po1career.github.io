@@ -287,3 +287,47 @@ footer.site a{color:var(--gold)}
   .hero h1{font-size:1.4rem}
   .brand .dept{font-size:1.05rem}
 }
+
+/* ---- Skip to content (accessibility) ---- */
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--brown);color:#fff;padding:10px 16px;border-radius:0 0 10px 0;z-index:1000;font-weight:700}
+.skip-link:focus{left:0;text-decoration:none}
+
+/* ---- Section subtitle ---- */
+.section-sub{color:var(--brown-soft);margin:-6px 0 18px;font-size:1rem;max-width:62ch}
+
+/* ---- Tools section (homepage) ---- */
+.tools-grouptitle{
+  font-family:var(--font-display);font-weight:800;color:var(--gold-dark);
+  font-size:1rem;letter-spacing:.04em;text-transform:uppercase;
+  margin:22px 0 12px;display:flex;align-items:center;gap:10px;
+}
+.tools-grouptitle::after{content:"";flex:1;height:0;border-top:1.5px dotted #dcc890}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:6px}
+.tool-card{
+  display:flex;gap:14px;align-items:flex-start;
+  background:#fffdf8;border:1px solid #ece0c4;border-radius:16px;
+  padding:16px 18px;box-shadow:var(--shadow);text-decoration:none;color:var(--ink);
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.tool-card:hover{transform:translateY(-4px);box-shadow:0 16px 30px rgba(91,58,36,.18);border-color:var(--gold);text-decoration:none}
+.tool-card:focus-visible{outline:2px solid var(--gold-dark);outline-offset:2px}
+.tool-ic{
+  flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;
+  font-size:1.5rem;background:linear-gradient(135deg,var(--beige),#eef2e3);border:1px solid #e6d8b6;
+}
+.tool-body{display:flex;flex-direction:column;gap:5px;min-width:0}
+.tool-name{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.08rem}
+.tool-desc{font-size:.9rem;color:#5c4a3a;line-height:1.5}
+.tool-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
+.tool-aud{background:var(--beige);color:var(--gold-dark);font-weight:800;font-size:.72rem;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
+.tool-lock{background:#fbeede;color:#9a5b16;font-weight:800;font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid #f0d29a}
+
+/* ---- Footer quick-links ---- */
+.footer-links{display:flex;flex-direction:column;gap:7px;min-width:150px}
+.footer-links .fl-title{font-weight:800;color:#f4e7d2;margin-bottom:3px;font-size:.92rem}
+.footer-links a{color:#f0dca8;font-weight:600;font-size:.9rem}
+.footer-links a:hover{color:#fff;text-decoration:none}
+
+@media(max-width:560px){
+  .tools-grid{grid-template-columns:1fr}
+}

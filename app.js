@@ -12,7 +12,9 @@
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
       nav_news: "Latest News", nav_team: "Our Team", nav_res: "Resources", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_admin: "Add Post",
       hero_h: "Welcome to the CLP Corner!",
-      hero_p: "The Career Team's corner for our students — the latest news on local, mainland and overseas universities and career experiences, useful resources, and a suite of study and subject-planning tools (revision timer, study planner, DSE portfolio, plus JUPAS and subject-streaming helpers) to support your journey.",
+      hero_p: "Your Career Team hub — university and career news, helpful resources, and study & planning tools, all in one place.",
+      title_tools: "Our Tools", students_only: "students only",
+      sub_tools: "Study and planning tools to help you revise and map out your path. Some are for students only and need a passcode.",
       news: "Latest News", team: "Our Team", res: "Resources / Downloads",
       all: "All", local: "Local Universities", mainland: "Mainland Universities", foreign: "Foreign Universities", career: "Career Experience Activities",
       readmore: "Read more →", pinned: "📌 Pinned", none: "No posts in this category yet.",
@@ -23,7 +25,9 @@
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
       nav_news: "最新消息", nav_team: "團隊成員", nav_res: "資源下載", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_admin: "新增貼文",
       hero_h: "歡迎來到生涯規劃專區！",
-      hero_p: "升學輔導及生涯規劃組為同學而設的專區——本地、內地及海外大學與職業體驗的最新消息、實用資源，以及一系列溫習與選科規劃工具（番茄鐘、溫習計劃、DSE 試卷組合，以及 JUPAS 與選科工具），陪伴你的升學旅程。",
+      hero_p: "升學輔導及生涯規劃組的資訊平台——大學及職業資訊、實用資源，以及溫習與規劃工具，一站式集合。",
+      title_tools: "學習與規劃工具", students_only: "只限學生",
+      sub_tools: "助你溫習及規劃升學路向的工具。部分只供學生使用，需輸入通行碼。",
       news: "最新消息", team: "團隊成員", res: "資源 / 下載",
       all: "全部", local: "本地大學", mainland: "內地大學", foreign: "海外大學", career: "職業體驗活動",
       readmore: "閱讀更多 →", pinned: "📌 置頂", none: "此分類暫無貼文。",
@@ -31,6 +35,8 @@
       lang: "EN"
     }
   };
+
+  // Tools data lives in tools-data.js (window.SITE_TOOLS) — single source of truth.
 
   var state = { lang: localStorage.getItem("clp_lang") || "en", filter: "all" };
 
@@ -90,6 +96,8 @@
     setText("hero-p", tx.hero_p);
     setText("title-news", tx.news);
     setText("title-res", tx.res);
+    setText("title-tools", tx.title_tools);
+    setText("sub-tools", tx.sub_tools);
     setText("footer-about", tx.footer_about);
     document.querySelector(".langbtn").textContent = tx.lang;
 
@@ -148,6 +156,44 @@
       li.innerHTML = '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' +
         esc(state.lang === "zh" ? (r.title_zh || r.title_en) : r.title_en) + "</a>";
       rl.appendChild(li);
+    });
+
+    renderTools();
+  }
+
+  // ---- tools section (homepage cards). Footer quick-links: footer-tools.js ----
+  function toolField(td, field) { return (td[field] && td[field][state.lang]) || td[field].en; }
+  function renderTools() {
+    var host = document.getElementById("tools");
+    if (!host) return;
+    var tx = T[state.lang];
+    host.innerHTML = "";
+    ["studytools", "jupastools"].forEach(function (groupKey) {
+      var items = (window.SITE_TOOLS || []).filter(function (td) { return td.group === groupKey; });
+      if (!items.length) return;
+      var h = document.createElement("h3");
+      h.className = "tools-grouptitle";
+      h.textContent = tx["nav_" + groupKey];
+      host.appendChild(h);
+      var grid = document.createElement("div");
+      grid.className = "tools-grid";
+      items.forEach(function (td) {
+        var a = document.createElement("a");
+        a.className = "tool-card";
+        a.href = td.href;
+        a.innerHTML =
+          '<span class="tool-ic" aria-hidden="true">' + td.icon + "</span>" +
+          '<span class="tool-body">' +
+            '<span class="tool-name">' + esc(toolField(td, "name")) + "</span>" +
+            '<span class="tool-desc">' + esc(toolField(td, "desc")) + "</span>" +
+            '<span class="tool-tags">' +
+              '<span class="tool-aud">' + esc(toolField(td, "aud")) + "</span>" +
+              (td.gated ? '<span class="tool-lock">🔒 ' + esc(tx.students_only) + "</span>" : "") +
+            "</span>" +
+          "</span>";
+        grid.appendChild(a);
+      });
+      host.appendChild(grid);
     });
   }
 
