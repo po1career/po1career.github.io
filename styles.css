@@ -68,6 +68,7 @@ nav.main{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap
 .nav-links{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 nav.main a{
   color:var(--brown);font-weight:600;padding:8px 12px;border-radius:10px;
+  font-size:1rem;line-height:1.5;
 }
 nav.main a:hover{background:var(--beige);text-decoration:none}
 /* hamburger (CSS-only checkbox toggle); hidden on desktop, shown on phones */
@@ -80,7 +81,7 @@ nav.main a:hover{background:var(--beige);text-decoration:none}
 .navgroup{position:relative}
 .navgroup-btn{
   border:none;background:none;font-family:inherit;font-size:1rem;cursor:pointer;
-  color:var(--brown);font-weight:600;padding:8px 12px;border-radius:10px;
+  color:var(--brown);font-weight:600;padding:8px 12px;border-radius:10px;line-height:1.5;
   display:inline-flex;align-items:center;gap:5px;
 }
 .navgroup-btn::after{content:"\25BE";font-size:.7em;opacity:.65}
@@ -327,6 +328,17 @@ footer.site a{color:var(--gold)}
 .footer-links .fl-title{font-weight:800;color:#f4e7d2;margin-bottom:3px;font-size:.92rem}
 .footer-links a{color:#f0dca8;font-weight:600;font-size:.9rem}
 .footer-links a:hover{color:#fff;text-decoration:none}
+
+/* ---- Footer bottom bar: copyright + sitemap ---- */
+.footer-bottom{
+  position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;
+  padding:14px 20px 4px;border-top:1px solid rgba(244,231,210,.16);
+  display:flex;justify-content:space-between;align-items:center;gap:10px 18px;flex-wrap:wrap;
+  color:#dcc8a2;font-size:.82rem;line-height:1.6;
+}
+.footer-bottom .fb-copy{min-width:0}
+.footer-bottom .fb-sitemap{color:#f0dca8;font-weight:700;white-space:nowrap}
+.footer-bottom .fb-sitemap:hover{color:#fff;text-decoration:none}
 
 @media(max-width:560px){
   .tools-grid{grid-template-columns:1fr}
