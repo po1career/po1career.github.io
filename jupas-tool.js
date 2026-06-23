@@ -18,6 +18,7 @@ const STRINGS = {
     home: '← Back to home',
     title: 'JUPAS Programme Finder',
     subtitle: 'Filter undergraduate programmes by subject area, institution, or keyword.',
+    xlink: '📋 JUPAS Choice Evaluator →',
     searchPlaceholder: 'Search programmes, keywords, or JS code…',
     allInst: 'All institutions',
     catLabel: 'Filter by category',
@@ -37,6 +38,7 @@ const STRINGS = {
     home: '← 返回主頁',
     title: 'JUPAS 課程搜尋器',
     subtitle: '按學科範疇、院校或關鍵字篩選大學課程。',
+    xlink: '📋 選科自評工具 →',
     searchPlaceholder: '搜尋課程、關鍵字或 JS 編號…',
     allInst: '所有院校',
     catLabel: '按學科範疇篩選',
@@ -105,6 +107,7 @@ function applyStaticText() {
   document.getElementById('lang-en').classList.toggle('active', lang === 'en');
   document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
   document.querySelectorAll('.home-link').forEach(a => { a.textContent = s.home; });
+  { const xl = document.getElementById('t-xlink'); if (xl) xl.textContent = s.xlink; }
   document.getElementById('t-title').textContent = s.title;
   document.getElementById('t-subtitle').textContent = s.subtitle;
   document.getElementById('search').placeholder = s.searchPlaceholder;
