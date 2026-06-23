@@ -360,7 +360,7 @@ const MARKINFO = {
   "M2(6)":  {en:"use Mathematics", zh:"填數學", type:"mr"},
 };
 function markInfo(s){ return MARKINFO[s] || {en:"", zh:"", type:"mr"}; }
-let LANG='en', LAST=null, dragFrom=null;
+let LANG=(function(){try{return localStorage.getItem('clp_lang')==='zh'?'zh':'en';}catch(e){return 'en';}})(), LAST=null, dragFrom=null;
 // S.order = all 11 electives ranked (0 = most preferred). Two lines split it into three zones:
 //   acceptable = order[0 .. ratherAt-1]  (ranked -> liked weights)
 //   rather-not = order[ratherAt .. dnwAt-1]
@@ -416,11 +416,12 @@ function applyLang(){
   ['outHead','topcap','showFull','submitNote'].forEach(id=> document.getElementById(id).textContent = T[LANG][id]);
   ['dl','dlMarks','pdf','restart'].forEach(id=> document.getElementById(id).textContent = T[LANG][id]);
   document.querySelectorAll('.langbtn').forEach(b=> b.classList.toggle('on', b.dataset.l===LANG));
+  document.querySelectorAll('.home-link').forEach(a=> a.textContent = LANG==='zh' ? '← 返回主頁' : '← Back to home');
   renderList(); updateContra(); fillPairSelects(); updateToolLabels();
   document.getElementById('orderNudge').textContent = (S.size && orderIsDefault()) ? T[LANG].orderNudge : '';
   if(LAST) renderResults();
 }
-document.querySelectorAll('.langbtn').forEach(b=> b.onclick = ()=>{ LANG=b.dataset.l; applyLang(); });
+document.querySelectorAll('.langbtn').forEach(b=> b.onclick = ()=>{ LANG=b.dataset.l; try{localStorage.setItem('clp_lang',LANG);}catch(e){} applyLang(); });
 
 function pickOne(boxId, fn){
   document.querySelectorAll('#'+boxId+' .opt').forEach(el=>{

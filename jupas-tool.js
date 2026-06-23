@@ -54,7 +54,7 @@ const STRINGS = {
   }
 };
 
-let lang = 'en';
+let lang = (function () { try { return localStorage.getItem('clp_lang') === 'zh' ? 'zh' : 'en'; } catch (e) { return 'en'; } })();
 let programmes = [];
 let activeCats = new Set();
 
@@ -89,6 +89,7 @@ function catLabel(key) {
 
 function setLang(l) {
   lang = l;
+  try { localStorage.setItem('clp_lang', l); } catch (e) {}
   document.documentElement.lang = (l === 'zh') ? 'zh-HK' : 'en';
   document.getElementById('lang-en').classList.toggle('active', l === 'en');
   document.getElementById('lang-zh').classList.toggle('active', l === 'zh');
@@ -100,7 +101,10 @@ function setLang(l) {
 
 function applyStaticText() {
   const s = STRINGS[lang];
-  document.getElementById('t-home').textContent = s.home;
+  document.documentElement.lang = (lang === 'zh') ? 'zh-HK' : 'en';
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
+  document.querySelectorAll('.home-link').forEach(a => { a.textContent = s.home; });
   document.getElementById('t-title').textContent = s.title;
   document.getElementById('t-subtitle').textContent = s.subtitle;
   document.getElementById('search').placeholder = s.searchPlaceholder;

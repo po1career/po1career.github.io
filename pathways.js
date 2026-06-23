@@ -59,7 +59,7 @@
       entry: { en: "Programme-specific DSE requirements; some accept sub-degree graduates for senior-year entry.",
                zh: "按課程而定的 DSE 要求；部分課程接受副學位畢業生作高年級入學。" },
       leadsTo: { en: "A locally-accredited bachelor's degree.", zh: "獲本地認證的學士學位。" },
-      applyVia: { en: "Directly to the institution, or via E-APP (eapp.edu.hk).",
+      applyVia: { en: "Directly to the institution, or via E-APP (eapp.gov.hk).",
                   zh: "直接向院校或經 E-APP 申請。" },
       link: { href: "https://www.cspe.edu.hk/en/", label: { en: "Browse programmes", zh: "瀏覽課程資訊" } } },
 
@@ -74,8 +74,8 @@
                zh: "一般須五科 DSE 達第二級（包括語文科）或同等學歷。" },
       leadsTo: { en: "Articulation to a bachelor's degree (often year 2), or employment.",
                  zh: "銜接學士課程（多為二年級）或就業。" },
-      applyVia: { en: "E-APP (eapp.edu.hk) or the institution.", zh: "經 E-APP 或院校申請。" },
-      link: { href: "https://www.eapp.edu.hk/", label: { en: "Apply via E-APP", zh: "經 E-APP 申請" } } },
+      applyVia: { en: "E-APP (eapp.gov.hk) or the institution.", zh: "經 E-APP 或院校申請。" },
+      link: { href: "https://www.eapp.gov.hk/en/", label: { en: "Apply via E-APP", zh: "經 E-APP 申請" } } },
 
     { id: "vtc", icon: "🔧", c: "#4c8a4c", c2: "#79b779",
       tags: { results: ["mid", "building"], mode: ["vocational"], place: ["hk"] },
@@ -128,27 +128,11 @@
                  zh: "到英國、澳洲、加拿大等地升讀學士或基礎課程。" },
       forWho: { en: "Students seeking international experience who have planned their funding and entry routes.",
                 zh: "希望累積國際經驗、並已規劃學費及升學途徑的學生。" },
-      entry: { en: "Varies by country and institution; the DSE is widely accepted (e.g. via UCAS for the UK).",
-               zh: "按國家及院校而定；DSE 廣獲承認（如英國經 UCAS 申請）。" },
+      entry: { en: "Varies by country and institution; the DSE is widely accepted by many overseas universities.",
+               zh: "按國家及院校而定；不少海外大學均承認 DSE 成績。" },
       leadsTo: { en: "An overseas bachelor's degree and global exposure.", zh: "海外學士學位及國際視野。" },
-      applyVia: { en: "Country-specific systems (e.g. UCAS for the UK) or each institution.",
-                  zh: "各國的申請系統（如英國 UCAS）或個別院校。" },
-      link: { href: "https://www.ucas.com", label: { en: "UCAS (UK example)", zh: "UCAS（英國示例）" } } },
-
-    { id: "work", icon: "💼", c: "#5f7d8c", c2: "#8aa7b4",
-      tags: { results: ["building", "mid"], mode: ["earn"], place: ["hk"] },
-      name: { en: "Work, Disciplined Services & Gap Year", zh: "就業、紀律部隊及間隔年" },
-      summary: { en: "Start working, join the uniformed services, take an apprenticeship, or explore.",
-                 zh: "投身職場、加入紀律部隊、修讀學徒訓練或探索方向。" },
-      forWho: { en: "Students ready to earn and learn on the job, or wanting time to plan their next step.",
-                zh: "準備就業並邊做邊學，或希望有時間規劃下一步的學生。" },
-      entry: { en: "Varies by employer; disciplined services and apprenticeships have their own entry tests.",
-               zh: "按僱主而定；紀律部隊及學徒訓練設有入職要求及測試。" },
-      leadsTo: { en: "Income, work experience, professional training, and future study options.",
-                 zh: "收入、工作經驗、專業訓練及日後升學機會。" },
-      applyVia: { en: "Employers, the disciplined services, or schemes like Youth Employment (YES).",
-                  zh: "僱主、紀律部隊，或如「展翅青見計劃」等就業計劃。" },
-      link: { href: "https://www.yes.labour.gov.hk", label: { en: "Youth Employment (YES)", zh: "展翅青見計劃" } } }
+      applyVia: { en: "Through each country's application system, or directly to the institution.",
+                  zh: "經各國的升學申請系統，或直接向院校申請。" } }
   ];
 
   /* ---- filter question definitions ---- */
@@ -163,7 +147,6 @@
       opts: [
         { v: "academic",   em: "📚", en: "Study academically", zh: "學術進修" },
         { v: "vocational", em: "🛠️", en: "Learn job skills",   zh: "學一技之長" },
-        { v: "earn",       em: "💰", en: "Start earning soon", zh: "盡早就業" },
         { v: "any",        em: "✨", en: "Open to any",        zh: "都可以" } ] },
     { dim: "place", q: { en: "Where would you like to study?", zh: "你希望在哪裡升學？" },
       opts: [
@@ -277,9 +260,9 @@
         row(t("k_leads"), L(p.leadsTo)) +
         row(t("k_apply"), L(p.applyVia));
 
-      var link = '<a class="pw-link" href="' + p.link.href +
+      var link = p.link ? '<a class="pw-link" href="' + p.link.href +
         '" target="_blank" rel="noopener noreferrer">' + L(p.link.label) +
-        ' <span aria-hidden="true">↗</span></a>';
+        ' <span aria-hidden="true">↗</span></a>' : '';
       var nxt = p.next ? '<div class="pw-next">' + L(p.next) + "</div>" : "";
 
       d.innerHTML =

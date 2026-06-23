@@ -739,7 +739,7 @@ function renderStatic() {
   document.title = s.title;
   $('lang-en').classList.toggle('active', lang === 'en');
   $('lang-zh').classList.toggle('active', lang === 'zh');
-  $('t-home').textContent = s.home;
+  document.querySelectorAll('.home-link').forEach(function (a) { a.textContent = s.home; });
   $('t-title').textContent = s.title;
   $('t-subtitle').textContent = s.subtitle;
   $('t-s1').textContent = s.s1;
@@ -858,6 +858,7 @@ function tryUnlock(passcode, remember) {
 }
 
 function showLock(msg) {
+  renderStatic();
   $('app').style.display = 'none';
   $('lock').style.display = 'flex';
   $('lock-err').textContent = msg || '';
