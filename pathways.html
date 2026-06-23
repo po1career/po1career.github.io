@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Multiple Pathways Explorer — PLK No.1 Career Team</title>
+  <meta name="description" content="Explore the routes available after the HKDSE — degrees, sub-degrees, vocational study, Mainland and overseas options — for PLK No.1 W.H. Cheung College students.">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="fonts/notosanstc.css">
+  <link rel="stylesheet" href="styles.css?v=17">
+  <style>
+    .pw-wrap{max-width:1020px;margin:0 auto;padding:8px 0 44px}
+
+    /* hero */
+    .pw-hero{position:relative;overflow:hidden;border-radius:22px;margin:14px 0 8px;
+      background:linear-gradient(135deg,#6a4a8f 0%,#3a6ea5 48%,#2f8f7a 100%);
+      box-shadow:0 16px 36px rgba(58,46,80,.28);color:#fff;
+      display:flex;align-items:center;gap:18px;padding:30px 30px}
+    .pw-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 88% 12%,rgba(255,255,255,.22),transparent 60%);pointer-events:none}
+    .pw-hero-text{flex:1;min-width:0;position:relative;z-index:1}
+    .pw-hero-text h1{font-family:var(--font-display);font-weight:800;font-size:2.15rem;margin:0 0 8px;line-height:1.18;text-shadow:0 2px 10px rgba(0,0,0,.18)}
+    .pw-hero-text p{margin:0;font-size:1.04rem;line-height:1.6;max-width:52ch;color:#f3eefb;opacity:.96}
+    .pw-hero-art{flex:none;width:210px;height:150px;position:relative;z-index:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.22))}
+    @media(max-width:680px){ .pw-hero{padding:24px 22px} .pw-hero-art{display:none} .pw-hero-text h1{font-size:1.7rem} }
+
+    .pw-disc{display:flex;gap:10px;align-items:flex-start;background:#fbeee2;border:1px solid #e8c9a8;border-left:5px solid var(--gold-dark);border-radius:12px;padding:12px 16px;margin:16px 0 22px;color:#7a3517;font-size:.88rem;line-height:1.6;font-weight:600}
+
+    /* filter */
+    .pw-filter{background:#fffdf8;border:1px solid #ece0c4;border-radius:18px;box-shadow:var(--shadow);padding:20px 22px 18px;margin-bottom:8px}
+    .pw-filter-h{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.18rem;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+    .pw-filter-sub{color:var(--brown-soft);font-size:.9rem;margin:0 0 14px}
+    .pw-fq{margin:0 0 13px}
+    .pw-fq-lbl{font-weight:800;color:var(--brown);font-size:.92rem;margin:0 0 7px}
+    .pw-chips{display:flex;flex-wrap:wrap;gap:8px}
+    .pw-chip{border:1.5px solid #e0cfa6;background:#fffdf7;color:var(--brown);border-radius:999px;padding:7px 15px;font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .12s ease}
+    .pw-chip:hover{background:var(--beige);border-color:var(--gold)}
+    .pw-chip.active{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-color:var(--gold-dark);box-shadow:0 4px 12px rgba(169,132,47,.28)}
+    .pw-chip .em{margin-right:5px}
+    .pw-tools{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:16px;padding-top:14px;border-top:1px dashed #e6d8b8}
+    .pw-toggle{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--brown);cursor:pointer;font-size:.9rem;user-select:none}
+    .pw-toggle input{width:16px;height:16px;accent-color:var(--gold-dark);cursor:pointer}
+    .pw-reset{border:1.5px solid var(--gold);background:#fff;color:var(--brown);border-radius:10px;font-weight:700;padding:7px 16px;cursor:pointer;font-size:.86rem}
+    .pw-reset:hover{background:var(--beige)}
+    .pw-count{margin-left:auto;color:var(--brown-soft);font-size:.88rem;font-weight:700}
+    .pw-count b{color:var(--gold-dark)}
+
+    /* cards */
+    .pw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;margin-top:18px}
+    .pw-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:18px;box-shadow:var(--shadow);overflow:hidden;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+    .pw-card[open]{box-shadow:0 16px 32px rgba(91,58,36,.16)}
+    .pw-card.is-match{border-color:var(--c);box-shadow:0 0 0 2px var(--c) inset,0 10px 24px rgba(0,0,0,.10)}
+    .pw-card.hidden{display:none}
+    .pw-card summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 16px;outline:none}
+    .pw-card summary::-webkit-details-marker{display:none}
+    .pw-card summary:focus-visible{box-shadow:0 0 0 3px var(--gold) inset;border-radius:18px}
+    .pw-tile{flex:none;width:58px;height:58px;border-radius:15px;display:grid;place-items:center;position:relative;overflow:hidden;
+      background:linear-gradient(140deg,var(--c),var(--c2));box-shadow:0 6px 14px rgba(0,0,0,.20);font-size:1.7rem}
+    .pw-tile::after{content:"";position:absolute;right:-14px;bottom:-16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.16)}
+    .pw-tile span{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+    .pw-headtext{flex:1;min-width:0}
+    .pw-name{display:block;font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.05rem;line-height:1.25}
+    .pw-summary{display:block;color:var(--brown-soft);font-size:.85rem;line-height:1.45;margin-top:3px}
+    .pw-badge{flex:none;align-self:flex-start;display:none;align-items:center;gap:4px;background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;font-weight:800;font-size:.7rem;letter-spacing:.02em;padding:4px 9px;border-radius:999px;box-shadow:0 3px 8px rgba(0,0,0,.18);white-space:nowrap}
+    .pw-card.is-match .pw-badge{display:inline-flex}
+    .pw-chev{flex:none;color:var(--brown-soft);font-size:.9rem;transition:transform .2s ease}
+    .pw-card[open] .pw-chev{transform:rotate(180deg)}
+
+    .pw-body{padding:2px 18px 18px 18px;border-top:1px solid #f0e7d2;margin-top:2px}
+    .pw-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #f4eddc}
+    .pw-row:last-of-type{border-bottom:none}
+    .pw-row .k{flex:0 0 92px;font-weight:800;color:var(--c-ink,var(--gold-dark));font-size:.74rem;letter-spacing:.02em;text-transform:uppercase;padding-top:2px}
+    .pw-row .v{flex:1;color:#5c4a3a;font-size:.9rem;line-height:1.55}
+    .pw-link{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;font-weight:800;font-size:.9rem;padding:10px 18px;border-radius:11px;text-decoration:none;box-shadow:0 5px 14px rgba(0,0,0,.16)}
+    .pw-link:hover{filter:brightness(1.07);text-decoration:none}
+    .pw-next{margin-top:13px;background:#f6ecd2;border-left:4px solid var(--gold);border-radius:8px;padding:11px 14px;color:var(--brown);font-size:.86rem;line-height:1.6}
+
+    nav.main a.active{background:var(--beige)}
+    a.brand{text-decoration:none}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content 跳至內容</a>
+
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="index.html">
+        <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
+        <div class="titles">
+          <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
+          <div class="dept" id="brand-dept">Career Team</div>
+          <div class="motto" id="brand-motto">Dream high and fly high</div>
+        </div>
+      </a>
+      <nav class="main">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+        <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
+        <div class="nav-links">
+        <a href="index.html#news" id="nav-news">Latest News</a>
+        <a href="useful-links.html" id="nav-res">Useful Links</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
+          <div class="navgroup-menu">
+            <a href="career-quiz.html" id="nav-quiz">Career Quiz</a>
+            <a href="pathways.html" id="nav-pathways" class="active">Pathways Explorer</a>
+            <a href="pomodoro.html" id="nav-pomodoro">Pomodoro</a>
+            <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
+            <a href="dse-portfolio.html" id="nav-dse">DSE Portfolio</a>
+            <a href="streaming-tool.html" id="nav-streaming">Streaming Tool</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-jupastools">JUPAS Tools</button>
+          <div class="navgroup-menu">
+            <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
+            <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+          </div>
+        </div>
+        <button class="langbtn">中文</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="pw-wrap">
+
+      <section class="pw-hero">
+        <div class="pw-hero-text">
+          <h1 id="pg-title">Multiple Pathways Explorer</h1>
+          <p id="pg-sub"></p>
+        </div>
+        <svg class="pw-hero-art" viewBox="0 0 210 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- starting point -->
+          <circle cx="30" cy="120" r="9" fill="#fff"/>
+          <circle cx="30" cy="120" r="4.5" fill="#6a4a8f"/>
+          <!-- diverging dotted paths -->
+          <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 7" opacity=".92">
+            <path d="M30 120 C 70 110, 90 40, 178 30"/>
+            <path d="M30 120 C 80 112, 120 70, 182 66"/>
+            <path d="M30 120 C 85 118, 130 104, 184 104"/>
+            <path d="M30 120 C 70 130, 120 138, 180 138"/>
+          </g>
+          <!-- destination markers -->
+          <g stroke="#fff" stroke-width="2">
+            <circle cx="183" cy="30" r="13" fill="#e0a85a"/>
+            <circle cx="187" cy="66" r="13" fill="#5bb3a6"/>
+            <circle cx="189" cy="104" r="13" fill="#d98a5a"/>
+            <circle cx="185" cy="138" r="13" fill="#88a6b3"/>
+          </g>
+          <g fill="#fff" font-size="13" font-family="sans-serif" text-anchor="middle" dominant-baseline="central">
+            <text x="183" y="31">🎓</text>
+            <text x="187" y="67">🛠️</text>
+            <text x="189" y="105">✈️</text>
+            <text x="185" y="139">💼</text>
+          </g>
+        </svg>
+      </section>
+
+      <div class="pw-disc">
+        <span aria-hidden="true">⚠️</span>
+        <span id="disc-text"></span>
+      </div>
+
+      <section class="pw-filter">
+        <h2 class="pw-filter-h" id="filter-h">🧭 Find pathways that fit you</h2>
+        <p class="pw-filter-sub" id="filter-sub"></p>
+        <div id="filter-questions"></div>
+        <div class="pw-tools">
+          <label class="pw-toggle"><input type="checkbox" id="matches-only"><span id="matches-only-lbl"></span></label>
+          <button class="pw-reset" id="reset-btn"></button>
+          <span class="pw-count" id="pw-count"></span>
+        </div>
+      </section>
+
+      <section class="pw-grid" id="pw-grid"></section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="inner">
+      <div style="max-width:46ch" id="footer-about"></div>
+      <div class="footer-links" id="footer-links"></div>
+      <div class="footer-right">
+        <a class="footlink" href="https://www.plkno1.edu.hk" target="_blank" rel="noopener noreferrer" aria-label="School website" title="School website">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>plkno1.edu.hk</span>
+        </a>
+        <a class="footlink" href="https://www.instagram.com/po1.careerteam?igsh=d2cyMHVxNGgydjQy" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@po1.careerteam</span>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom" id="footer-bottom"></div>
+  </footer>
+
+  <script src="pathways.js?v=1"></script>
+  <script src="tools-data.js?v=3"></script>
+  <script src="footer-tools.js?v=2"></script>
+  <script src="back-to-top.js?v=1"></script>
+</body>
+</html>
