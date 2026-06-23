@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Career Interest Quiz — PLK No.1 Career Team</title>
+  <meta name="description" content="A RIASEC career-interest quiz for PLK No.1 W.H. Cheung College students — discover your interest types and matching study and career directions.">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="fonts/notosanstc.css">
+  <link rel="stylesheet" href="styles.css?v=17">
+  <style>
+    .cq-wrap{max-width:760px;margin:0 auto;padding:8px 0 40px}
+    .cq-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
+    .cq-sub{color:var(--brown-soft);max-width:60ch;margin:0 auto 18px;text-align:center;font-size:1.02rem}
+    .cq-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:18px;box-shadow:var(--shadow);padding:24px 22px}
+    .cq-disc{display:flex;gap:10px;align-items:flex-start;background:#fbeee2;border:1px solid #e8c9a8;border-left:5px solid var(--gold-dark);border-radius:12px;padding:12px 16px;margin:16px 0;color:#7a3517;font-size:.88rem;line-height:1.6;font-weight:600}
+    .cq-how{color:#5c4a3a;line-height:1.75;margin:0 0 4px}
+    .cq-types6{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;justify-content:center}
+    .cq-chip{font-size:.78rem;font-weight:800;padding:4px 12px;border-radius:999px;color:#fff}
+    .cq-start{display:block;width:100%;max-width:340px;margin:20px auto 0;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;font-weight:800;font-size:1.05rem;cursor:pointer;box-shadow:0 6px 16px rgba(169,132,47,.3)}
+    .cq-start:hover{filter:brightness(1.06)}
+
+    .cq-prog{height:9px;border-radius:999px;background:var(--beige);overflow:hidden;margin-bottom:8px}
+    .cq-prog>span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-dark));transition:width .3s ease;width:0}
+    .cq-count{text-align:center;color:var(--brown-soft);font-size:.85rem;font-weight:700;margin-bottom:16px}
+    .cq-qlead{text-align:center;color:var(--brown-soft);font-size:.9rem;font-weight:700;margin:0}
+    .cq-q{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.45rem;text-align:center;line-height:1.45;margin:8px 0 22px;min-height:2.6em;display:flex;align-items:center;justify-content:center}
+    .cq-ans{display:flex;flex-direction:column;gap:10px;max-width:430px;margin:0 auto}
+    .cq-opt{display:flex;align-items:center;gap:13px;border:1.5px solid #e0cfa6;background:#fffdf7;border-radius:12px;padding:13px 18px;cursor:pointer;font:inherit;font-weight:700;color:var(--brown);font-size:1rem;transition:transform .1s ease,background .12s ease,border-color .12s ease}
+    .cq-opt:hover{background:var(--beige);border-color:var(--gold)}
+    .cq-opt.sel{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-color:var(--gold-dark)}
+    .cq-opt .em{font-size:1.3rem;line-height:1}
+    .cq-nav{display:flex;justify-content:center;margin-top:22px}
+    .cq-back{border:1.5px solid var(--gold);background:#fff;color:var(--brown);border-radius:10px;font-weight:700;padding:9px 20px;cursor:pointer}
+    .cq-back:disabled{opacity:.4;cursor:not-allowed}
+
+    .cq-rcode{text-align:center;color:var(--brown-soft);font-weight:700;margin:0 0 4px}
+    .cq-rcode b{color:var(--gold-dark);font-size:1.1rem;letter-spacing:.08em}
+    .cq-rtop{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:14px 0 22px}
+    .cq-type{border:1px solid #ece0c4;border-radius:14px;padding:16px 16px 18px;background:#fffdf8;box-shadow:var(--shadow);border-top:4px solid var(--tc)}
+    .cq-type .rank{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--brown-soft)}
+    .cq-type h3{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.12rem;margin:3px 0 7px;display:flex;align-items:center;gap:8px}
+    .cq-type .code{flex:none;width:28px;height:28px;border-radius:8px;color:#fff;background:var(--tc);text-align:center;line-height:28px;font-weight:800}
+    .cq-type p{color:#5c4a3a;font-size:.88rem;line-height:1.55;margin:0 0 10px}
+    .cq-type .lbl{font-weight:800;color:var(--gold-dark);font-size:.74rem;letter-spacing:.03em;text-transform:uppercase;margin-top:8px}
+    .cq-type .vals{color:#5c4a3a;font-size:.85rem;line-height:1.5;margin:2px 0 0}
+    .cq-bars{display:flex;flex-direction:column;gap:9px;margin:4px 0 20px}
+    .cq-bar{display:flex;align-items:center;gap:10px}
+    .cq-bar .bn{flex:0 0 128px;font-weight:700;color:var(--brown);font-size:.84rem}
+    .cq-bar .bt{flex:1;height:16px;border-radius:999px;background:var(--beige);overflow:hidden}
+    .cq-bar .bt>span{display:block;height:100%;border-radius:999px;background:var(--tc);transition:width .4s ease}
+    .cq-bar .bv{flex:0 0 30px;text-align:right;font-weight:800;color:var(--brown-soft);font-size:.8rem}
+    .cq-next{background:#f6ecd2;border-left:4px solid var(--gold);border-radius:8px;padding:14px 16px;margin:4px 0;line-height:1.7;color:var(--brown);font-size:.92rem}
+    .cq-next a{font-weight:800;color:var(--gold-dark)}
+    .cq-ractions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;justify-content:center}
+    .cq-retake{border:1.5px solid var(--gold);background:#fff;color:var(--brown);border-radius:10px;font-weight:700;padding:10px 22px;cursor:pointer}
+    .cq-retake:hover{background:var(--beige)}
+    nav.main a.active{background:var(--beige)}
+    a.brand{text-decoration:none}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content 跳至內容</a>
+
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="index.html">
+        <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
+        <div class="titles">
+          <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
+          <div class="dept" id="brand-dept">Career Team</div>
+          <div class="motto" id="brand-motto">Dream high and fly high</div>
+        </div>
+      </a>
+      <nav class="main">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+        <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
+        <div class="nav-links">
+        <a href="index.html#news" id="nav-news">Latest News</a>
+        <a href="useful-links.html" id="nav-res">Useful Links</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
+          <div class="navgroup-menu">
+            <a href="career-quiz.html" id="nav-quiz" class="active">Career Quiz</a>
+            <a href="pomodoro.html" id="nav-pomodoro">Pomodoro</a>
+            <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
+            <a href="dse-portfolio.html" id="nav-dse">DSE Portfolio</a>
+            <a href="streaming-tool.html" id="nav-streaming">Streaming Tool</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-jupastools">JUPAS Tools</button>
+          <div class="navgroup-menu">
+            <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
+            <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+          </div>
+        </div>
+        <button class="langbtn">中文</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="cq-wrap">
+      <h1 class="cq-title" id="pg-title">Career Interest Quiz</h1>
+      <p class="cq-sub" id="pg-sub"></p>
+
+      <!-- INTRO -->
+      <div class="cq-card" id="cq-intro">
+        <p class="cq-how" id="how-text"></p>
+        <div class="cq-types6" id="types6"></div>
+        <div class="cq-disc">
+          <span aria-hidden="true">⚠️</span>
+          <span id="disc-text"></span>
+        </div>
+        <button class="cq-start" id="start-btn"></button>
+      </div>
+
+      <!-- QUIZ -->
+      <div class="cq-card" id="cq-run" style="display:none">
+        <div class="cq-prog"><span id="prog-bar"></span></div>
+        <p class="cq-count" id="prog-count"></p>
+        <p class="cq-qlead" id="q-lead"></p>
+        <p class="cq-q" id="q-text"></p>
+        <div class="cq-ans" id="q-ans"></div>
+        <div class="cq-nav">
+          <button class="cq-back" id="back-btn"></button>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="cq-results" style="display:none">
+        <div class="cq-card">
+          <h2 class="cq-title" id="res-head" style="font-size:1.6rem;margin-top:0"></h2>
+          <p class="cq-rcode" id="res-code"></p>
+          <div class="cq-rtop" id="res-top"></div>
+          <p class="cq-sub" id="res-allhead" style="margin:0 0 10px;font-weight:700;color:var(--brown)"></p>
+          <div class="cq-bars" id="res-bars"></div>
+          <div class="cq-next" id="res-next"></div>
+          <div class="cq-disc">
+            <span aria-hidden="true">⚠️</span>
+            <span id="disc-text2"></span>
+          </div>
+          <div class="cq-ractions">
+            <button class="cq-retake" id="retake-btn"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">
+    <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="inner">
+      <div style="max-width:46ch" id="footer-about"></div>
+      <div class="footer-links" id="footer-links"></div>
+      <div class="footer-right">
+        <a class="footlink" href="https://www.plkno1.edu.hk" target="_blank" rel="noopener noreferrer" aria-label="School website" title="School website">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>plkno1.edu.hk</span>
+        </a>
+        <a class="footlink" href="https://www.instagram.com/po1.careerteam?igsh=d2cyMHVxNGgydjQy" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@po1.careerteam</span>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom" id="footer-bottom"></div>
+  </footer>
+
+  <script src="career-quiz.js?v=1"></script>
+  <script src="tools-data.js?v=2"></script>
+  <script src="footer-tools.js?v=2"></script>
+  <script src="back-to-top.js?v=1"></script>
+</body>
+</html>

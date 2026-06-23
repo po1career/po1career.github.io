@@ -7,6 +7,9 @@
    Add / edit a tool here ONLY.
    ============================================================ */
 window.SITE_TOOLS = [
+  { id: "quiz", href: "career-quiz.html", group: "studytools", icon: "🎯", gated: false,
+    name: { en: "Career Interest Quiz", zh: "職業興趣測驗" }, aud: { en: "All forms", zh: "各級適用" },
+    desc: { en: "Discover your interest types (RIASEC) and matching study and career directions.", zh: "了解你的興趣類型（RIASEC），找出合適的升學及職業方向。" } },
   { id: "pomodoro", href: "pomodoro.html", group: "studytools", icon: "⏱️", gated: false,
     name: { en: "Pomodoro Timer", zh: "番茄鐘" }, aud: { en: "All forms", zh: "各級適用" },
     desc: { en: "Focus in timed bursts with short breaks.", zh: "以計時專注配短休息，提升溫習效率。" } },

@@ -50,7 +50,7 @@
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
       nav_news: "Latest News", nav_res: "Useful Links", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
-      nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool",
+      nav_quiz: "Career Quiz", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool",
       nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices",
       pg_title: "Useful Links",
       pg_sub: "Official tools and resources to help you plan your studies and your future.",
@@ -69,7 +69,7 @@
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
       nav_news: "最新消息", nav_res: "實用連結", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
-      nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具",
+      nav_quiz: "興趣測驗", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具",
       nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科",
       pg_title: "實用連結",
       pg_sub: "官方工具及資源，助你規劃學業與未來。",
@@ -104,7 +104,7 @@
     setText("brand-school", t("school")); setText("brand-dept", t("dept")); setText("brand-motto", t("motto"));
     setText("nav-news", t("nav_news")); setText("nav-res", t("nav_res"));
     setText("nav-studytools", t("nav_studytools")); setText("nav-jupastools", t("nav_jupastools"));
-    setText("nav-pomodoro", t("nav_pomodoro")); setText("nav-studyplan", t("nav_studyplan"));
+    setText("nav-quiz", t("nav_quiz")); setText("nav-pomodoro", t("nav_pomodoro")); setText("nav-studyplan", t("nav_studyplan"));
     setText("nav-dse", t("nav_dse")); setText("nav-streaming", t("nav_streaming"));
     setText("nav-jupas", t("nav_jupas")); setText("nav-jupaschoices", t("nav_jupaschoices"));
     setText("footer-about", t("footer_about"));
