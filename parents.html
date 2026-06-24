@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>For Parents — PLK No.1 Career Team</title>
+  <meta name="description" content="A guide for parents of PLK No.1 W.H. Cheung College students — how JUPAS works, reading admission scores calmly, the F.6 year at a glance, and supporting your child's choices without pressure.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#C9A24B">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <script src="theme.js?v=1"></script>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="fonts/notosanstc.css">
+  <link rel="stylesheet" href="styles.css?v=18">
+  <style>
+    .pa-wrap{max-width:940px;margin:0 auto;padding:8px 0 44px}
+
+    .pa-hero{position:relative;overflow:hidden;border-radius:22px;margin:14px 0 22px;
+      background:linear-gradient(135deg,#6a8f5b 0%,#3a7ca5 55%,#5b6fa8 110%);
+      box-shadow:0 16px 36px rgba(46,58,80,.26);color:#fff;
+      display:flex;align-items:center;gap:18px;padding:30px 30px}
+    .pa-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 88% 12%,rgba(255,255,255,.22),transparent 60%);pointer-events:none}
+    .pa-hero-text{flex:1;min-width:0;position:relative;z-index:1}
+    .pa-hero-text h1{font-family:var(--font-display);font-weight:800;font-size:2.1rem;margin:0 0 8px;line-height:1.18;text-shadow:0 2px 10px rgba(0,0,0,.18)}
+    .pa-hero-text p{margin:0;font-size:1.04rem;line-height:1.6;max-width:54ch;color:#f1f6f0;opacity:.97}
+    .pa-hero-art{flex:none;width:120px;height:120px;position:relative;z-index:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.22))}
+    @media(max-width:680px){ .pa-hero{padding:24px 22px} .pa-hero-art{display:none} .pa-hero-text h1{font-size:1.7rem} }
+
+    .pa-h{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.45rem;margin:34px 0 6px;display:flex;align-items:center;gap:10px}
+    .pa-sub{color:var(--brown-soft);font-size:.95rem;margin:0 0 16px}
+
+    .pa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+    .pa-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+    .pa-ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:1.5rem;margin-bottom:10px;
+      background:linear-gradient(135deg,var(--c,#C9A24B),var(--c2,#a9842f));box-shadow:0 6px 14px rgba(0,0,0,.16)}
+    .pa-card h3{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.08rem;margin:0 0 6px}
+    .pa-card p{color:#5c4a3a;font-size:.92rem;line-height:1.6;margin:0}
+    .pa-card a{font-weight:800;color:var(--gold-dark)}
+
+    /* timeline */
+    .pa-tl{position:relative;margin:6px 0 0;padding-left:26px}
+    .pa-tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--gold),var(--sage))}
+    .pa-step{position:relative;padding:10px 0 14px}
+    .pa-step::before{content:"";position:absolute;left:-22px;top:14px;width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid #fffdf8;box-shadow:0 0 0 2px var(--gold)}
+    .pa-when{font-family:var(--font-display);font-weight:800;color:var(--gold-dark);font-size:.92rem}
+    .pa-what{color:#5c4a3a;font-size:.93rem;line-height:1.6;margin:2px 0 0}
+
+    /* support do / avoid */
+    .pa-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:640px){ .pa-two{grid-template-columns:1fr} }
+    .pa-col{border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+    .pa-col.good{background:#eef4ea;border:1px solid #cfe0c5}
+    .pa-col.avoid{background:#fbeee2;border:1px solid #e8c9a8}
+    .pa-col h3{font-family:var(--font-display);font-weight:800;font-size:1.06rem;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+    .pa-col.good h3{color:#3f6b3a}
+    .pa-col.avoid h3{color:#9a5413}
+    .pa-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+    .pa-col li{display:flex;gap:9px;font-size:.92rem;line-height:1.55;color:#4a4033}
+    .pa-col li::before{flex:none;font-weight:800}
+    .pa-col.good li::before{content:"✓";color:#4e8a45}
+    .pa-col.avoid li::before{content:"–";color:#c0792b}
+
+    .pa-note{margin:28px auto 0;max-width:74ch;color:var(--brown);font-size:.86rem;background:#f6ecd2;border-left:4px solid var(--gold);border-radius:8px;padding:12px 16px;line-height:1.7}
+    nav.main a.active{background:var(--beige)}
+
+    /* dark-mode tweaks for this page's literals */
+    html[data-theme="dark"] .pa-card{background:#211a12;border-color:#3a2e20}
+    html[data-theme="dark"] .pa-card p,
+    html[data-theme="dark"] .pa-what{color:#cdbb9e}
+    html[data-theme="dark"] .pa-step::before{border-color:#211a12}
+    html[data-theme="dark"] .pa-col.good{background:#1c2a1c;border-color:#37502f}
+    html[data-theme="dark"] .pa-col.avoid{background:#2c2114;border-color:#4d3a22}
+    html[data-theme="dark"] .pa-col li{color:#d6c9b4}
+    html[data-theme="dark"] .pa-col.good h3{color:#9fce92}
+    html[data-theme="dark"] .pa-col.avoid h3{color:#e3a866}
+    html[data-theme="dark"] .pa-note{background:#2a2214;color:var(--brown-soft)}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content 跳至內容</a>
+
+  <header class="site">
+    <div class="bar">
+      <a class="brand" href="index.html" style="text-decoration:none">
+        <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
+        <div class="titles">
+          <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
+          <div class="dept" id="brand-dept">Career Team</div>
+          <div class="motto" id="brand-motto">Dream high and fly high</div>
+        </div>
+      </a>
+      <nav class="main">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+        <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
+        <div class="nav-links">
+        <a href="index.html#news" id="nav-news">Latest News</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-info">Info</button>
+          <div class="navgroup-menu">
+            <a href="useful-links.html" id="nav-res">Useful Links</a>
+            <a href="faq.html" id="nav-faq">FAQ &amp; Glossary</a>
+            <a href="parents.html" id="nav-parents" class="active">For Parents</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
+          <div class="navgroup-menu">
+            <a href="career-quiz.html" id="nav-quiz">Career Quiz</a>
+            <a href="pathways.html" id="nav-pathways">Pathways Explorer</a>
+            <a href="pomodoro.html" id="nav-pomodoro">Pomodoro</a>
+            <a href="study-plan.html" id="nav-studyplan">Study Plan</a>
+            <a href="dse-portfolio.html" id="nav-dse">DSE Portfolio</a>
+            <a href="streaming-tool.html" id="nav-streaming">Streaming Tool</a>
+          </div>
+        </div>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-jupastools">JUPAS Tools</button>
+          <div class="navgroup-menu">
+            <a href="jupas-tool.html" id="nav-jupas">JUPAS Finder</a>
+            <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
+          </div>
+        </div>
+        <button class="themebtn" type="button" aria-label="Dark mode" title="Dark mode" aria-pressed="false">🌙</button>
+        <button class="langbtn">中文</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="pa-wrap">
+      <section class="pa-hero">
+        <div class="pa-hero-text">
+          <h1 id="pg-title">For Parents</h1>
+          <p id="pg-sub"></p>
+        </div>
+        <svg class="pa-hero-art" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="60" cy="60" r="54" fill="rgba(255,255,255,.14)"/>
+          <path d="M60 30c-9 0-16 7-16 16s7 16 16 16 16-7 16-16-7-16-16-16zm0 6a10 10 0 1 1 0 20 10 10 0 0 1 0-20z" fill="#fff" opacity=".9"/>
+          <path d="M38 58c-7 0-12 6-12 13v6h24v-6c0-7-5-13-12-13z" fill="#fff" opacity=".7"/>
+          <path d="M82 58c-7 0-12 6-12 13v6h24v-6c0-7-5-13-12-13z" fill="#fff" opacity=".7"/>
+          <path d="M60 70c10 0 18 7 18 17v5H42v-5c0-10 8-17 18-17z" fill="#fff" opacity=".95"/>
+        </svg>
+      </section>
+
+      <section>
+        <h2 class="pa-h" id="orient-h"><span aria-hidden="true">🧭</span><span></span></h2>
+        <p class="pa-sub" id="orient-sub"></p>
+        <div class="pa-cards" id="orient-cards"></div>
+      </section>
+
+      <section>
+        <h2 class="pa-h" id="tl-h"><span aria-hidden="true">📅</span><span></span></h2>
+        <p class="pa-sub" id="tl-sub"></p>
+        <div class="pa-tl" id="tl-list"></div>
+      </section>
+
+      <section>
+        <h2 class="pa-h" id="sup-h"><span aria-hidden="true">💛</span><span></span></h2>
+        <p class="pa-sub" id="sup-sub"></p>
+        <div class="pa-two">
+          <div class="pa-col good">
+            <h3><span aria-hidden="true">🌱</span><span id="good-h"></span></h3>
+            <ul id="good-list"></ul>
+          </div>
+          <div class="pa-col avoid">
+            <h3><span aria-hidden="true">🍂</span><span id="avoid-h"></span></h3>
+            <ul id="avoid-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <p class="pa-note" id="pa-note"></p>
+    </div>
+  </main>
+
+  <footer class="site">
+    <img class="footer-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="inner">
+      <div style="max-width:46ch" id="footer-about"></div>
+      <div class="footer-links" id="footer-links"></div>
+      <div class="footer-right">
+        <a class="footlink" href="https://www.plkno1.edu.hk" target="_blank" rel="noopener noreferrer" aria-label="School website" title="School website">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>plkno1.edu.hk</span>
+        </a>
+        <a class="footlink" href="https://www.instagram.com/po1.careerteam?igsh=d2cyMHVxNGgydjQy" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <span>@po1.careerteam</span>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom" id="footer-bottom"></div>
+  </footer>
+
+  <script src="parents.js?v=1"></script>
+  <script src="tools-data.js?v=3"></script>
+  <script src="footer-tools.js?v=2"></script>
+  <script src="back-to-top.js?v=1"></script>
+  <script src="register-sw.js?v=1"></script>
+</body>
+</html>

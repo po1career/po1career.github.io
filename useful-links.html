@@ -7,9 +7,13 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Useful Links — PLK No.1 Career Team</title>
   <meta name="description" content="Useful links for PLK No.1 W.H. Cheung College students — university JUPAS score calculators and the EDB Life Planning Portfolio.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#C9A24B">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <script src="theme.js?v=1"></script>
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=18">
   <style>
     .ul-wrap{max-width:980px;margin:0 auto;padding:8px 0 30px}
     .ul-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
@@ -66,7 +70,14 @@
         <label for="nav-toggle" class="nav-burger" aria-label="Menu" title="Menu">☰</label>
         <div class="nav-links">
         <a href="index.html#news" id="nav-news">Latest News</a>
-        <a href="useful-links.html" id="nav-res" class="active">Useful Links</a>
+        <div class="navgroup">
+          <button type="button" class="navgroup-btn" id="nav-info">Info</button>
+          <div class="navgroup-menu">
+            <a href="useful-links.html" id="nav-res" class="active">Useful Links</a>
+            <a href="faq.html" id="nav-faq">FAQ &amp; Glossary</a>
+            <a href="parents.html" id="nav-parents">For Parents</a>
+          </div>
+        </div>
         <div class="navgroup">
           <button type="button" class="navgroup-btn" id="nav-studytools">Study Tools</button>
           <div class="navgroup-menu">
@@ -85,6 +96,7 @@
             <a href="jupas-choices.html" id="nav-jupaschoices">JUPAS Choices</a>
           </div>
         </div>
+        <button class="themebtn" type="button" aria-label="Dark mode" title="Dark mode" aria-pressed="false">🌙</button>
         <button class="langbtn">中文</button>
         </div>
       </nav>
@@ -137,9 +149,10 @@
     <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
-  <script src="useful-links.js?v=3"></script>
+  <script src="useful-links.js?v=4"></script>
   <script src="tools-data.js?v=3"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>
+  <script src="register-sw.js?v=1"></script>
 </body>
 </html>

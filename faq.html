@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>Sitemap — PLK No.1 Career Team</title>
-  <meta name="description" content="Sitemap of the PLK No.1 W.H. Cheung College Career Team website.">
+  <title>FAQ & Glossary — PLK No.1 Career Team</title>
+  <meta name="description" content="Plain-language answers to common questions and a glossary of the jargon — JUPAS, Best 5, 3322, M1/M2, Band A, SSSDP and more — for PLK No.1 W.H. Cheung College students and parents.">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#C9A24B">
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
@@ -15,20 +15,49 @@
   <link rel="stylesheet" href="fonts/notosanstc.css">
   <link rel="stylesheet" href="styles.css?v=18">
   <style>
-    .sm-wrap{max-width:960px;margin:0 auto;padding:8px 0 30px}
-    .sm-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
-    .sm-sub{color:var(--brown-soft);max-width:60ch;margin:0 auto 22px;text-align:center;font-size:1.02rem}
-    .sm-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
-    .sm-group{background:#fffdf8;border:1px solid #ece0c4;border-radius:16px;box-shadow:var(--shadow);padding:18px 20px}
-    .sm-group h2{font-family:var(--font-display);font-weight:800;color:var(--gold-dark);font-size:1.02rem;letter-spacing:.03em;text-transform:uppercase;margin:0 0 12px;padding-bottom:8px;border-bottom:1.5px dotted #dcc890}
-    .sm-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px}
-    .sm-link{display:block;text-decoration:none}
-    .sm-link .nm{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.02rem}
-    .sm-link .nm .lock{font-size:.85em}
-    .sm-link .ds{display:block;color:#5c4a3a;font-size:.85rem;line-height:1.5;margin-top:1px}
-    .sm-link:hover .nm{color:var(--gold-dark);text-decoration:underline}
+    .fq-wrap{max-width:900px;margin:0 auto;padding:8px 0 40px}
+    .fq-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
+    .fq-sub{color:var(--brown-soft);max-width:64ch;margin:0 auto 14px;text-align:center;font-size:1.02rem}
+
+    /* jump pills */
+    .fq-jump{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 20px}
+    .fq-jump a{background:#fffdf8;border:1.5px solid #e6d8b6;color:var(--gold-dark);font-weight:800;
+      font-size:.84rem;padding:6px 14px;border-radius:999px;text-decoration:none}
+    .fq-jump a:hover{background:var(--beige);text-decoration:none}
+
+    .fq-h{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.4rem;margin:30px 0 6px;display:flex;align-items:center;gap:10px}
+    .fq-h .em{font-size:1.2rem}
+    .fq-hint{color:var(--brown-soft);font-size:.92rem;margin:0 0 14px}
+
+    /* glossary grid */
+    .gl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+    .gl-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+    .gl-term{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.05rem;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+    .gl-abbr{font-size:.72rem;font-weight:800;letter-spacing:.04em;color:#fff;background:linear-gradient(135deg,var(--gold),var(--gold-dark));padding:2px 8px;border-radius:999px}
+    .gl-def{color:#5c4a3a;font-size:.9rem;line-height:1.55;margin:7px 0 0}
+
+    /* FAQ accordion */
+    .faq-list{display:flex;flex-direction:column;gap:10px}
+    .faq{background:#fffdf8;border:1px solid #ece0c4;border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+    .faq[open]{border-color:var(--gold)}
+    .faq summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:15px 18px;font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:1.02rem;outline:none}
+    .faq summary::-webkit-details-marker{display:none}
+    .faq summary:focus-visible{box-shadow:0 0 0 3px var(--gold) inset}
+    .faq .qmark{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.9rem;background:linear-gradient(135deg,var(--gold),var(--sage))}
+    .faq .chev{margin-left:auto;color:var(--brown-soft);transition:transform .2s ease}
+    .faq[open] .chev{transform:rotate(180deg)}
+    .faq .ans{padding:2px 18px 16px 56px;color:#5c4a3a;font-size:.95rem;line-height:1.7}
+    .faq .ans a{font-weight:800;color:var(--gold-dark)}
+
+    .fq-note{margin:28px auto 0;max-width:72ch;color:var(--brown);font-size:.86rem;background:#f6ecd2;border-left:4px solid var(--gold);border-radius:8px;padding:12px 16px;line-height:1.7}
     nav.main a.active{background:var(--beige)}
-    a.brand{text-decoration:none}
+    .brand{cursor:default}
+
+    /* dark-mode tweaks for this page's literals */
+    html[data-theme="dark"] .fq-jump a{background:#211a12;border-color:#473826}
+    html[data-theme="dark"] .gl-def,
+    html[data-theme="dark"] .faq .ans{color:#cdbb9e}
+    html[data-theme="dark"] .fq-note{background:#2a2214;color:var(--brown-soft)}
   </style>
 </head>
 <body>
@@ -36,7 +65,7 @@
 
   <header class="site">
     <div class="bar">
-      <a class="brand" href="index.html">
+      <a class="brand" href="index.html" style="text-decoration:none">
         <img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">
         <div class="titles">
           <div class="school" id="brand-school">PLK No.1 W.H. Cheung College</div>
@@ -53,7 +82,7 @@
           <button type="button" class="navgroup-btn" id="nav-info">Info</button>
           <div class="navgroup-menu">
             <a href="useful-links.html" id="nav-res">Useful Links</a>
-            <a href="faq.html" id="nav-faq">FAQ &amp; Glossary</a>
+            <a href="faq.html" id="nav-faq" class="active">FAQ &amp; Glossary</a>
             <a href="parents.html" id="nav-parents">For Parents</a>
           </div>
         </div>
@@ -83,10 +112,27 @@
   </header>
 
   <main id="main">
-    <div class="sm-wrap">
-      <h1 class="sm-title" id="pg-title">Sitemap</h1>
-      <p class="sm-sub" id="pg-sub"></p>
-      <div class="sm-groups" id="sm-groups"></div>
+    <div class="fq-wrap">
+      <h1 class="fq-title" id="pg-title">FAQ &amp; Glossary</h1>
+      <p class="fq-sub" id="pg-sub"></p>
+      <div class="fq-jump">
+        <a href="#glossary" id="jump-gloss">Glossary</a>
+        <a href="#faq" id="jump-faq">Questions</a>
+      </div>
+
+      <section id="glossary">
+        <h2 class="fq-h" id="gloss-h"><span class="em" aria-hidden="true">📖</span><span></span></h2>
+        <p class="fq-hint" id="gloss-hint"></p>
+        <div class="gl-grid" id="gl-grid"></div>
+      </section>
+
+      <section id="faq">
+        <h2 class="fq-h" id="faq-h"><span class="em" aria-hidden="true">❓</span><span></span></h2>
+        <p class="fq-hint" id="faq-hint"></p>
+        <div class="faq-list" id="faq-list"></div>
+      </section>
+
+      <p class="fq-note" id="fq-note"></p>
     </div>
   </main>
 
@@ -116,8 +162,8 @@
     <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
+  <script src="faq.js?v=1"></script>
   <script src="tools-data.js?v=3"></script>
-  <script src="sitemap.js?v=4"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>
   <script src="register-sw.js?v=1"></script>

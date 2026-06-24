@@ -12,13 +12,17 @@
     { href: "index.html#news", name: { en: "Latest News", zh: "最新消息" },
       desc: { en: "Updates on local, mainland and overseas universities and career activities.", zh: "本地、內地及海外大學與職業活動的最新消息。" } },
     { href: "useful-links.html", name: { en: "Useful Links", zh: "實用連結" },
-      desc: { en: "University JUPAS score calculators and the EDB Life Planning Portfolio.", zh: "各大學 JUPAS 分數計算工具及教育局生涯規劃歷程檔案。" } }
+      desc: { en: "University JUPAS score calculators and the EDB Life Planning Portfolio.", zh: "各大學 JUPAS 分數計算工具及教育局生涯規劃歷程檔案。" } },
+    { href: "faq.html", name: { en: "FAQ & Glossary", zh: "常見問題與詞彙" },
+      desc: { en: "Plain-language answers and a glossary of the jargon — JUPAS, Best 5, 3322, SSSDP and more.", zh: "淺白的解答及術語詞彙——聯招、最佳五科、3322、SSSDP 等。" } },
+    { href: "parents.html", name: { en: "For Parents", zh: "家長園地" },
+      desc: { en: "How JUPAS works, reading scores calmly, key dates, and supporting choices without pressure.", zh: "聯招運作、冷靜看待分數、重要日期，以及如何在不施壓下支持孩子。" } }
   ];
 
   var T = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_res: "Useful Links", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
+      nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool",
       nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices",
       pg_title: "Sitemap",
@@ -29,7 +33,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_res: "實用連結", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
+      nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具",
       nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科",
       pg_title: "網站地圖",
@@ -62,7 +66,7 @@
     document.title = t("pg_title") + " — PLK No.1 Career Team";
 
     setText("brand-school", t("school")); setText("brand-dept", t("dept")); setText("brand-motto", t("motto"));
-    setText("nav-news", t("nav_news")); setText("nav-res", t("nav_res"));
+    setText("nav-news", t("nav_news")); setText("nav-res", t("nav_res")); setText("nav-info", t("nav_info")); setText("nav-faq", t("nav_faq")); setText("nav-parents", t("nav_parents"));
     setText("nav-studytools", t("nav_studytools")); setText("nav-jupastools", t("nav_jupastools"));
     setText("nav-quiz", t("nav_quiz")); setText("nav-pathways", t("nav_pathways")); setText("nav-pomodoro", t("nav_pomodoro")); setText("nav-studyplan", t("nav_studyplan"));
     setText("nav-dse", t("nav_dse")); setText("nav-streaming", t("nav_streaming"));
