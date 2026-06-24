@@ -6,7 +6,7 @@
    once the site has been opened (or installed) online.
    Bump CACHE to invalidate everything.
    ============================================================ */
-var CACHE = 'clp-cache-v1';
+var CACHE = 'clp-cache-v2';
 
 /* Core app shell precached on install so the key pages work
    offline on first launch after "Add to Home Screen". */
@@ -30,12 +30,12 @@ var CORE = [
   './posts.js?v=6',
   './pomodoro.js?v=11',
   './study-plan.js?v=11',
-  './pathways.js?v=3',
+  './pathways.js?v=4',
   './useful-links.js?v=4',
-  './career-quiz.js?v=3',
-  './sitemap.js?v=4',
-  './faq.js?v=1',
-  './parents.js?v=1',
+  './career-quiz.js?v=4',
+  './sitemap.js?v=5',
+  './faq.js?v=2',
+  './parents.js?v=2',
   './fonts/fonts.css',
   './fonts/notosanstc.css',
   './images/logo.jpg',

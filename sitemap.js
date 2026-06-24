@@ -14,7 +14,7 @@
     { href: "useful-links.html", name: { en: "Useful Links", zh: "實用連結" },
       desc: { en: "University JUPAS score calculators and the EDB Life Planning Portfolio.", zh: "各大學 JUPAS 分數計算工具及教育局生涯規劃歷程檔案。" } },
     { href: "faq.html", name: { en: "FAQ & Glossary", zh: "常見問題與詞彙" },
-      desc: { en: "Plain-language answers and a glossary of the jargon — JUPAS, Best 5, 3322, SSSDP and more.", zh: "淺白的解答及術語詞彙——聯招、最佳五科、3322、SSSDP 等。" } },
+      desc: { en: "Plain-language answers and a glossary of the jargon — JUPAS, Best 5, 332A, SSSDP and more.", zh: "淺白的解答及術語詞彙——聯招、最佳五科、332A、SSSDP 等。" } },
     { href: "parents.html", name: { en: "For Parents", zh: "家長園地" },
       desc: { en: "How JUPAS works, reading scores calmly, key dates, and supporting choices without pressure.", zh: "聯招運作、冷靜看待分數、重要日期，以及如何在不施壓下支持孩子。" } }
   ];

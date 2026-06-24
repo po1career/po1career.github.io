@@ -28,16 +28,16 @@
   ];
 
   var TIMELINE = [
-    { when: { en: "Autumn (F.6 begins)", zh: "秋季（中六開課）" },
+    { when: { en: "November–December", zh: "十一月至十二月" },
       what: { en: "JUPAS registration opens; students set their initial 20 programme choices and submit non-academic records (OEA/SLP).",
               zh: "聯招開始接受登記；學生設定最初的 20 個課程志願，並提交非學術紀錄（OEA／SLP）。" } },
-    { when: { en: "Winter", zh: "冬季" },
+    { when: { en: "January–February", zh: "一月至二月" },
       what: { en: "Mock exams; a good time to review and reorder choices honestly, and to attend university info days together.",
               zh: "模擬考試；適合與孩子一同誠實檢視及重新排序志願，並出席大學資訊日。" } },
-    { when: { en: "Spring", zh: "春季" },
+    { when: { en: "March–April", zh: "三月至四月" },
       what: { en: "Final choice-amendment window before the exam; some programmes make early conditional offers or hold interviews.",
               zh: "考試前最後的修改志願時段；部分課程會提早發出有條件取錄或安排面試。" } },
-    { when: { en: "Late spring", zh: "春末" },
+    { when: { en: "Late April–May", zh: "四月下旬至五月" },
       what: { en: "The DSE written examinations take place.",
               zh: "文憑試筆試舉行。" } },
     { when: { en: "July — results day", zh: "七月——放榜" },
@@ -60,7 +60,7 @@
   var AVOID = [
     { en: "Comparing your child with siblings, cousins or classmates.", zh: "拿孩子與兄弟姊妹、親戚或同學比較。" },
     { en: "Choosing the subjects or programmes for them.", zh: "代孩子決定科目或課程。" },
-    { en: "Focusing only on prestige, salary or “safe” options.", zh: "只着眼於名氣、薪酬或「保險」的選擇。" },
+    { en: "Focusing only on prestige, salary or “safe” options, rather than your child's own interests and strengths.", zh: "只着眼於名氣、薪酬或「保險」的選擇，而忽略孩子自身的興趣與強項。" },
     { en: "Reacting to a disappointing score with panic or blame.", zh: "對不理想的成績以恐慌或責備回應。" },
     { en: "Bringing up results and the future at every meal.", zh: "每次吃飯都提起成績與前途。" }
   ];
