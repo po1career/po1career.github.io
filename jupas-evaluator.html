@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>JUPAS Evaluator (Teacher)</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/notosanstc.css">
+<style>
+  :root{
+    --bg:#FAF4E6; --card:#FFFDF8; --ink:#5B3A24; --muted:#8a6f59; --accent:#C9A24B;
+    --accent-dark:#A9842F; --link:#936c1f; --accent-soft:#F3E8CE; --border:#E8DCC2;
+    --shadow:0 8px 24px rgba(91,58,36,0.08);
+    --vsafe:#1f7a4d; --vsafe-bg:#e7f6ee; --safe:#4d7c4d; --safe-bg:#eef5e9;
+    --mod:#92660a; --mod-bg:#fdf3da; --risky:#b3403a; --risky-bg:#fdecea;
+    --unk:#6b7280; --unk-bg:#f1f1ef;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Nunito","Noto Sans TC","PingFang HK",Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 420px at 100% -8%,rgba(201,162,75,0.13),transparent 60%),var(--bg);color:var(--ink);line-height:1.5;}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 80px;}
+  h1{font-size:1.6rem;margin:0;font-weight:800;}
+  .subtitle{color:var(--muted);margin:4px 0 18px;font-size:0.92rem;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .panel::before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),#8BA888);}
+  .panel h2{margin:2px 0 12px;font-size:1.12rem;font-weight:800;}
+  .hint{color:var(--muted);font-size:0.84rem;margin:0 0 12px;}
+  /* lock */
+  .lockscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:radial-gradient(820px 320px at 50% -6%,rgba(201,162,75,0.18),transparent 62%),var(--bg);}
+  .lockbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .lockbox::before{content:"";position:absolute;left:0;top:0;width:100%;height:5px;background:linear-gradient(90deg,var(--accent),var(--accent-dark));}
+  .lock-icon{width:66px;height:66px;margin:6px auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:radial-gradient(circle at 50% 35%,#fff,var(--accent-soft));border:1px solid var(--border);}
+  .lockbox h2{margin:0;font-size:1.3rem;font-weight:800;}
+  .lock-sub{color:var(--muted);font-size:0.85rem;margin:8px 0 18px;line-height:1.5;}
+  .lockbox input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem;margin-bottom:12px;text-align:center;font-family:inherit;background:#fffdf7;color:var(--ink);}
+  .lockbox button{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-size:1rem;cursor:pointer;font-family:inherit;font-weight:800;}
+  .lock-err{color:#b91c1c;font-size:0.85rem;min-height:20px;margin-top:10px;}
+  /* upload */
+  .drop{border:2px dashed var(--accent);border-radius:14px;padding:28px;text-align:center;background:var(--accent-soft);cursor:pointer;transition:.15s;}
+  .drop.drag{background:#fff;border-color:var(--accent-dark);}
+  .drop .big{font-size:1.05rem;font-weight:800;}
+  .drop input{display:none;}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-family:inherit;font-weight:800;font-size:0.9rem;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .btn-ghost{background:#fffdf7;color:var(--link);border:1px solid var(--border);}
+  .row-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+  .msg{font-size:0.86rem;font-weight:700;margin-top:8px;min-height:18px;}
+  .msg.err{color:var(--risky);} .msg.ok{color:var(--vsafe);}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 28px;font-size:0.95rem;} .meta b{color:var(--link);}
+  table.grades{border-collapse:collapse;margin-top:10px;font-size:0.9rem;}
+  table.grades td,table.grades th{border:1px solid var(--border);padding:4px 12px;text-align:left;} table.grades th{background:var(--accent-soft);}
+  .b5{margin-top:10px;font-weight:800;color:var(--accent-dark);}
+  .assumed{font-size:0.8rem;color:var(--mod);background:var(--mod-bg);border-radius:8px;padding:6px 10px;display:inline-block;margin-top:8px;}
+  .choice{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff;}
+  .choice.band-A{border-left:5px solid var(--accent);} .choice.band-B{border-left:5px solid #7d9a78;}
+  .choice.band-C{border-left:5px solid #6189a3;} .choice.band-D{border-left:5px solid #927ba0;} .choice.band-E{border-left:5px solid #bd7d54;}
+  .choice.inelig{background:#fffafa;}
+  .ch-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .ch-badge{font-weight:800;font-size:0.8rem;padding:3px 9px;border-radius:8px;color:#fff;background:var(--accent-dark);}
+  .ch-code{font-weight:800;color:var(--link);} .ch-name{font-weight:700;} .ch-inst{color:var(--muted);font-size:0.85rem;}
+  .ch-link{font-size:0.8rem;color:var(--link);text-decoration:none;font-weight:700;}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;margin-top:10px;font-size:0.85rem;}
+  .metric .k{font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:800;} .metric .v{font-weight:700;}
+  .pill{display:inline-block;font-size:0.78rem;font-weight:800;padding:3px 9px;border-radius:999px;}
+  .p-uq,.p-safe{background:var(--vsafe-bg);color:var(--vsafe);} .p-median{background:var(--safe-bg);color:var(--safe);}
+  .p-mod,.p-lq{background:var(--mod-bg);color:var(--mod);} .p-risky,.p-below{background:var(--risky-bg);color:var(--risky);}
+  .p-unk,.p-na{background:var(--unk-bg);color:var(--unk);}
+  .p-elig{background:var(--vsafe-bg);color:var(--vsafe);} .p-inelig{background:var(--risky-bg);color:var(--risky);}
+  .reasons{margin-top:8px;font-size:0.8rem;color:var(--muted);} .reasons li{margin:1px 0;}
+  .warn-inline{color:var(--risky);font-weight:800;}
+  .band-sep{font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--link);margin:14px 0 6px;}
+  .flag{padding:8px 12px;border-radius:10px;margin-bottom:6px;font-size:0.88rem;font-weight:600;}
+  .flag.err{background:var(--risky-bg);color:var(--risky);} .flag.warn{background:var(--mod-bg);color:var(--mod);} .flag.ok{background:var(--vsafe-bg);color:var(--vsafe);}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .sugg{border-bottom:1px solid var(--border);padding:7px 0;font-size:0.88rem;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;} .sugg .code{font-weight:800;color:var(--link);min-width:64px;}
+  .hidden{display:none;}
+  footer{margin-top:24px;color:var(--muted);font-size:0.74rem;border-top:1px solid var(--border);padding-top:14px;}
+  @media print{ body{background:#fff;} .no-print{display:none !important;} .panel{box-shadow:none;border:1px solid #ccc;break-inside:avoid;} .choice{break-inside:avoid;} }
+</style>
+</head>
+<body>
+
+<!-- passcode gate -->
+<div id="lock" class="lockscreen" style="display:none">
+  <div class="lockbox">
+    <div class="lock-icon">🔒</div>
+    <h2>Teacher passcode</h2>
+    <p class="lock-sub">PLK No.1 W.H. Cheung College · Career Team only<br>只供升學輔導組老師使用</p>
+    <input type="password" id="passcode" autocomplete="off" placeholder="Passcode 通行碼">
+    <button id="unlock-btn" type="button">Unlock 解鎖</button>
+    <div id="lock-err" class="lock-err"></div>
+  </div>
+</div>
+
+<!-- app (revealed after unlock) -->
+<div id="app" class="wrap" style="display:none">
+  <h1>JUPAS All-in-One Evaluator <span style="font-weight:600;font-size:0.7em;color:var(--muted)">· Teacher</span></h1>
+  <p class="subtitle">Upload a student's exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).</p>
+
+  <div class="panel no-print" id="upload-panel">
+    <h2>1 · Load the student PDF</h2>
+    <label class="drop" id="drop">
+      <div class="big">⬆ Drop the student's PDF here, or click to choose</div>
+      <div class="hint" style="margin:6px 0 0">The file the student exported from the JUPAS Choice Evaluator page.</div>
+      <input type="file" id="file" accept=".pdf,application/pdf">
+    </label>
+    <div class="row-actions"><span id="db-status" class="msg"></span></div>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="panel">
+      <div class="row-actions no-print" style="justify-content:flex-end;margin:0 0 8px">
+        <button class="btn btn-ghost" onclick="window.print()">🖨 Print / Save as PDF report</button>
+      </div>
+      <h2>Student</h2>
+      <div class="meta" id="meta"></div>
+      <table class="grades" id="grades-tbl"></table>
+      <div class="b5" id="b5"></div>
+      <div class="assumed">ℹ Citizenship & Social Development assumed <b>Attained</b> (school policy: 100% attain CSD). This school's students take no M1 or Category-C subjects, so those are out of scope by design.</div>
+    </div>
+    <div class="panel"><h2>Overview</h2><div class="chips" id="overview-chips"></div><div id="flags"></div></div>
+    <div class="panel">
+      <h2>The 20 choices</h2>
+      <p class="hint">Computed score is on the same basis as each programme's published median/LQ. "Chance" combines your score position with the historical offer rate of the band you placed it in.</p>
+      <div id="choices"></div>
+    </div>
+    <div class="panel"><h2>Counseling notes</h2><ul id="notes"></ul></div>
+    <div class="panel"><h2>Good-fit programmes not chosen <span style="font-weight:600;font-size:0.8em;color:var(--muted)">(eligible · at/above median)</span></h2><div id="suggestions"></div></div>
+  </div>
+
+  <footer>
+    Unofficial teacher tool. Admission statistics (median/LQ, offer rates) are from PAST intakes and do not guarantee this year's results. Always verify on www.jupas.edu.hk.
+    <br><br>
+    Scoring engine and admissions database adapted from <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> under the MIT License — © 2026 JUPASCal. Provided "AS IS", without warranty. See jupas-evaluator-LICENSE.txt.
+  </footer>
+</div>
+
+<script src="jupas-evaluator-engine.js"></script>
+<script src="jupas-evaluator-analytics.js"></script>
+<script src="jupas-evaluator-ui.js"></script>
+</body>
+</html>
