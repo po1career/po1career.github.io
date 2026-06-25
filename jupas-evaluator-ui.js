@@ -13,6 +13,9 @@
   var CMP_BAND = { aboveUQ: 'above-uq', aboveM: 'above-median', aboveLQ: 'above-lq', belowLQ: 'below-lq', nodata: 'no-score' };
   var BAND_LABEL = { 'above-uq': '≥ UQ', 'above-median': 'Median–UQ', 'above-lq': 'LQ–Median', 'below-lq': '< LQ', 'no-score': 'No data' };
   var SAFETY = { 'above-uq': ['Very safe', 'p-safe'], 'above-median': ['Safe', 'p-safe'], 'above-lq': ['Moderate', 'p-mod'], 'below-lq': ['Risky', 'p-risky'], 'no-score': ['Unknown', 'p-unk'] };
+  var CHANCE_CLS = { 'Strong': 'p-safe', 'Likely': 'p-safe', 'Possible': 'p-mod', 'Stretch': 'p-mod', 'Unlikely': 'p-risky', 'Ineligible': 'p-inelig', 'Unknown': 'p-unk' };
+  function posCls(b) { return 'p-' + (b === 'above-uq' ? 'uq' : b === 'above-median' ? 'median' : b === 'above-lq' ? 'lq' : b === 'below-lq' ? 'below' : 'na'); }
+  function bandRange(b) { return b === 'A' ? '1–3' : b === 'B' ? '4–6' : b === 'C' ? '7–10' : b === 'D' ? '11–15' : '16–20'; }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function flash(t, ok) { var e = $('msg'); if (!e) return; e.textContent = t; e.className = 'msg ' + (ok ? 'ok' : 'err'); }
@@ -99,8 +102,10 @@
     var evalAll = window.JUPASEngine.evaluateAll(PROGRAMMES, grades);
     var choices = (payload.choices || []).map(function (c, i) { c = c || {}; return { code: (c.code || '').trim(), intake: c.intake, score: c.score, cmp: c.cmp, remark: c.remark, no: i + 1, _raw: c }; });
 
-    renderChoices(choices, evalAll);
     var strat = window.JUPASAnalytics.listStrategy(choices, evalAll);
+    renderTeacherSummary(strat, choices, evalAll);
+    renderSummaryTable(choices, evalAll);
+    renderChoices(choices, evalAll);
     renderOverview(strat); renderFlags(strat); renderNotes(strat, choices, evalAll);
     var chosen = choices.filter(function (c) { return c.code; }).map(function (c) { return c.code; });
     renderSuggestions(window.JUPASAnalytics.suggestions(PROGRAMMES, grades, chosen, 12));
@@ -127,7 +132,7 @@
       var saf = SAFETY[ev.band] || SAFETY['no-score'];
       var studentScore = parseFloat(c.score);
       var mismatch = (!isNaN(studentScore) && ev.calculation.totalScore) && Math.abs(studentScore - ev.calculation.totalScore) > 1.5;
-      var chanceCls = { 'Strong': 'p-safe', 'Likely': 'p-safe', 'Possible': 'p-mod', 'Stretch': 'p-mod', 'Unlikely': 'p-risky', 'Ineligible': 'p-inelig', 'Unknown': 'p-unk' }[chance.label] || 'p-unk';
+      var chanceCls = CHANCE_CLS[chance.label] || 'p-unk';
       var m = '<div class="metrics">';
       m += '<div class="metric"><div class="k">Eligible</div><div class="v"><span class="pill ' + (ev.eligibility.eligible ? 'p-elig' : 'p-inelig') + '">' + (ev.eligibility.eligible ? 'Yes' : 'No') + '</span></div></div>';
       m += '<div class="metric"><div class="k">Computed score</div><div class="v">' + ev.calculation.totalScore + (mismatch ? ' <span class="warn-inline">⚠ vs ' + esc(c.score) + '</span>' : (c.score ? ' <span style="color:var(--muted);font-weight:600">(said ' + esc(c.score) + ')</span>' : '')) + '</div></div>';
@@ -173,6 +178,66 @@
         '<span>your ' + s.yourScore + ' vs median ' + (s.median != null ? s.median : '—') + ' <span class="pill p-safe">+' + (s.pct || 0).toFixed(0) + '%</span></span>' +
         (s.prog.jupas_url ? ' <a class="ch-link" href="' + esc(s.prog.jupas_url) + '" target="_blank" rel="noopener">↗</a>' : '') + '</div>';
     }).join('');
+  }
+
+  /* ---------- summary table of the 20 choices ---------- */
+  function renderSummaryTable(choices, evalAll) {
+    var tb = $('summary-rows'); if (!tb) return; tb.innerHTML = ''; var lastBand = '';
+    choices.forEach(function (c) {
+      var band = window.JUPASAnalytics.placedBand(c.no), bcls = 'band-' + band.toLowerCase();
+      if (band !== lastBand) {
+        lastBand = band;
+        var sep = document.createElement('tr'); sep.className = 'band-sep ' + bcls;
+        sep.innerHTML = '<td colspan="6">Band ' + band + ' · choices ' + bandRange(band) + '</td>';
+        tb.appendChild(sep);
+      }
+      var tr = document.createElement('tr'); tr.className = bcls;
+      var badge = '<span class="band-badge">' + band + c.no + '</span>';
+      if (!c.code) { tr.innerHTML = '<td>' + badge + '</td><td class="t-empty" colspan="5">(empty slot)</td>'; tb.appendChild(tr); return; }
+      var ev = evalAll.get(c.code.toUpperCase());
+      if (!ev) { tr.innerHTML = '<td>' + badge + '</td><td class="t-prog"><span class="c">' + esc(c.code) + '</span></td><td colspan="4" class="t-note">Not found in database</td>'; tb.appendChild(tr); return; }
+      var p = ev.programme, chance = window.JUPASAnalytics.chanceForChoice(ev, c.no);
+      var note = !ev.eligibility.eligible ? 'Ineligible'
+        : (c.cmp && CMP_BAND[c.cmp] && CMP_BAND[c.cmp] !== ev.band && ev.band !== 'no-score') ? 'Self-rated differs'
+        : '';
+      tr.innerHTML =
+        '<td>' + badge + '</td>' +
+        '<td class="t-prog"><span class="c">' + esc(p.jupas_code) + '</span>' + esc(p.name_en || '') + '<span class="i">' + esc(p.institution || '') + '</span></td>' +
+        '<td>' + (ev.calculation.totalScore != null ? ev.calculation.totalScore : '—') + '</td>' +
+        '<td><span class="pill ' + posCls(ev.band) + '">' + BAND_LABEL[ev.band] + '</span></td>' +
+        '<td><span class="pill ' + (CHANCE_CLS[chance.label] || 'p-unk') + '">' + chance.label + '</span></td>' +
+        '<td class="t-note">' + esc(note) + '</td>';
+      tb.appendChild(tr);
+    });
+  }
+
+  /* ---------- teacher at-a-glance summary (verdict + priority fixes + next step) ---------- */
+  function renderTeacherSummary(strat, choices, evalAll) {
+    var box = $('tsummary'); if (!box) return;
+    var s = strat.stats;
+    var errs = strat.flags.filter(function (f) { return f.level === 'err'; });
+    var warns = strat.flags.filter(function (f) { return f.level === 'warn'; });
+
+    var level, lamp, head;
+    if (!s.filled) { level = 'amber'; lamp = '🟠'; head = 'No choices entered yet.'; }
+    else if (errs.length || s.safe === 0) { level = 'red'; lamp = '🔴'; head = 'High risk — needs attention before submission.'; }
+    else if (warns.length) { level = 'amber'; lamp = '🟠'; head = 'Workable list, with a few things to tidy up.'; }
+    else { level = 'green'; lamp = '🟢'; head = 'Solid, well-balanced list.'; }
+
+    var statline = s.filled + '/20 filled · ' + s.safe + ' safe · ' + s.moderate + ' moderate · ' + s.risky + ' reach' + (s.ineligible ? ' · ' + s.ineligible + ' ineligible' : '');
+    var actions = errs.concat(warns).slice(0, 4).map(function (f) { return f.text; });
+
+    var rec;
+    if (!s.filled) rec = 'Import the student’s PDF to begin.';
+    else if (s.safe < 3) rec = 'Add 2–3 solid “safe” choices (at/above median) lower in the list as a fallback, then re-check.';
+    else if (errs.length) rec = 'Resolve the flagged issues above, then re-export and re-check.';
+    else rec = 'List looks ready — confirm the top 3 (Band A) are the genuine first choices.';
+
+    var html = '<div class="verdict v-' + level + '"><span class="lamp" aria-hidden="true">' + lamp + '</span><span class="vhead">' + esc(head) + '</span></div>' +
+      '<p class="tsum-stat">' + esc(statline) + '</p>';
+    if (actions.length) html += '<div class="tsum-lbl">Priority fixes</div><ul class="tsum-actions">' + actions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>';
+    html += '<div class="tsum-rec">➜ ' + esc(rec) + '</div>';
+    box.innerHTML = html;
   }
 
   /* ---------- wire upload ---------- */

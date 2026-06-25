@@ -39,9 +39,12 @@
   .lockbox input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem;margin-bottom:12px;text-align:center;font-family:inherit;background:#fffdf7;color:var(--ink);}
   .lockbox button{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-size:1rem;cursor:pointer;font-family:inherit;font-weight:800;}
   .lock-err{color:#b91c1c;font-size:0.85rem;min-height:20px;margin-top:10px;}
-  /* upload */
-  .drop{border:2px dashed var(--accent);border-radius:14px;padding:28px;text-align:center;background:var(--accent-soft);cursor:pointer;transition:.15s;}
-  .drop.drag{background:#fff;border-color:var(--accent-dark);}
+  /* upload — flex box so the dashed border + drop target fill the panel (was inline = misplaced) */
+  .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    border:2px dashed var(--accent);border-radius:14px;padding:30px 24px;min-height:128px;text-align:center;
+    background:var(--accent-soft);cursor:pointer;transition:.15s;}
+  .drop.drag{background:#fff;border-color:var(--accent-dark);transform:scale(1.01);}
+  .drop .up-ic{font-size:2rem;line-height:1;}
   .drop .big{font-size:1.05rem;font-weight:800;}
   .drop input{display:none;}
   .btn{border:none;border-radius:10px;padding:10px 16px;font-family:inherit;font-weight:800;font-size:0.9rem;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
@@ -77,6 +80,38 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
   .sugg{border-bottom:1px solid var(--border);padding:7px 0;font-size:0.88rem;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;} .sugg .code{font-weight:800;color:var(--link);min-width:64px;}
   .hidden{display:none;}
+  /* hero (matches the site's tool pages) */
+  .hero{position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--border);box-shadow:var(--shadow);
+    padding:24px 26px;margin-bottom:20px;
+    background:linear-gradient(90deg,rgba(255,253,248,.95) 0%,rgba(255,253,248,.66) 46%,rgba(255,253,248,.20) 100%),
+      url("images/header-bg.svg") center/cover no-repeat,var(--accent-soft);}
+  .hero-titles{position:relative;z-index:1;max-width:64ch;}
+  .hero h1{font-size:1.95rem;}
+  .hero .subtitle{margin:8px 0 0;}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;background:rgba(255,255,255,.72);
+    color:var(--link);border:1px solid var(--border);border-radius:999px;padding:4px 12px;font-weight:800;font-size:.74rem;letter-spacing:.1em;}
+  .hero-sprig{position:absolute;top:-16px;right:-8px;width:168px;opacity:.5;transform:rotate(6deg);pointer-events:none;z-index:0;}
+  /* teacher at-a-glance summary */
+  .verdict{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .verdict .lamp{font-size:1.5rem;line-height:1;}
+  .verdict .vhead{font-weight:800;font-size:1.06rem;}
+  .verdict.v-red .vhead{color:var(--risky);} .verdict.v-amber .vhead{color:var(--mod);} .verdict.v-green .vhead{color:var(--vsafe);}
+  .tsum-stat{color:var(--muted);font-size:.86rem;font-weight:700;margin:0 0 8px;}
+  .tsum-lbl{font-weight:800;font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .tsum-actions{margin:4px 0 0;padding-left:18px;} .tsum-actions li{margin:3px 0;font-size:.9rem;}
+  .tsum-rec{margin-top:12px;background:var(--accent-soft);border-radius:10px;padding:10px 13px;font-size:.9rem;font-weight:700;color:var(--link);}
+  /* summary table of the 20 choices (adopted from the teacher page) */
+  .tablewrap{overflow-x:auto;}
+  table.choices{border-collapse:collapse;width:100%;min-width:720px;font-size:0.86rem;}
+  table.choices th{text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:8px;border-bottom:2px solid var(--border);white-space:nowrap;}
+  table.choices td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr.band-a{background:rgba(201,162,75,.08);} tr.band-b{background:rgba(139,168,136,.10);} tr.band-c{background:rgba(109,147,171,.09);} tr.band-d{background:rgba(154,122,166,.09);} tr.band-e{background:rgba(189,125,84,.08);}
+  tr.band-sep td{padding:13px 8px 5px;font-size:0.72rem;font-weight:800;color:var(--link);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--accent-soft);}
+  .band-badge{display:inline-block;min-width:40px;text-align:center;font-weight:800;font-size:0.8rem;padding:3px 8px;border-radius:8px;background:var(--unk);color:#fff;}
+  tr.band-a .band-badge{background:linear-gradient(135deg,var(--accent),var(--accent-dark));} tr.band-b .band-badge{background:#7d9a78;} tr.band-c .band-badge{background:#6189a3;} tr.band-d .band-badge{background:#927ba0;} tr.band-e .band-badge{background:#bd7d54;}
+  .t-prog .c{font-weight:800;color:var(--link);margin-right:6px;} .t-prog .i{display:block;color:var(--muted);font-size:0.78rem;font-weight:600;}
+  .t-empty{color:var(--muted);font-style:italic;} .t-note{font-size:0.78rem;color:var(--risky);font-weight:700;}
+  .detail-h{font-size:0.95rem;margin:18px 0 8px;color:var(--link);font-weight:800;}
   footer{margin-top:24px;color:var(--muted);font-size:0.74rem;border-top:1px solid var(--border);padding-top:14px;}
   @media print{ body{background:#fff;} .no-print{display:none !important;} .panel{box-shadow:none;border:1px solid #ccc;break-inside:avoid;} .choice{break-inside:avoid;} }
 </style>
@@ -97,14 +132,21 @@
 
 <!-- app (revealed after unlock) -->
 <div id="app" class="wrap" style="display:none">
-  <h1>JUPAS All-in-One Evaluator <span style="font-weight:600;font-size:0.7em;color:var(--muted)">· Teacher</span></h1>
-  <p class="subtitle">Upload a student's exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).</p>
+  <div class="hero">
+    <img class="hero-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="hero-titles">
+      <span class="hero-eyebrow">🔐 STAFF · JUPAS EVALUATOR</span>
+      <h1>JUPAS All-in-One Evaluator</h1>
+      <p class="subtitle">Upload a student's exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).</p>
+    </div>
+  </div>
 
   <div class="panel no-print" id="upload-panel">
     <h2>1 · Load the student PDF</h2>
     <label class="drop" id="drop">
-      <div class="big">⬆ Drop the student's PDF here, or click to choose</div>
-      <div class="hint" style="margin:6px 0 0">The file the student exported from the JUPAS Choice Evaluator page.</div>
+      <div class="up-ic" aria-hidden="true">⬆️</div>
+      <div class="big">Drop the student's PDF here, or click to choose</div>
+      <div class="hint" style="margin:0">The file the student exported from the JUPAS Choice Evaluator page.</div>
       <input type="file" id="file" accept=".pdf,application/pdf">
     </label>
     <div class="row-actions"><span id="db-status" class="msg"></span></div>
@@ -112,10 +154,14 @@
   </div>
 
   <div id="results" class="hidden">
-    <div class="panel">
+    <div class="panel" id="tsum-panel">
       <div class="row-actions no-print" style="justify-content:flex-end;margin:0 0 8px">
         <button class="btn btn-ghost" onclick="window.print()">🖨 Print / Save as PDF report</button>
       </div>
+      <h2>Teacher summary — at a glance</h2>
+      <div id="tsummary"></div>
+    </div>
+    <div class="panel">
       <h2>Student</h2>
       <div class="meta" id="meta"></div>
       <table class="grades" id="grades-tbl"></table>
@@ -125,8 +171,15 @@
     <div class="panel"><h2>Overview</h2><div class="chips" id="overview-chips"></div><div id="flags"></div></div>
     <div class="panel">
       <h2>The 20 choices</h2>
-      <p class="hint">Computed score is on the same basis as each programme's published median/LQ. "Chance" combines your score position with the historical offer rate of the band you placed it in.</p>
-      <div id="choices"></div>
+      <p class="hint">Computed score is on the same basis as each programme's published median/LQ. "Chance" combines the student's score position with the historical offer rate of the band the choice was placed in.</p>
+      <div class="tablewrap">
+        <table class="choices" id="summary-tbl">
+          <thead><tr><th>Choice</th><th>Programme</th><th>Score</th><th>Position</th><th>Chance</th><th>Note</th></tr></thead>
+          <tbody id="summary-rows"></tbody>
+        </table>
+      </div>
+      <h3 class="detail-h no-print">Full detail per choice</h3>
+      <div id="choices" class="no-print"></div>
     </div>
     <div class="panel"><h2>Counseling notes</h2><ul id="notes"></ul></div>
     <div class="panel"><h2>Good-fit programmes not chosen <span style="font-weight:600;font-size:0.8em;color:var(--muted)">(eligible · at/above median)</span></h2><div id="suggestions"></div></div>
@@ -141,6 +194,6 @@
 
 <script src="jupas-evaluator-engine.js"></script>
 <script src="jupas-evaluator-analytics.js"></script>
-<script src="jupas-evaluator-ui.js"></script>
+<script src="jupas-evaluator-ui.js?v=2"></script>
 </body>
 </html>
