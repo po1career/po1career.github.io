@@ -91,6 +91,17 @@
   .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;background:rgba(255,255,255,.72);
     color:var(--link);border:1px solid var(--border);border-radius:999px;padding:4px 12px;font-weight:800;font-size:.74rem;letter-spacing:.1em;}
   .hero-sprig{position:absolute;top:-16px;right:-8px;width:168px;opacity:.5;transform:rotate(6deg);pointer-events:none;z-index:0;}
+  .hero-disc{position:relative;z-index:1;display:flex;gap:9px;align-items:flex-start;margin:14px 0 0;max-width:66ch;
+    background:rgba(255,255,255,.82);border:1px solid #e8c9a8;border-left:4px solid var(--accent-dark);border-radius:10px;
+    padding:9px 13px;font-size:0.82rem;font-weight:600;color:#7a3517;line-height:1.55;}
+  .hero-disc a{color:var(--link);font-weight:800;}
+  /* footer credit / licence box */
+  .license-box{margin-top:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);padding:12px 14px;font-size:0.74rem;line-height:1.6;}
+  .license-box .lic-h{font-weight:800;color:var(--link);text-transform:uppercase;letter-spacing:.04em;font-size:0.72rem;margin-bottom:6px;}
+  .license-box p{margin:0 0 6px;} .license-box p:last-child{margin-bottom:0;}
+  .license-box code{background:var(--accent-soft);padding:1px 5px;border-radius:5px;}
+  .license-box .lic-asis{color:var(--muted);font-size:0.7rem;}
+  .license-box a{color:var(--link);font-weight:700;}
   /* teacher at-a-glance summary */
   .verdict{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
   .verdict .lamp{font-size:1.5rem;line-height:1;}
@@ -138,6 +149,7 @@
       <span class="hero-eyebrow">🔐 STAFF · JUPAS EVALUATOR</span>
       <h1>JUPAS All-in-One Evaluator</h1>
       <p class="subtitle">Upload a student's exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).</p>
+      <p class="hero-disc"><span aria-hidden="true">⚠️</span><span>Unofficial reference tool. Figures come from past intakes and don't guarantee this year's results — always confirm programme details, entry requirements and the latest data on the official <a href="https://www.jupas.edu.hk" target="_blank" rel="noopener">JUPAS website</a> and each university's own website before advising students.</span></p>
     </div>
   </div>
 
@@ -186,9 +198,18 @@
   </div>
 
   <footer>
-    Unofficial teacher tool. Admission statistics (median/LQ, offer rates) are from PAST intakes and do not guarantee this year's results. Always verify on www.jupas.edu.hk.
-    <br><br>
-    Scoring engine and admissions database adapted from <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> under the MIT License — © 2026 JUPASCal. Provided "AS IS", without warranty. See jupas-evaluator-LICENSE.txt.
+    Unofficial teacher tool, for internal guidance only. Admission statistics (median / LQ, offer rates) are from PAST intakes and do not guarantee this year's results.
+    <div class="license-box">
+      <div class="lic-h">Credits &amp; licence</div>
+      <p>The scoring engine (<code>engine.js</code>) and admissions database are a derivative work of the
+        <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> project —
+        <b>© 2026 JUPASCal</b>, used under the
+        <a href="https://github.com/JUPASCal/JUPASCal.github.io?tab=MIT-1-ov-file" target="_blank" rel="noopener">MIT License</a>.</p>
+      <p>PDF ingestion, analytics, teacher report and UI — <b>© 2026 PLK No.1 W.H. Cheung College · Career Team</b>,
+        also released under the MIT License.</p>
+      <p class="lic-asis">THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+        Full copyright &amp; permission notice: <a href="jupas-evaluator-LICENSE.txt" target="_blank" rel="noopener">jupas-evaluator-LICENSE.txt</a>.</p>
+    </div>
   </footer>
 </div>
 
