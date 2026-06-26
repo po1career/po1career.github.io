@@ -127,7 +127,7 @@
       nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents",
       nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan",
-      nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices",
+      nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_finder: "Programme Finder+", nav_jupaschoices: "JUPAS Choices",
       pg_title: "FAQ & Glossary",
       pg_sub: "The jargon, demystified — plus plain-language answers to the questions students and parents ask most.",
       jump_gloss: "Glossary", jump_faq: "Questions",
@@ -143,7 +143,7 @@
       nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地",
       nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃",
-      nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科",
+      nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_finder: "課程搜尋器＋", nav_jupaschoices: "JUPAS 選科",
       pg_title: "常見問題與詞彙",
       pg_sub: "拆解升學術語，並以淺白語言解答學生和家長最常問的問題。",
       jump_gloss: "詞彙表", jump_faq: "常見問題",
@@ -177,7 +177,7 @@
     setText("nav-quiz", t("nav_quiz")); setText("nav-pathways", t("nav_pathways"));
     setText("nav-pomodoro", t("nav_pomodoro")); setText("nav-studyplan", t("nav_studyplan"));
     setText("nav-dse", t("nav_dse")); setText("nav-streaming", t("nav_streaming"));
-    setText("nav-jupas", t("nav_jupas")); setText("nav-jupaschoices", t("nav_jupaschoices"));
+    setText("nav-jupas", t("nav_jupas")); setText("nav-finder", t("nav_finder")); setText("nav-jupaschoices", t("nav_jupaschoices"));
     setText("footer-about", FOOTER_ABOUT[lang]);
     document.querySelector(".langbtn").textContent = t("lang");
     setText("pg-title", t("pg_title")); setText("pg-sub", t("pg_sub"));

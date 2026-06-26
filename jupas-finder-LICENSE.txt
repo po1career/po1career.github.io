@@ -1,0 +1,33 @@
+This tool is a derivative work. Its scoring engine (jupas-finder-engine.js) is a
+port of, and its admissions database is taken from, the JUPASCal project —
+https://github.com/JUPASCal/JUPASCal.github.io — distributed under the MIT License,
+reproduced below. The MIT License requires that this copyright and permission notice
+be retained in all copies or substantial portions of the software.
+
+================================================================================
+MIT License
+
+Copyright (c) 2026 JUPASCal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+================================================================================
+
+Modifications and additions in this Finder (grade input, fit-tier discovery,
+motivation/what-if simulator, UI) © 2026 PLK No.1 W.H. Cheung College Career Team,
+also released under the MIT License.

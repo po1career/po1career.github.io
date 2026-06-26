@@ -195,9 +195,9 @@
     $("lbl-remember").textContent = t().rememberLbl; $("shared-note").textContent = t().sharedNote;
     document.title = t().title + " — PLK No.1 Career Team";
     var navTx = lang === "zh"
-      ? { news: "最新消息", info: "資訊", res: "實用連結", faq: "常見問題", parents: "家長園地", studytools: "學習工具", jupastools: "JUPAS 工具", quiz: "興趣測驗", pathways: "升學出路", pomodoro: "番茄鐘", studyplan: "溫習計劃", dse: "DSE 試卷組合", streaming: "選科工具", jupas: "JUPAS 搜尋器", jupaschoices: "JUPAS 選科" }
-      : { news: "Latest News", info: "Info", res: "Useful Links", faq: "FAQ & Glossary", parents: "For Parents", studytools: "Study Tools", jupastools: "JUPAS Tools", quiz: "Career Quiz", pathways: "Pathways Explorer", pomodoro: "Pomodoro", studyplan: "Study Plan", dse: "DSE Portfolio", streaming: "Streaming Tool", jupas: "JUPAS Finder", jupaschoices: "JUPAS Choices" };
-    ["news", "info", "res", "faq", "parents", "studytools", "jupastools", "quiz", "pathways", "pomodoro", "studyplan", "dse", "streaming", "jupas", "jupaschoices"].forEach(function (k) { var el = $("nav-" + k); if (el) el.textContent = navTx[k]; });
+      ? { news: "最新消息", info: "資訊", res: "實用連結", faq: "常見問題", parents: "家長園地", studytools: "學習工具", jupastools: "JUPAS 工具", quiz: "興趣測驗", pathways: "升學出路", pomodoro: "番茄鐘", studyplan: "溫習計劃", dse: "DSE 試卷組合", streaming: "選科工具", jupas: "JUPAS 搜尋器", finder: "課程搜尋器＋", jupaschoices: "JUPAS 選科" }
+      : { news: "Latest News", info: "Info", res: "Useful Links", faq: "FAQ & Glossary", parents: "For Parents", studytools: "Study Tools", jupastools: "JUPAS Tools", quiz: "Career Quiz", pathways: "Pathways Explorer", pomodoro: "Pomodoro", studyplan: "Study Plan", dse: "DSE Portfolio", streaming: "Streaming Tool", jupas: "JUPAS Finder", finder: "Programme Finder+", jupaschoices: "JUPAS Choices" };
+    ["news", "info", "res", "faq", "parents", "studytools", "jupastools", "quiz", "pathways", "pomodoro", "studyplan", "dse", "streaming", "jupas", "finder", "jupaschoices"].forEach(function (k) { var el = $("nav-" + k); if (el) el.textContent = navTx[k]; });
     var bs = $("brand-school"), bd = $("brand-dept"), bm = $("brand-motto");
     if (bs) bs.textContent = lang === "zh" ? "保良局第一張永慶中學" : "PLK No.1 W.H. Cheung College";
     if (bd) bd.textContent = lang === "zh" ? "升學輔導及生涯規劃組" : "Career Team";

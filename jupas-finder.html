@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>JUPAS Programme Finder+</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/notosanstc.css">
+<style>
+  :root{
+    --bg:#FAF4E6; --card:#FFFDF8; --ink:#5B3A24; --muted:#8a6f59; --accent:#C9A24B;
+    --accent-dark:#A9842F; --link:#936c1f; --accent-soft:#F3E8CE; --border:#E8DCC2;
+    --shadow:0 8px 24px rgba(91,58,36,0.08);
+    --vsafe:#1f7a4d; --vsafe-bg:#e7f6ee; --safe:#4d7c4d; --safe-bg:#eef5e9;
+    --mod:#92660a; --mod-bg:#fdf3da; --risky:#b3403a; --risky-bg:#fdecea;
+    --unk:#6b7280; --unk-bg:#f1f1ef;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Nunito","Noto Sans TC","PingFang HK",Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 420px at 100% -8%,rgba(201,162,75,0.13),transparent 60%),var(--bg);color:var(--ink);line-height:1.5;}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 16px 80px;}
+  h1{font-size:1.5rem;margin:0;font-weight:800;}
+  .subtitle{color:var(--muted);margin:4px 0 16px;font-size:0.9rem;}
+  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .lang-toggle{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px;display:inline-flex;gap:2px;}
+  .lang-toggle button{border:none;background:transparent;padding:5px 13px;border-radius:999px;cursor:pointer;font-size:0.9rem;color:var(--muted);font-family:inherit;font-weight:700;}
+  .lang-toggle button.active{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .home-link{display:inline-block;color:var(--link);text-decoration:none;font-size:0.88rem;font-weight:700;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .panel::before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),#8BA888);}
+  .panel h2{margin:2px 0 12px;font-size:1.05rem;font-weight:800;}
+  .hint{color:var(--muted);font-size:0.82rem;margin:0 0 10px;}
+  /* lock */
+  .lockscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(820px 320px at 50% -6%,rgba(201,162,75,0.18),transparent 62%),var(--bg);}
+  .lockbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px 26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .lockbox::before{content:"";position:absolute;left:0;top:0;width:100%;height:5px;background:linear-gradient(90deg,var(--accent),var(--accent-dark));}
+  .lock-icon{width:62px;height:62px;margin:4px auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:radial-gradient(circle at 50% 35%,#fff,var(--accent-soft));border:1px solid var(--border);}
+  .lockbox h2{margin:0;font-size:1.25rem;font-weight:800;}
+  .lock-sub{color:var(--muted);font-size:0.84rem;margin:8px 0 16px;}
+  .lockbox input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem;margin-bottom:12px;text-align:center;font-family:inherit;background:#fffdf7;color:var(--ink);}
+  .lockbox button{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-size:1rem;cursor:pointer;font-family:inherit;font-weight:800;}
+  .lock-err{color:#b91c1c;font-size:0.85rem;min-height:20px;margin-top:8px;}
+  /* grade inputs */
+  .grades-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 18px;}
+  .grow{display:flex;align-items:center;gap:8px;}
+  .grow label{flex:1;font-weight:700;font-size:0.9rem;}
+  select,input[type=text]{padding:8px 10px;border:1px solid var(--border);border-radius:9px;font-size:0.92rem;font-family:inherit;background:#fffdf7;color:var(--ink);}
+  .lv{width:86px;}
+  .subj{flex:1;min-width:0;}
+  .cs-toggle{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;}
+  .cs-toggle button{border:none;background:#fffdf7;padding:8px 12px;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.85rem;color:var(--muted);}
+  .cs-toggle button.on{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .pid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .pid input{width:160px;}
+  /* filters */
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0;}
+  .chip{border:1px solid var(--border);background:#fffdf7;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:0.84rem;font-weight:700;color:var(--muted);font-family:inherit;}
+  .chip.active{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-color:var(--accent-dark);}
+  .chip .cc{opacity:.8;font-weight:800;margin-left:5px;}
+  .filt-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;}
+  .check{display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;}
+  .btn{border:none;border-radius:10px;padding:10px 18px;font-family:inherit;font-weight:800;font-size:0.92rem;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .btn-ghost{background:#fffdf7;color:var(--link);border:1px solid var(--border);}
+  /* progress banner */
+  .progress{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-weight:700;}
+  .big-num{font-size:1.8rem;font-weight:800;color:var(--accent-dark);}
+  /* result groups */
+  .group-h{font-size:0.95rem;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;gap:8px;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .d-strong{background:var(--vsafe);} .d-reach{background:var(--mod);} .d-stretch{background:var(--risky);} .d-nodata{background:var(--unk);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
+  .prog{border:1px solid var(--border);border-radius:12px;padding:11px 13px;background:#fff;display:flex;flex-direction:column;gap:5px;}
+  .prog.inelig{background:#fffafa;}
+  .code-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .code{font-weight:800;color:var(--link);}
+  .tier{font-size:0.72rem;font-weight:800;padding:2px 8px;border-radius:999px;}
+  .t-strong{background:var(--vsafe-bg);color:var(--vsafe);} .t-reach{background:var(--mod-bg);color:var(--mod);}
+  .t-stretch{background:var(--risky-bg);color:var(--risky);} .t-nodata{background:var(--unk-bg);color:var(--unk);} .t-ineligible{background:var(--unk-bg);color:var(--risky);}
+  .pname{font-weight:700;font-size:0.93rem;}
+  .inst{color:var(--muted);font-size:0.82rem;}
+  .scoreline{font-size:0.84rem;}
+  .gap-pos{color:var(--vsafe);font-weight:800;} .gap-neg{color:var(--risky);font-weight:800;}
+  .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
+  .tag{font-size:0.7rem;background:var(--accent-soft);color:var(--link);border-radius:6px;padding:1px 7px;font-weight:700;}
+  .lic{font-size:0.68rem;background:#eef5e9;color:var(--safe);border-radius:6px;padding:1px 7px;font-weight:800;}
+  .det-btn{align-self:flex-start;background:none;border:none;color:var(--link);font-weight:700;cursor:pointer;font-size:0.8rem;padding:2px 0;font-family:inherit;}
+  .detail{margin-top:6px;border-top:1px dashed var(--border);padding-top:8px;font-size:0.82rem;display:none;}
+  .detail.open{display:block;}
+  .detail .k{font-weight:800;color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:.03em;margin-top:6px;}
+  .wi-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid #f3ecd9;}
+  .wi-up{color:var(--vsafe);font-weight:700;}
+  .fail{color:var(--risky);font-weight:700;}
+  .empty{color:var(--muted);padding:14px;text-align:center;}
+  .count{font-weight:800;color:var(--accent-dark);margin:8px 0;}
+  .showmore{margin:8px 0;text-align:center;}
+  /* card action buttons (star / target) */
+  .card-acts{display:flex;gap:6px;margin-left:auto;}
+  .iconbtn{border:1px solid var(--border);background:#fffdf7;border-radius:8px;cursor:pointer;font-size:0.82rem;padding:2px 7px;font-family:inherit;line-height:1.3;}
+  .iconbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark);font-weight:800;}
+  .iconbtn:disabled{opacity:.4;cursor:not-allowed;}
+  .estim{font-size:0.66rem;background:#fdf3da;color:var(--mod);border-radius:6px;padding:1px 6px;font-weight:800;}
+  .trend-up{color:var(--risky);font-weight:800;} .trend-dn{color:var(--vsafe);font-weight:800;}
+  .notyet{color:var(--mod);font-weight:700;font-size:0.82rem;}
+  .numbers{color:var(--muted);font-size:0.78rem;}
+  /* compare table */
+  #compare th,#compare td{border-bottom:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top;}
+  #compare th{font-size:0.72rem;text-transform:uppercase;color:var(--muted);}
+  /* roadmap */
+  .road{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;}
+  .road .rh{font-weight:800;}
+  .step{display:inline-block;background:var(--accent-soft);color:var(--link);border-radius:6px;padding:2px 8px;margin:3px 4px 0 0;font-size:0.8rem;font-weight:700;}
+  .road.ok{border-left:4px solid var(--vsafe);} .road.hard{border-left:4px solid var(--risky);} .road.plan{border-left:4px solid var(--mod);}
+  footer{margin-top:24px;color:var(--muted);font-size:0.74rem;border-top:1px solid var(--border);padding-top:14px;}
+  #print-report{display:none;}
+  /* ---- mobile pass ---- */
+  @media (max-width:600px){
+    .wrap{padding:16px 12px 64px;}
+    h1{font-size:1.3rem;} .subtitle{font-size:0.86rem;}
+    .panel{padding:14px 14px;}
+    /* 16px form controls stop iOS from zooming the page on focus */
+    select,input[type=text],input[type=password],.lockbox input{font-size:16px;}
+    .grades-grid{grid-template-columns:1fr;}
+    .grid{grid-template-columns:1fr;}
+    .pid{flex-direction:column;} .pid input{width:100%;}
+    .filt-row{gap:8px;}
+    .filt-row select{flex:1 1 100%;}
+    .filt-row .check{flex:1 1 100%;}
+    #find-btn{flex:1 1 100%;}
+    #print-btn{width:100%;}
+    #shortlist-panel .filt-row{flex-direction:column;align-items:stretch;}
+    /* bigger tap targets */
+    .iconbtn{padding:6px 11px;font-size:1rem;}
+    .chip{padding:8px 13px;}
+    .det-btn{padding:6px 0;}
+    .lv{width:78px;}
+    .road .rh button{float:none!important;display:block;margin-top:8px;}
+  }
+  @media print{
+    body{background:#fff;}
+    #lock,#app{display:none!important;}
+    #print-report{display:block!important;color:#000;font-size:12px;}
+    #print-report h1{font-size:17px;margin:0 0 4px;} #print-report h2{font-size:13px;margin:14px 0 6px;border-bottom:1.5px solid #000;padding-bottom:2px;}
+    #print-report table{border-collapse:collapse;width:100%;} #print-report th,#print-report td{border:0.5px solid #888;padding:3px 6px;text-align:left;}
+    #print-report th{background:#eee;} #print-report tr{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<div id="lock" class="lockscreen" style="display:none">
+  <div class="lockbox">
+    <div class="lock-icon">🔒</div>
+    <h2 id="t-lock">Enter passcode</h2>
+    <p class="lock-sub" id="t-locksub">For PLK No.1 students · 只供本校學生使用</p>
+    <input type="password" id="passcode" autocomplete="off" placeholder="Passcode 通行碼">
+    <button id="unlock-btn" type="button">Unlock 解鎖</button>
+    <div id="lock-err" class="lock-err"></div>
+  </div>
+</div>
+
+<div id="app" class="wrap" style="display:none">
+  <div class="top">
+    <a href="index.html" class="home-link" id="t-home">← Back to home</a>
+    <div class="lang-toggle"><button id="lang-en" class="active">EN</button><button id="lang-zh">中</button></div>
+  </div>
+  <h1 id="t-title">JUPAS Programme Finder+</h1>
+  <p class="subtitle" id="t-subtitle">Enter your grades, then discover the programmes that fit you — and how close you are to the ones you're aiming for.</p>
+
+  <!-- 1. grades -->
+  <div class="panel">
+    <h2 id="t-s1">1 · Your details &amp; HKDSE grades</h2>
+    <div class="pid">
+      <input type="text" id="in-name" maxlength="40" placeholder="Name (optional)">
+      <input type="text" id="in-class" maxlength="10" placeholder="Class">
+    </div>
+    <div class="grades-grid" id="cores"></div>
+    <div class="filt-row" style="margin-top:12px">
+      <span style="font-weight:700;font-size:0.9rem" id="t-cs">Citizenship &amp; Social Development</span>
+      <span class="cs-toggle"><button id="cs-att" class="on" type="button">Attained</button><button id="cs-not" type="button">Not attained</button></span>
+    </div>
+    <p class="hint" style="margin-top:12px" id="t-electhint">Choose 2–4 elective subjects and your level for each.</p>
+    <div class="grades-grid" id="electives"></div>
+    <div class="filt-row" style="margin-top:12px">
+      <button class="btn" id="find-btn" type="button">Find programmes</button>
+      <label class="check"><input type="checkbox" id="remember" checked> <span id="t-remember">Save my grades on this computer</span></label>
+      <span class="hint" id="b5note" style="margin:0"></span>
+    </div>
+    <p class="hint" id="t-sharednote" style="margin-top:6px">On a shared or school computer, untick the box — your grades then stay only in this tab.</p>
+  </div>
+
+  <div id="results-area" style="display:none">
+    <!-- 2. progress / motivation -->
+    <div class="panel">
+      <h2 id="t-s2">2 · Where you stand</h2>
+      <div class="progress" id="progress"></div>
+      <div class="chips" id="cat-counts" style="margin-top:10px"></div>
+      <div id="unlock-tip" style="margin-top:10px;font-size:0.88rem"></div>
+    </div>
+
+    <!-- targets / roadmap -->
+    <div class="panel" id="targets-panel" style="display:none">
+      <h2 id="t-targets">🎯 My targets</h2>
+      <p class="hint" id="t-targets-hint">Your dream programmes and exactly what it would take to reach them.</p>
+      <div id="targets"></div>
+    </div>
+
+    <!-- shortlist / compare -->
+    <div class="panel" id="shortlist-panel" style="display:none">
+      <div class="filt-row no-print" style="justify-content:space-between">
+        <h2 id="t-shortlist" style="margin:0">⭐ My shortlist</h2>
+        <button class="btn btn-ghost" id="print-btn" type="button" style="padding:8px 14px">🖨 Print my shortlist</button>
+      </div>
+      <div style="overflow-x:auto"><table id="compare" style="border-collapse:collapse;width:100%;min-width:560px;font-size:0.84rem"></table></div>
+    </div>
+
+    <!-- discover by strength -->
+    <div class="panel" id="strength-panel" style="display:none">
+      <h2 id="t-strength">💪 Suggested for your strengths</h2>
+      <p class="hint" id="strength-sub"></p>
+      <div class="grid" id="strength"></div>
+    </div>
+
+    <!-- 3. filters -->
+    <div class="panel no-print">
+      <h2 id="t-s3">3 · Narrow it down</h2>
+      <input type="text" id="search" style="width:100%;margin-bottom:8px" placeholder="Search programmes, keywords, or JS code…">
+      <div class="chips" id="chips"></div>
+      <div class="filt-row">
+        <select id="inst"></select>
+        <select id="sort">
+          <option value="fit" id="t-sort-fit">Sort: Best fit</option>
+          <option value="selective" id="t-sort-sel">Sort: Most selective I qualify for</option>
+          <option value="attainable" id="t-sort-att">Sort: Closest to / above median</option>
+        </select>
+        <label class="check"><input type="checkbox" id="lic"> <span id="t-lic">Licensed professions only</span></label>
+        <label class="check"><input type="checkbox" id="incIn"> <span id="t-incin">Include ones I'm not eligible for yet</span></label>
+        <button class="btn-ghost btn" id="clear-btn" type="button" style="padding:8px 14px">Clear filters</button>
+      </div>
+    </div>
+
+    <!-- 4. closest reaches (motivation) -->
+    <div class="panel" id="close-panel" style="display:none">
+      <h2 id="t-s4">✨ You're nearly there</h2>
+      <p class="hint" id="t-s4hint">Eligible programmes just below the line — a little push could get you in.</p>
+      <div class="grid" id="closest"></div>
+    </div>
+
+    <!-- 5. results -->
+    <div class="panel">
+      <h2 id="t-s5">Programmes that fit you</h2>
+      <div class="count" id="count"></div>
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <footer id="t-footer">
+    Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme's own formula and are NOT comparable across institutions; admission statistics and chances are from PAST intakes and do not guarantee this year's results. Always verify on www.jupas.edu.hk.
+    <br><br>
+    Scoring engine and database adapted from <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> under the MIT License — © 2026 JUPASCal. See jupas-finder-LICENSE.txt.
+  </footer>
+</div>
+
+<div id="print-report"></div>
+
+<script src="jupas-finder-engine.js"></script>
+<script src="jupas-finder-analytics.js"></script>
+<script src="jupas-finder-core.js"></script>
+<script src="jupas-finder-ui.js"></script>
+</body>
+</html>

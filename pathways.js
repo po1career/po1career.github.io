@@ -161,7 +161,7 @@
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
       nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan",
-      nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices",
+      nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_finder: "Programme Finder+", nav_jupaschoices: "JUPAS Choices",
       pg_title: "Multiple Pathways Explorer",
       pg_sub: "There is more than one route after the HKDSE. Answer three quick questions to highlight the pathways that may fit you — then explore them all.",
       disc: "Entry requirements and schemes change every year, and this page is a simplified overview — not official advice. Always check the latest details on each official website, and talk your options through with your Career teacher and family before deciding.",
@@ -179,7 +179,7 @@
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
       nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃",
-      nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科",
+      nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_finder: "課程搜尋器＋", nav_jupaschoices: "JUPAS 選科",
       pg_title: "升學出路探索",
       pg_sub: "中學文憑試後，出路不止一條。回答三條簡單問題，找出可能適合你的途徑，再逐一探索。",
       disc: "入學要求及計劃每年均有變動，本頁只屬簡化概覽，並非官方指引。決定前請務必瀏覽各官方網站查證最新資料，並與升學輔導老師及家人商討。",
@@ -218,7 +218,7 @@
     setText("nav-quiz", t("nav_quiz")); setText("nav-pathways", t("nav_pathways"));
     setText("nav-pomodoro", t("nav_pomodoro")); setText("nav-studyplan", t("nav_studyplan"));
     setText("nav-dse", t("nav_dse")); setText("nav-streaming", t("nav_streaming"));
-    setText("nav-jupas", t("nav_jupas")); setText("nav-jupaschoices", t("nav_jupaschoices"));
+    setText("nav-jupas", t("nav_jupas")); setText("nav-finder", t("nav_finder")); setText("nav-jupaschoices", t("nav_jupaschoices"));
     setText("footer-about", FOOTER_ABOUT[lang]);
     document.querySelector(".langbtn").textContent = t("lang");
     setText("pg-title", t("pg_title")); setText("pg-sub", t("pg_sub"));

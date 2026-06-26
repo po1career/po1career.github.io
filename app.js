@@ -10,7 +10,7 @@
   var T = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_team: "Our Team", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_admin: "Add Post",
+      nav_news: "Latest News", nav_team: "Our Team", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_finder: "Programme Finder+", nav_jupaschoices: "JUPAS Choices", nav_admin: "Add Post",
       hero_h: "Welcome to the CLP Corner!",
       hero_p: "Your Career Team hub — university and career news, helpful resources, and study & planning tools, all in one place.",
       title_tools: "Our Tools", students_only: "students only",
@@ -23,7 +23,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_team: "團隊成員", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_admin: "新增貼文",
+      nav_news: "最新消息", nav_team: "團隊成員", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_finder: "課程搜尋器＋", nav_jupaschoices: "JUPAS 選科", nav_admin: "新增貼文",
       hero_h: "歡迎來到生涯規劃專區！",
       hero_p: "升學輔導及生涯規劃組的資訊平台——大學及職業資訊、實用資源，以及溫習與規劃工具，一站式集合。",
       title_tools: "學習與規劃工具", students_only: "只限學生",
@@ -92,7 +92,7 @@
     setText("nav-streaming", tx.nav_streaming);
     setText("nav-studytools", tx.nav_studytools);
     setText("nav-jupastools", tx.nav_jupastools);
-    setText("nav-jupas", tx.nav_jupas);
+    setText("nav-jupas", tx.nav_jupas); setText("nav-finder", tx.nav_finder);
     setText("nav-jupaschoices", tx.nav_jupaschoices);
     setText("hero-h", tx.hero_h);
     setText("hero-p", tx.hero_p);
