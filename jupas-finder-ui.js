@@ -39,7 +39,7 @@
       tiers: { strong: 'Strong match', reach: 'Within reach', stretch: 'Reach / aim higher', nodata: 'No score data', ineligible: 'Not eligible yet' },
       count: function (n) { return n + ' programme' + (n === 1 ? '' : 's') + ' shown'; },
       progress: function (a, t) { return 'You can aim for <span class="big-num">' + a + '</span> programmes now (eligible & within reach), out of ' + t + ' you qualify for.'; },
-      qualifyFor: 'You currently qualify for: ', unlock: function (s, f, to, n) { return '💡 Raising <b>' + s + '</b> from ' + f + ' to ' + to + ' would bring <b>' + n + '</b> more programmes within reach.'; },
+      qualifyFor: 'You currently qualify for: ',
       yourScore: 'Your score', med: 'median', lq: 'LQ', chance: 'Chance', applicants: 'applicants/place', bandA: 'Band-A offers', quota: 'quota',
       whatif: 'What would help', elig: 'Requirements', eligOk: 'You meet all minimum requirements.', details: 'Details', hide: 'Hide', official: 'Official page ↗',
       noneFit: 'No programmes match yet. Try adding electives, widening the category filter, or ticking “include ones I’m not eligible for yet”.',
@@ -62,7 +62,7 @@
       tiers: { strong: '理想之選', reach: '有機會', stretch: '需努力／挑戰', nodata: '沒有分數資料', ineligible: '暫未符合資格' },
       count: function (n) { return '顯示 ' + n + ' 個課程'; },
       progress: function (a, t) { return '你現時有機會報讀 <span class="big-num">' + a + '</span> 個課程（符合資格且有機會），在你符合資格的 ' + t + ' 個課程之中。'; },
-      qualifyFor: '你目前符合資格的範疇：', unlock: function (s, f, to, n) { return '💡 將<b>' + s + '</b>由 ' + f + ' 提升至 ' + to + '，可令多 <b>' + n + '</b> 個課程變得有機會。'; },
+      qualifyFor: '你目前符合資格的範疇：',
       yourScore: '你的分數', med: '中位數', lq: '下四分位', chance: '機會', applicants: '人爭一位', bandA: 'Band A 取錄', quota: '學額',
       whatif: '如何提升', elig: '入學要求', eligOk: '你已符合所有最低要求。', details: '詳情', hide: '收起', official: '官方網頁 ↗',
       noneFit: '暫無符合的課程。可嘗試加選修科、放寬範疇篩選，或勾選「包括我暫未符合資格的課程」。',
@@ -121,7 +121,6 @@
     buildInstOptions();
     renderProgress();
     renderCatChips();
-    renderUnlockTip();
     render();
     renderTargets(); renderShortlist();
     saveState();
@@ -162,12 +161,6 @@
     $('chips').querySelectorAll('.chip').forEach(function (b) {
       b.addEventListener('click', function () { var k = b.getAttribute('data-cat'); activeCats.has(k) ? activeCats.delete(k) : activeCats.add(k); renderCatChips(); render(); });
     });
-  }
-
-  function renderUnlockTip() {
-    var bu = F.bestUnlock(DB, input);
-    var best = (bu.options || []).filter(function (o) { return o.unlocked > 0; })[0];
-    $('unlock-tip').innerHTML = best ? t().unlock(esc(best.subject), best.from, best.to, best.unlocked) : '';
   }
 
   function buildInstOptions() {
