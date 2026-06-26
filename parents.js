@@ -28,24 +28,24 @@
   ];
 
   var TIMELINE = [
-    { when: { en: "November–December", zh: "十一月至十二月" },
-      what: { en: "JUPAS registration opens; students set their initial 20 programme choices and submit non-academic records (OEA/SLP).",
-              zh: "聯招開始接受登記；學生設定最初的 20 個課程志願，並提交非學術紀錄（OEA／SLP）。" } },
+    { when: { en: "December", zh: "十二月" },
+      what: { en: "JUPAS application opens (early December); students set their initial 20 programme choices and submit non-academic records (OEA/SLP).",
+              zh: "聯招於十二月初開始接受申請；學生設定最初的 20 個課程志願，並提交非學術紀錄（OEA／SLP）。" } },
     { when: { en: "January–February", zh: "一月至二月" },
-      what: { en: "Mock exams; a good time to review and reorder choices honestly, and to attend university info days together.",
-              zh: "模擬考試；適合與孩子一同誠實檢視及重新排序志願，並出席大學資訊日。" } },
+      what: { en: "Mock-exam season; a good time to review and reorder choices honestly, and to attend university info days together — choices stay editable.",
+              zh: "模擬考試季；適合與孩子一同誠實檢視及重新排序志願，並出席大學資訊日；此時志願仍可修改。" } },
     { when: { en: "March–April", zh: "三月至四月" },
-      what: { en: "Final choice-amendment window before the exam; some programmes make early conditional offers or hold interviews.",
-              zh: "考試前最後的修改志願時段；部分課程會提早發出有條件取錄或安排面試。" } },
-    { when: { en: "Late April–May", zh: "四月下旬至五月" },
-      what: { en: "The DSE written examinations take place.",
-              zh: "文憑試筆試舉行。" } },
-    { when: { en: "July — results day", zh: "七月——放榜" },
-      what: { en: "DSE results are released, followed by an important short window to amend JUPAS choices in light of the actual grades.",
-              zh: "文憑試放榜，隨後設有一個重要而短促的時段，讓學生按實際成績修改聯招志願。" } },
-    { when: { en: "July–August", zh: "七至八月" },
-      what: { en: "Main-round JUPAS offers are released and accepted; sub-degree, self-financing and other routes also confirm places.",
-              zh: "聯招正式遴選結果公布及接受取錄；副學位、自資及其他途徑亦同時確認學額。" } }
+      what: { en: "Some programmes hold interviews or make early conditional offers; keep refining the choice order before the exams.",
+              zh: "部分課程會安排面試或提早發出有條件取錄；考試前繼續檢視並調整志願次序。" } },
+    { when: { en: "April–May", zh: "四月至五月" },
+      what: { en: "The HKDSE written examinations take place (early April to early May); the JUPAS application and choice-amendment period closes at the end of May — the last chance to reorder before results.",
+              zh: "文憑試筆試舉行（四月初至五月初）；聯招申請及修改志願期於五月底截止，是放榜前最後一次重新排序志願的機會。" } },
+    { when: { en: "Mid-July — results day", zh: "七月中——放榜" },
+      what: { en: "HKDSE results are released in mid-July, followed by a short but important window to modify JUPAS choices in light of the actual grades.",
+              zh: "文憑試於七月中放榜，隨後設有一個短促而重要的時段，讓學生按實際成績修改聯招志願。" } },
+    { when: { en: "August", zh: "八月" },
+      what: { en: "Main-round JUPAS offers are released and accepted in early August; if places remain, a Clearing round follows in late August. Sub-degree, self-financing and other routes also confirm places around now.",
+              zh: "聯招第一輪（正式遴選）結果於八月初公布及接受取錄；如仍有餘額，補選（清盤輪）會於八月下旬進行；副學位、自資及其他途徑亦同時確認學額。" } }
   ];
 
   var GOOD = [
