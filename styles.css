@@ -104,9 +104,13 @@ nav.main a:hover{background:var(--beige);text-decoration:none}
   .nav-burger{display:inline-flex}
   .nav-links{
     display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:210px;
-    flex-direction:column;align-items:stretch;gap:2px;z-index:60;
+    flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:2px;z-index:60;
     background:#fffdf8;border:1px solid #ece0c4;border-radius:12px;
     box-shadow:0 14px 30px rgba(91,58,36,.18);padding:8px;
+    /* cap height (below the sticky header) + nowrap so a long menu scrolls vertically
+       instead of wrapping into a second column off-screen, or clipping bottom items */
+    max-height:calc(100vh - 190px);max-height:calc(100dvh - 190px);
+    overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   }
   .nav-toggle:checked ~ .nav-links{display:flex}
   .nav-links > a{padding:10px 12px;border-radius:8px}

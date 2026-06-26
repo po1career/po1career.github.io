@@ -29,11 +29,13 @@
     en: { home: '← Back to home', title: 'JUPAS Programme Finder+', subtitle: "Enter your grades, then discover the programmes that fit you — and how close you are to the ones you're aiming for.",
       s1: '1 · Your details & HKDSE grades', cs: 'Citizenship & Social Development', att: 'Attained', notatt: 'Not attained',
       electhint: 'Choose 2–4 elective subjects and your level for each.', find: 'Find programmes', pickSubj: '— subject —', lv: 'Level',
-      s2: '2 · Where you stand', s3: '3 · Narrow it down', search: 'Search programmes, keywords, or JS code…', allInst: 'All institutions',
+      s2: '3 · Where you stand', s3: '2 · Narrow it down', search: 'Search programmes, keywords, or JS code…', allInst: 'All institutions',
       lic: 'Licensed professions only', incin: "Include ones I'm not eligible for yet", clear: 'Clear filters',
       s4: "✨ You're nearly there", s4hint: 'Eligible programmes just below the line — a little push could get you in.',
       s5: 'Programmes that fit you', need2: 'Enter your 3 core grades and at least 2 electives, then press “Find programmes”.',
-      lock: 'Enter passcode', locksub: 'For PLK No.1 students · 只供本校學生使用',
+      heroDisc: 'For reference only. Always verify with the official JUPAS website (www.jupas.edu.hk) and each university’s own website. This tool bears no responsibility for any admission decision.',
+      lock: 'Enter passcode', locksub: 'For PLK No.1 students only', lockHome: '← Back to home',
+      unlockBtn: 'Unlock', pcPh: 'Passcode', lockErr: 'Incorrect passcode', loadErr: 'Could not load data file.',
       tiers: { strong: 'Strong match', reach: 'Within reach', stretch: 'Reach / aim higher', nodata: 'No score data', ineligible: 'Not eligible yet' },
       count: function (n) { return n + ' programme' + (n === 1 ? '' : 's') + ' shown'; },
       progress: function (a, t) { return 'You can aim for <span class="big-num">' + a + '</span> programmes now (eligible & within reach), out of ' + t + ' you qualify for.'; },
@@ -43,18 +45,20 @@
       noneFit: 'No programmes match yet. Try adding electives, widening the category filter, or ticking “include ones I’m not eligible for yet”.',
       remember: 'Save my grades on this computer', sharednote: 'On a shared or school computer, untick the box — your grades then stay only in this tab.',
       targets: '🎯 My targets', targetsHint: 'Your dream programmes and exactly what it would take to reach them.',
-      shortlist: '⭐ My shortlist', strength: '💪 Suggested for your strengths', printbtn: '🖨 Print my shortlist',
+      shortlist: '⭐ My shortlist', printbtn: '🖨 Print my shortlist',
       moreN: function (n) { return '+ ' + n + ' more'; },
       footerHtml: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are NOT comparable across institutions; admission statistics and chances are from PAST intakes and do not guarantee this year\'s results. Always verify on www.jupas.edu.hk.<br><br>Scoring engine and database adapted from <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> under the MIT License — © 2026 JUPASCal. See jupas-finder-LICENSE.txt.',
       footer: '' },
     zh: { home: '← 返回主頁', title: 'JUPAS 課程搜尋器＋', subtitle: '輸入成績，找出適合你的課程，並看看你距離心儀課程有多近。',
       s1: '1 · 你的資料及文憑試成績', cs: '公民與社會發展科', att: '達標', notatt: '未達標',
       electhint: '選擇 2 至 4 個選修科及其等級。', find: '搜尋課程', pickSubj: '— 科目 —', lv: '等級',
-      s2: '2 · 你的位置', s3: '3 · 收窄範圍', search: '搜尋課程、關鍵字或 JS 編號…', allInst: '所有院校',
+      s2: '3 · 你的位置', s3: '2 · 收窄範圍', search: '搜尋課程、關鍵字或 JS 編號…', allInst: '所有院校',
       lic: '只顯示專業資格課程', incin: '包括我暫未符合資格的課程', clear: '清除篩選',
       s4: '✨ 你即將達標', s4hint: '你已符合資格、僅略低於收生線的課程——再努力一點就有機會。',
       s5: '適合你的課程', need2: '輸入三科核心成績及至少兩科選修，然後按「搜尋課程」。',
-      lock: '請輸入通行碼', locksub: '只供保良局第一張永慶中學學生使用',
+      heroDisc: '僅供參考。報讀前請以 JUPAS 官方網站（www.jupas.edu.hk）及各大學網站為準。本工具概不就任何收生決定承擔責任。',
+      lock: '請輸入通行碼', locksub: '只供保良局第一張永慶中學學生使用', lockHome: '← 返回主頁',
+      unlockBtn: '解鎖', pcPh: '通行碼', lockErr: '通行碼錯誤', loadErr: '無法載入資料檔。',
       tiers: { strong: '理想之選', reach: '有機會', stretch: '需努力／挑戰', nodata: '沒有分數資料', ineligible: '暫未符合資格' },
       count: function (n) { return '顯示 ' + n + ' 個課程'; },
       progress: function (a, t) { return '你現時有機會報讀 <span class="big-num">' + a + '</span> 個課程（符合資格且有機會），在你符合資格的 ' + t + ' 個課程之中。'; },
@@ -64,7 +68,7 @@
       noneFit: '暫無符合的課程。可嘗試加選修科、放寬範疇篩選，或勾選「包括我暫未符合資格的課程」。',
       remember: '在此電腦儲存我的成績', sharednote: '如使用共用或學校電腦，請取消勾選，成績只會留在此分頁。',
       targets: '🎯 我的目標', targetsHint: '你的心儀課程，以及達成所需的條件。',
-      shortlist: '⭐ 我的候選名單', strength: '💪 配合你強項的建議', printbtn: '🖨 列印候選名單',
+      shortlist: '⭐ 我的候選名單', printbtn: '🖨 列印候選名單',
       moreN: function (n) { return '再顯示 ' + n + ' 個'; },
       footerHtml: '本工具只供保良局第一張永慶中學學生參考，並非 JUPAS 官方工具。分數按各課程自己的公式計算，不可跨院校比較；收生統計及機會均為過往年度數據，不代表本年度結果。報讀前請於 www.jupas.edu.hk 核實。<br><br>計分引擎及資料庫改編自 <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a>，採用 MIT 授權 — © 2026 JUPASCal。詳見 jupas-finder-LICENSE.txt。',
       footer: '' }
@@ -119,7 +123,7 @@
     renderCatChips();
     renderUnlockTip();
     render();
-    renderTargets(); renderShortlist(); renderStrength();
+    renderTargets(); renderShortlist();
     saveState();
   }
   function compute() {
@@ -268,7 +272,7 @@
     render._groups = g;
   }
 
-  /* ---------- targets / shortlist / strength / print / persistence ---------- */
+  /* ---------- targets / shortlist / print / persistence ---------- */
   function renderTargets() {
     var s = t();
     if (!targets.size) { $('targets-panel').style.display = 'none'; return; }
@@ -309,17 +313,6 @@
         '<td>' + (p.url ? '<a class="ch-link" href="' + esc(p.url) + '" target="_blank" rel="noopener">↗</a>' : '') + '</td></tr>';
     }).join('');
     $('compare').innerHTML = head + body;
-  }
-
-  function renderStrength() {
-    var s = t();
-    var exclude = Array.from(shortlist).concat(Array.from(targets));
-    var sug = F.suggestByStrength(results, input, exclude, 6);
-    if (!sug.list || !sug.list.length) { $('strength-panel').style.display = 'none'; return; }
-    $('strength-panel').style.display = '';
-    var subs = sug.subjects.map(function (x) { return esc(electLabel(x.key) || x.label); }).join(', ');
-    $('strength-sub').innerHTML = (lang === 'zh' ? '根據你較強的科目（' : 'Based on your stronger subjects (') + subs + (lang === 'zh' ? '），你可能也適合：' : '), you might also fit:');
-    $('strength').innerHTML = sug.list.map(card).join('');
   }
 
   function buildPrintReport() {
@@ -387,7 +380,7 @@
     else if (el.hasAttribute('data-det')) toggleDetail(el);
     else if (el.hasAttribute('data-more')) expandMore(el);
   }
-  function refreshAll() { render(); renderTargets(); renderShortlist(); renderStrength(); }
+  function refreshAll() { render(); renderTargets(); renderShortlist(); }
 
   /* ---------- static text / language ---------- */
   function applyStatic() {
@@ -398,12 +391,14 @@
       't-electhint': s.electhint, 'find-btn': s.find, 't-s2': s.s2, 't-s3': s.s3, 't-s4': s.s4, 't-s4hint': s.s4hint,
       't-s5': s.s5, 't-lic': s.lic, 't-incin': s.incin, 'clear-btn': s.clear, 'cs-att': s.att, 'cs-not': s.notatt,
       't-remember': s.remember, 't-sharednote': s.sharednote, 't-targets': s.targets, 't-targets-hint': s.targetsHint,
-      't-shortlist': s.shortlist, 't-strength': s.strength, 'print-btn': s.printbtn,
-      't-lock': s.lock, 't-locksub': s.locksub, 't-sort-fit': lang === 'zh' ? '排序：最適合' : 'Sort: Best fit',
+      't-shortlist': s.shortlist, 'print-btn': s.printbtn, 't-herodisc': s.heroDisc,
+      't-lock': s.lock, 't-locksub': s.locksub, 't-lockhome': s.lockHome, 'unlock-btn': s.unlockBtn,
+      't-sort-fit': lang === 'zh' ? '排序：最適合' : 'Sort: Best fit',
       't-sort-sel': lang === 'zh' ? '排序：我符合的最高門檻' : 'Sort: Most selective I qualify for',
       't-sort-att': lang === 'zh' ? '排序：最接近／高於中位數' : 'Sort: Closest to / above median' };
     Object.keys(map).forEach(function (id) { var el = $(id); if (el) el.textContent = map[id]; });
     $('search').placeholder = s.search; $('in-name').placeholder = lang === 'zh' ? '姓名（可選）' : 'Name (optional)'; $('in-class').placeholder = lang === 'zh' ? '班別' : 'Class';
+    var pc = $('passcode'); if (pc) pc.placeholder = s.pcPh;
     var ft = $('t-footer'); if (ft) ft.innerHTML = s.footerHtml;
     document.title = s.title;
   }
@@ -411,7 +406,7 @@
     lang = l; try { localStorage.setItem('clp_lang', l); } catch (e) {}
     var saved = readInput();                         // preserve entered grades across the rebuild
     applyStatic(); buildCores(); buildElectives(); applyInputToUI(saved);
-    if (results) { buildInstOptions(); renderCatChips(); render(); renderTargets(); renderShortlist(); renderStrength(); }
+    if (results) { buildInstOptions(); renderCatChips(); render(); renderTargets(); renderShortlist(); }
   }
 
   /* ---------- wiring ---------- */
@@ -449,7 +444,7 @@
   }
   function showLock(msg) { $('app').style.display = 'none'; $('lock').style.display = 'flex'; $('lock-err').textContent = msg || ''; }
   function wireLock() {
-    function submit() { var pc = $('passcode').value; if (!pc) return; $('lock-err').textContent = ''; tryUnlock(pc, true).then(function (ok) { if (!ok) { $('lock-err').textContent = 'Incorrect passcode 通行碼錯誤'; $('passcode').value = ''; } }); }
+    function submit() { var pc = $('passcode').value; if (!pc) return; $('lock-err').textContent = ''; tryUnlock(pc, true).then(function (ok) { if (!ok) { $('lock-err').textContent = t().lockErr; $('passcode').value = ''; } }); }
     $('unlock-btn').addEventListener('click', submit);
     $('passcode').addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
   }
@@ -460,7 +455,7 @@
       encBlob = j; var saved = null; try { saved = localStorage.getItem(LS_KEY); } catch (e) {}
       if (saved) return tryUnlock(saved, false).then(function (ok) { if (!ok) showLock(''); });
       showLock('');
-    }).catch(function () { showLock('Could not load data file. 無法載入資料檔。'); });
+    }).catch(function () { showLock(t().loadErr); });
   }
   init();
   // test hooks
@@ -471,7 +466,7 @@
     setActiveCats: function (arr) { activeCats = new Set(arr || []); },
     setShortlist: function (arr) { shortlist = new Set(arr || []); },
     setTargets: function (arr) { targets = new Set(arr || []); },
-    panels: function () { renderTargets(); renderShortlist(); renderStrength(); },
+    panels: function () { renderTargets(); renderShortlist(); },
     printReport: function () { buildPrintReport(); return $('print-report').innerHTML; },
     roadmap: function (code) { return F.roadmapTo(resultFor(code).prog, input); },
     get results() { return results; }
