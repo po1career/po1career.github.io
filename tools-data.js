@@ -28,9 +28,6 @@ window.SITE_TOOLS = [
   { id: "jupas", href: "jupas-tool.html", group: "jupastools", icon: "🔍", gated: true,
     name: { en: "JUPAS Finder", zh: "JUPAS 搜尋器" }, aud: { en: "F.5–F.6", zh: "中五至中六" },
     desc: { en: "Search university programmes by subject, school or keyword.", zh: "按學科、院校或關鍵字搜尋大學課程。" } },
-  { id: "finder", href: "jupas-finder.html", group: "jupastools", icon: "🎯", gated: true,
-    name: { en: "Programme Finder+", zh: "課程搜尋器＋" }, aud: { en: "F.5–F.6", zh: "中五至中六" },
-    desc: { en: "Enter your grades to find programmes that fit — with scores, tiers and admission chances.", zh: "輸入你的成績，找出合適的課程——附分數、層級及入學機會。" } },
   { id: "jupaschoices", href: "jupas-choices.html", group: "jupastools", icon: "📋", gated: true,
     name: { en: "JUPAS Choices", zh: "JUPAS 選科" }, aud: { en: "F.6", zh: "中六" },
     desc: { en: "Organise and review your 20 JUPAS choices with your teacher.", zh: "整理並與老師檢視你的 20 個 JUPAS 志願。" } }

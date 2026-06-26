@@ -10,7 +10,7 @@
   var P = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_finder: "Programme Finder+", nav_jupaschoices: "JUPAS Choices", lang: "中文",
+      nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", lang: "中文",
       title: "Pomodoro Study Timer",
       sub: "Study in focused bursts with short breaks — a simple way to revise more effectively.",
       mode_focus: "Focus", mode_short: "Short Break", mode_long: "Long Break",
@@ -31,7 +31,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_finder: "課程搜尋器＋", nav_jupaschoices: "JUPAS 選科", lang: "EN",
+      nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", lang: "EN",
       title: "番茄鐘・專注計時",
       sub: "用「番茄工作法」分段專注、適時休息，讓溫習更有效率。",
       mode_focus: "專注", mode_short: "小休", mode_long: "大休",
@@ -88,7 +88,7 @@
     setText("nav-streaming", t("nav_streaming"));
     setText("nav-studytools", t("nav_studytools"));
     setText("nav-jupastools", t("nav_jupastools"));
-    setText("nav-jupas", t("nav_jupas")); setText("nav-finder", t("nav_finder"));
+    setText("nav-jupas", t("nav_jupas"));
     setText("nav-jupaschoices", t("nav_jupaschoices"));
     document.querySelector(".langbtn").textContent = t("lang");
     setText("pg-title", t("title"));

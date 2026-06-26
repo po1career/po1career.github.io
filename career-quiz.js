@@ -106,7 +106,7 @@
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
       nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio",
-      nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_finder: "Programme Finder+", nav_jupaschoices: "JUPAS Choices",
+      nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices",
       pg_title: "Career Interest Quiz",
       pg_sub: "Discover your interest types and the study and career directions that may suit you.",
       how: "This short quiz is based on the RIASEC model (Holland Codes). You'll rate 30 everyday activities — there are no right or wrong answers. At the end you'll see your top interest types, with example careers and subjects to explore.",
@@ -128,7 +128,7 @@
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
       nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合",
-      nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_finder: "課程搜尋器＋", nav_jupaschoices: "JUPAS 選科",
+      nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科",
       pg_title: "職業興趣測驗",
       pg_sub: "了解你的興趣類型，找出可能適合你的升學及職業方向。",
       how: "本測驗以 RIASEC 模型（霍蘭德職業興趣理論）為基礎。你將為 30 項日常活動評分——答案沒有對錯。完成後會顯示你最突出的興趣類型，以及可探索的職業和科目例子。",
@@ -163,7 +163,7 @@
     setText("nav-studytools", t("nav_studytools")); setText("nav-jupastools", t("nav_jupastools"));
     setText("nav-quiz", t("nav_quiz")); setText("nav-pathways", t("nav_pathways")); setText("nav-pomodoro", t("nav_pomodoro"));
     setText("nav-studyplan", t("nav_studyplan")); setText("nav-dse", t("nav_dse"));
-    setText("nav-streaming", t("nav_streaming")); setText("nav-jupas", t("nav_jupas")); setText("nav-finder", t("nav_finder"));
+    setText("nav-streaming", t("nav_streaming")); setText("nav-jupas", t("nav_jupas"));
     setText("nav-jupaschoices", t("nav_jupaschoices"));
     setText("footer-about", FOOTER_ABOUT[lang]);
     document.querySelector(".langbtn").textContent = t("lang");
