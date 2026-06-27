@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://po1career.github.io/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://po1career.github.io/useful-links.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://po1career.github.io/pathways.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://po1career.github.io/career-quiz.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://po1career.github.io/faq.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://po1career.github.io/parents.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://po1career.github.io/pomodoro.html</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://po1career.github.io/study-plan.html</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://po1career.github.io/dse-portfolio.html</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://po1career.github.io/sitemap.html</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+</urlset>

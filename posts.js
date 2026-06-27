@@ -32,7 +32,7 @@ window.SEED_POSTS = [
     category: "local",
     date: "2026-06-03",
     pinned: true,
-    image: "images/hsuhk-admission-talk.png",
+    image: "images/hsuhk-admission-talk.jpg",
     title_en: "HSUHK 2026 Year-1 Admission Online Talk Series for HKDSE Candidates & Parents",
     title_zh: "香港恒生大學 2026 一年級入學網上講座系列（為文憑試考生及家長而設）",
     body_en:

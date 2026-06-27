@@ -5,7 +5,7 @@
   --brown:#5B3A24;
   --brown-soft:#7c5a3f;
   --gold:#C9A24B;
-  --gold-dark:#a9842f;
+  --gold-dark:#8a5e18;
   --sage:#8BA888;
   --sage-dark:#6f8d6c;
   --ink:#3d2a1c;
@@ -289,7 +289,11 @@ footer.site a{color:var(--gold)}
 }
 
 @media(max-width:560px){
-  .hero h1{font-size:1.4rem}
+  .hero{ margin-top:18px; padding:26px 22px; border-radius:20px }
+  .hero h1{font-size:1.5rem}
+  .hero p{font-size:1rem}
+  .hero-kicker{font-size:.72rem;margin-bottom:8px}
+  .hero-sprig{width:140px}
   .brand .dept{font-size:1.05rem}
 }
 
@@ -366,4 +370,26 @@ footer.site a{color:var(--gold)}
   #to-top{ right:14px; bottom:14px; width:44px; height:44px }
 }
 @media print{ #to-top{ display:none !important } }
+
+/* ============================================================
+   ACCESSIBILITY — visible keyboard focus + reduced motion
+   ============================================================ */
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--brown); outline-offset:2px; border-radius:4px;
+}
+.chip:focus-visible,.navgroup-btn:focus-visible,.langbtn:focus-visible,
+.closex:focus-visible,.lb-close:focus-visible{
+  outline:2px solid var(--brown); outline-offset:2px;
+}
+/* cards previously suppressed their outline — restore a clear ring */
+.card:focus-visible{ outline:2px solid var(--brown); outline-offset:3px }
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+  .card:hover,.card:focus-visible,.tool-card:hover,.member:hover,
+  .footlink:hover svg,.card:hover .thumb img{ transform:none !important }
+}
 

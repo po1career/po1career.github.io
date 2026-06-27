@@ -125,7 +125,7 @@
       var card = document.createElement("article");
       card.className = "card";
       var thumb = p.image
-        ? '<div class="thumb"><img src="' + esc(p.image) + '" alt=""></div>'
+        ? '<div class="thumb"><img src="' + esc(p.image) + '" alt="" loading="lazy" decoding="async"></div>'
         : '<div class="thumb empty">' + (ICON[p.category] || "📰") + "</div>";
       card.innerHTML =
         thumb +
@@ -188,29 +188,45 @@
     });
   }
 
+  var postTrigger = null, lbTrigger = null;
   function openPost(p) {
     var ov = document.getElementById("overlay");
     document.getElementById("art-title").textContent = L(p, "title");
     document.getElementById("art-meta").textContent = T[state.lang][p.category] + " · " + fmtDate(p.date);
     var cover = document.getElementById("art-cover");
-    if (p.image) { cover.src = p.image; cover.style.display = "block"; }
-    else { cover.style.display = "none"; }
+    if (p.image) {
+      cover.src = p.image; cover.style.display = "block";
+      cover.setAttribute("aria-label", state.lang === "zh" ? "檢視大圖" : "View photo full size");
+    } else { cover.style.display = "none"; }
     document.getElementById("art-body").textContent = L(p, "body");
+    postTrigger = document.activeElement;
+    ov.setAttribute("aria-hidden", "false");
     ov.classList.add("open");
     document.body.style.overflow = "hidden";
+    document.getElementById("closex").focus();
   }
   function closePost() {
-    document.getElementById("overlay").classList.remove("open");
+    var ov = document.getElementById("overlay");
+    ov.classList.remove("open");
+    ov.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    if (postTrigger && postTrigger.focus) postTrigger.focus();
   }
 
   function openLightbox(src) {
     if (!src) return;
+    lbTrigger = document.activeElement;
     document.getElementById("lightbox-img").src = src;
-    document.getElementById("lightbox").classList.add("open");
+    var lb = document.getElementById("lightbox");
+    lb.setAttribute("aria-hidden", "false");
+    lb.classList.add("open");
+    document.getElementById("lb-close").focus();
   }
   function closeLightbox() {
-    document.getElementById("lightbox").classList.remove("open");
+    var lb = document.getElementById("lightbox");
+    lb.classList.remove("open");
+    lb.setAttribute("aria-hidden", "true");
+    if (lbTrigger && lbTrigger.focus) lbTrigger.focus();
   }
 
   // ---- helpers ----
@@ -236,16 +252,34 @@
       e.stopPropagation();
       openLightbox(cover.getAttribute("src"));
     });
+    cover.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openLightbox(cover.getAttribute("src"));
+      }
+    });
     document.getElementById("lightbox").addEventListener("click", closeLightbox);
     document.getElementById("lb-close").addEventListener("click", function (e) {
       e.stopPropagation(); closeLightbox();
     });
 
     document.addEventListener("keydown", function (e) {
-      if (e.key !== "Escape") return;
       var lb = document.getElementById("lightbox");
-      if (lb.classList.contains("open")) closeLightbox();
-      else closePost();
+      var ov = document.getElementById("overlay");
+      var dlg = lb.classList.contains("open") ? lb : (ov.classList.contains("open") ? ov : null);
+      if (e.key === "Escape") {
+        if (lb.classList.contains("open")) closeLightbox();
+        else if (ov.classList.contains("open")) closePost();
+        return;
+      }
+      if (e.key === "Tab" && dlg) {
+        var f = dlg.querySelectorAll('a[href],button,[tabindex]:not([tabindex="-1"]),input,textarea,select');
+        f = Array.prototype.filter.call(f, function (el) { return el.offsetParent !== null; });
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
 
     // logo fallback if images/logo.png missing
