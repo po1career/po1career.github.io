@@ -173,8 +173,30 @@
     #print-report th{background:#eee;} #print-report tr{page-break-inside:avoid;}
   }
 </style>
+  <style>
+  /* Consistent slim site bar + footer credit across tool pages (self-scoped, palette-fixed). */
+  .po1bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:8px 16px;background:#FAF4E6;border-bottom:2px solid #C9A24B;
+    font-family:"Nunito",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  .po1bar a.po1bar-brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+    color:#5B3A24;font-weight:700;font-size:.92rem;line-height:1.2}
+  .po1bar a.po1bar-brand:hover b{text-decoration:underline}
+  .po1bar a.po1bar-brand img{width:26px;height:26px;border-radius:50%;
+    border:1.5px solid #C9A24B;display:block;flex:none}
+  .po1bar a.po1bar-brand b{color:#8a5e18;font-weight:800}
+  .po1credit{max-width:960px;margin:30px auto 22px;padding:14px 20px 0;
+    border-top:1px solid #e7d6a8;text-align:center;color:#8a5e18;font-size:.8rem;line-height:1.6;
+    font-family:"Nunito",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  @media(max-width:560px){ .po1bar a.po1bar-brand{font-size:.82rem} }
+  </style>
 </head>
 <body>
+<div class="po1bar">
+  <a class="po1bar-brand" href="index.html" aria-label="PLK No.1 Career Team — home">
+    <img src="images/logo.jpg" alt="">
+    <span>PLK No.1 W.H. Cheung College <b>· Career Team</b></span>
+  </a>
+</div>
 
 <div id="lock" class="lockscreen" style="display:none">
   <div class="lockbox">
@@ -304,5 +326,6 @@
 <script src="jupas-finder-analytics.js?v=2"></script>
 <script src="jupas-finder-core.js?v=2"></script>
 <script src="jupas-finder-ui.js?v=3"></script>
+<div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
 </body>
 </html>
