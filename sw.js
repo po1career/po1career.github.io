@@ -26,6 +26,7 @@ var CORE = [
   './footer-tools.js?v=2',
   './back-to-top.js?v=1',
   './site-nav.js?v=1',
+  './site-header.js?v=1',
   './app.js?v=22',
   './posts.js?v=7',
   './pomodoro.js?v=12',
