@@ -104,7 +104,14 @@ nav.main a:hover{background:var(--beige);text-decoration:none}
    is wider, so a content-based wrap would otherwise stack only in English). ---- */
 @media(min-width:721px) and (max-width:959px){
   .bar{ flex-direction:column; align-items:flex-start; gap:8px }
-  nav.main{ margin-left:0 }
+  /* brand stays left; the nav row + language toggle align to the right */
+  nav.main{ margin-left:0; align-self:flex-end }
+}
+
+/* ---- wide desktop: drop the nav + lang toggle down so they sit on the
+   "Dream high and fly high" motto line (instead of vertically centred) ---- */
+@media(min-width:960px){
+  .bar{ align-items:flex-end }
 }
 
 /* ---- phones: collapse nav into a ☰ menu (groups become inline sections) ---- */
