@@ -37,7 +37,7 @@
   var html =
     '<header class="site"><div class="bar">' +
       '<a class="brand" href="index.html">' +
-        '<img id="logo-img" class="logo" src="images/logo.jpg" alt="Career Team logo">' +
+        '<img id="logo-img" class="logo" src="images/logo.jpg?v=2" alt="Career Team logo">' +
         '<div class="titles">' +
           '<div class="school" id="brand-school"></div>' +
           '<div class="dept" id="brand-dept"></div>' +

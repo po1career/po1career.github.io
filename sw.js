@@ -39,7 +39,7 @@ var CORE = [
   './parents.js?v=5',
   './fonts/fonts.css',
   './fonts/notosanstc.css',
-  './images/logo.jpg',
+  './images/logo.jpg?v=2',
   './images/sprig.svg',
   './images/leaf.svg',
   './images/header-bg.svg',

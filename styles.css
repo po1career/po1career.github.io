@@ -50,9 +50,7 @@ header.site{
 }
 .brand{display:flex;align-items:center;gap:14px;min-width:0}
 .brand .logo{
-  width:104px;height:104px;border-radius:50%;object-fit:cover;
-  background:var(--beige);flex:none;
-  box-shadow:0 4px 14px rgba(91,58,36,.22);
+  width:104px;height:104px;border-radius:50%;object-fit:cover;flex:none;
 }
 .brand .logo-fallback{
   width:104px;height:104px;border-radius:50%;flex:none;
