@@ -137,7 +137,8 @@ nav.main a:hover{background:var(--beige);text-decoration:none}
   }
   .nav-toggle:checked ~ .nav-links{display:flex}
   .nav-links > a{padding:10px 12px;border-radius:8px}
-  .nav-links .langbtn{margin-top:6px;align-self:flex-start}
+  /* language toggle first in the mobile menu list */
+  .nav-links .langbtn{order:-1;align-self:flex-start;margin:0 0 8px}
   /* groups become static sections (label + always-visible children), no hover needed */
   .nav-links .navgroup{position:static}
   .nav-links .navgroup-btn{width:100%;justify-content:flex-start;cursor:default;color:var(--gold-dark);
