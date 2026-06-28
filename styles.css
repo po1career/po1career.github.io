@@ -50,12 +50,12 @@ header.site{
 }
 .brand{display:flex;align-items:center;gap:14px;min-width:0}
 .brand .logo{
-  width:86px;height:86px;border-radius:50%;object-fit:cover;
-  border:3px solid var(--gold);background:var(--beige);flex:none;
+  width:104px;height:104px;border-radius:50%;object-fit:cover;
+  background:var(--beige);flex:none;
   box-shadow:0 4px 14px rgba(91,58,36,.22);
 }
 .brand .logo-fallback{
-  width:86px;height:86px;border-radius:50%;flex:none;
+  width:104px;height:104px;border-radius:50%;flex:none;
   display:grid;place-items:center;background:var(--beige);
   border:3px solid var(--gold);color:var(--brown);font-weight:800;font-size:18px;
   box-shadow:0 4px 14px rgba(91,58,36,.22);
