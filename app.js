@@ -79,28 +79,12 @@
     document.documentElement.lang = state.lang === "zh" ? "zh-HK" : "en";
 
     // header / static labels
-    setText("brand-dept", tx.dept);
-    setText("brand-school", tx.school);
-    setText("brand-motto", tx.motto);
-    setText("nav-news", tx.nav_news);
-    setText("nav-res", tx.nav_res); setText("nav-info", tx.nav_info); setText("nav-faq", tx.nav_faq); setText("nav-parents", tx.nav_parents);
-    setText("nav-quiz", tx.nav_quiz);
-    setText("nav-pathways", tx.nav_pathways);
-    setText("nav-pomodoro", tx.nav_pomodoro);
-    setText("nav-studyplan", tx.nav_studyplan);
-    setText("nav-dse", tx.nav_dse);
-    setText("nav-streaming", tx.nav_streaming);
-    setText("nav-studytools", tx.nav_studytools);
-    setText("nav-jupastools", tx.nav_jupastools);
-    setText("nav-jupas", tx.nav_jupas);
-    setText("nav-jupaschoices", tx.nav_jupaschoices);
     setText("hero-h", tx.hero_h);
     setText("hero-p", tx.hero_p);
     setText("title-news", tx.news);
     setText("title-tools", tx.title_tools);
     setText("sub-tools", tx.sub_tools);
     setText("footer-about", tx.footer_about);
-    document.querySelector(".langbtn").textContent = tx.lang;
 
     // filter chips
     var chips = [["all", tx.all], ["local", tx.local], ["mainland", tx.mainland], ["foreign", tx.foreign], ["career", tx.career]];

@@ -212,15 +212,7 @@
   function applyChrome() {
     document.documentElement.lang = lang === "zh" ? "zh-HK" : "en";
     document.title = t("pg_title") + " — PLK No.1 Career Team";
-    setText("brand-school", t("school")); setText("brand-dept", t("dept")); setText("brand-motto", t("motto"));
-    setText("nav-news", t("nav_news")); setText("nav-res", t("nav_res")); setText("nav-info", t("nav_info")); setText("nav-faq", t("nav_faq")); setText("nav-parents", t("nav_parents"));
-    setText("nav-studytools", t("nav_studytools")); setText("nav-jupastools", t("nav_jupastools"));
-    setText("nav-quiz", t("nav_quiz")); setText("nav-pathways", t("nav_pathways"));
-    setText("nav-pomodoro", t("nav_pomodoro")); setText("nav-studyplan", t("nav_studyplan"));
-    setText("nav-dse", t("nav_dse")); setText("nav-streaming", t("nav_streaming"));
-    setText("nav-jupas", t("nav_jupas")); setText("nav-jupaschoices", t("nav_jupaschoices"));
     setText("footer-about", FOOTER_ABOUT[lang]);
-    document.querySelector(".langbtn").textContent = t("lang");
     setText("pg-title", t("pg_title")); setText("pg-sub", t("pg_sub"));
     setText("disc-text", t("disc"));
     setText("filter-h", t("filter_h")); setText("filter-sub", t("filter_sub"));
