@@ -32,6 +32,12 @@ var CORE = [
   { key: 'math', en: 'Mathematics',      zh: '數學（必修）' }
 ];
 
+// Citizenship and Social Development — the 4th core subject. Graded Attained / Not Attained
+// ONLY (no levels), and NOT counted in the Best 5. Kept separate from CORE so the academic
+// grade-point / Best-5 machinery stays untouched; reported on its own row + in every export.
+var CSD = { key: 'csd', en: 'Citizenship and Social Development', zh: '公民與社會發展' };
+var CSD_LEVELS = ['attained', 'notattained'];
+
 var ELECT_SUBJ = [
   { key: 'bafs',    en: 'BAFS',                  zh: '企業、會計與財務概論' },
   { key: 'bio',     en: 'Biology',               zh: '生物' },
@@ -77,9 +83,10 @@ var STRINGS = {
     s1: '1 · Student information',
     name: 'Name', klass: 'Class', cno: 'Class no.',
     s2: '2 · Your HKDSE results (actual or predicted)',
-    s2hint: 'Enter the level for each subject. The Best 5 score below uses the common scale (5** = 7 … 1 = 1). Individual universities weight subjects differently — that is what the “Calculated score” column in the table is for.',
+    s2hint: 'Enter the level for each subject. The Best 5 score below uses the common scale (5** = 7 … 1 = 1). Individual universities weight subjects differently — that is what the “Calculated score” column in the table is for. Citizenship and Social Development is graded Attained / Not Attained and is not counted in the Best 5.',
     electLabel: function (i) { return 'Elective ' + i; },
     pickSubj: '— subject —', pickLv: 'Level',
+    csdPick: '— select —', csdAttained: 'Attained', csdNotAttained: 'Not Attained',
     b5label: 'Best 5 score:',
     b5none: 'Enter at least 5 subjects to see your Best 5.',
     b5detail: function (list) { return 'Counted: ' + list; },
@@ -131,9 +138,10 @@ var STRINGS = {
     s1: '1 · 學生資料',
     name: '姓名', klass: '班別', cno: '學號',
     s2: '2 · 你的香港中學文憑試成績（實際或預測）',
-    s2hint: '請選擇每科等級。下方「最佳五科」採用常見換算（5** = 7 … 1 = 1）。個別大學對科目有不同加權——表格中的「計算分數」一欄正是為此而設。',
+    s2hint: '請選擇每科等級。下方「最佳五科」採用常見換算（5** = 7 … 1 = 1）。個別大學對科目有不同加權——表格中的「計算分數」一欄正是為此而設。公民與社會發展只設「達標／未達標」，並不計入最佳五科。',
     electLabel: function (i) { return '選修科 ' + i; },
     pickSubj: '— 科目 —', pickLv: '等級',
+    csdPick: '— 請選擇 —', csdAttained: '達標', csdNotAttained: '未達標',
     b5label: '最佳五科總分：',
     b5none: '輸入至少五科成績後會顯示最佳五科總分。',
     b5detail: function (list) { return '計入科目：' + list; },
@@ -189,7 +197,7 @@ var programmes = [];
 function blankState() {
   return {
     name: '', klass: '', cno: '',
-    core: { chi: '', eng: '', math: '' },
+    core: { chi: '', eng: '', math: '', csd: '' },
     elect: Array.from({ length: N_ELECT }, function () { return { s: '', lv: '' }; }),
     choices: Array.from({ length: N_CHOICES }, function () { return { code: '', intake: '', score: '', cmp: '', remark: '' }; }),
     remember: true
@@ -205,6 +213,7 @@ function applyData(d) {
   CORE.forEach(function (c) {
     if (d.core && LEVELS.indexOf(d.core[c.key]) >= 0) state.core[c.key] = d.core[c.key];
   });
+  if (d.core && CSD_LEVELS.indexOf(d.core.csd) >= 0) state.core.csd = d.core.csd;
   if (Array.isArray(d.elect)) for (var i = 0; i < N_ELECT; i++) {
     var e = d.elect[i] || {};
     if (ELECT_SUBJ.some(function (s) { return s.key === e.s; })) state.elect[i].s = e.s;
@@ -270,6 +279,26 @@ function updateBest5() {
     : t().b5none;
 }
 
+// ---------- Citizenship & Social Development (Attained / Not Attained, not in Best 5) ----------
+function csdGradeText(forLang) {
+  if (!state.core.csd) return '';
+  return state.core.csd === 'attained' ? STRINGS[forLang].csdAttained : STRINGS[forLang].csdNotAttained;
+}
+function csdEntry() {
+  if (!state.core.csd) return null;
+  return { csd: true, label: CSD[lang], label_en: CSD.en,
+           grade: csdGradeText(lang), grade_en: csdGradeText('en') };
+}
+// academic Best-5 entries with the CSD row slotted in right after the academic core subjects;
+// used for the displayed/exported results tables only (Best 5 itself still uses gradeEntries()).
+function resultEntries() {
+  var ac = gradeEntries(), csd = csdEntry();
+  if (!csd) return ac;
+  var nCore = 0;
+  CORE.forEach(function (c) { if (state.core[c.key]) nCore++; });
+  return ac.slice(0, nCore).concat([csd], ac.slice(nCore));
+}
+
 // ---------- programme lookup ----------
 function findProg(code) {
   var q = code.trim().toUpperCase();
@@ -316,6 +345,12 @@ function fillSelect(sel, options, value, placeholder) {
 }
 
 function levelOptions() { return LEVELS.map(function (l) { return { value: l, label: l }; }); }
+function csdOptions() {
+  return [
+    { value: 'attained',    label: t().csdAttained },
+    { value: 'notattained', label: t().csdNotAttained }
+  ];
+}
 
 function buildScores() {
   var box = $('grades');
@@ -332,6 +367,18 @@ function buildScores() {
     row.appendChild(nm); row.appendChild(sel);
     box.appendChild(row);
   });
+  // Citizenship and Social Development — core, Attained / Not Attained only (not counted in Best 5)
+  var crow = document.createElement('div');
+  crow.className = 'grade-row';
+  crow.style.gridTemplateColumns = 'minmax(0, 1fr) 150px';   // wider value column for "Not Attained"
+  var cnm = document.createElement('span');
+  cnm.className = 'core-name'; cnm.textContent = CSD[lang]; cnm.title = CSD[lang];
+  var csel = document.createElement('select');
+  csel.className = 'lv';
+  fillSelect(csel, csdOptions(), state.core.csd, t().csdPick);
+  csel.addEventListener('change', function () { state.core.csd = csel.value; save(); });
+  crow.appendChild(cnm); crow.appendChild(csel);
+  box.appendChild(crow);
   state.elect.forEach(function (e, i) {
     var row = document.createElement('div');
     row.className = 'grade-row';
@@ -512,7 +559,10 @@ function exportCSV() {
   row();
   row(s.rpResults);
   row(s.rpSubject, s.rpLevel, s.rpPoints);
-  gradeEntries().forEach(function (e) { row(e.label, e.lv, e.pts); });
+  resultEntries().forEach(function (e) {
+    if (e.csd) row(e.label, e.grade, '');   // CSD: grade only, no Best-5 points
+    else row(e.label, e.lv, e.pts);
+  });
   row(s.rpBest5, gradeEntries().length ? best5Total() : '');
   row();
   row(s.rpChoices);
@@ -597,8 +647,9 @@ function pdfLines() {
   L.push({ t: en.rpName + ': ' + (state.name || '-') + '    ' + en.rpClass + ': ' + (state.klass || '-') +
            '    ' + en.rpCno + ': ' + (state.cno || '-'), size: 11, bold: true, gap: 8 });
   L.push({ t: en.rpResults, size: 13, bold: true, gap: 12 });
-  gradeEntries().forEach(function (e) {
-    L.push({ t: e.label_en + ': ' + e.lv + ' (' + e.pts + ')', size: 10, indent: 14 });
+  resultEntries().forEach(function (e) {
+    if (e.csd) L.push({ t: e.label_en + ': ' + e.grade_en, size: 10, indent: 14 });
+    else L.push({ t: e.label_en + ': ' + e.lv + ' (' + e.pts + ')', size: 10, indent: 14 });
   });
   L.push({ t: en.rpBest5 + ': ' + (gradeEntries().length ? best5Total() : '-'), size: 11, bold: true, gap: 4 });
   L.push({ t: en.rpChoices, size: 13, bold: true, gap: 12 });
@@ -684,7 +735,7 @@ function flash(text, ok) {
 // ---------- print report (browser print, bilingual) ----------
 function buildReport() {
   var s = t();
-  var entries = gradeEntries();
+  var entries = resultEntries();
 
   var h = '<h1>' + esc(s.rpTitle) + '</h1><p class="rp-sub">' + esc(s.rpSchool) +
     ' · ' + esc(s.rpGen) + ': ' + esc(new Date().toISOString().slice(0, 10)) + '</p>';
@@ -693,13 +744,13 @@ function buildReport() {
     '<td><strong>' + esc(s.rpName) + ':</strong> ' + esc(state.name) + '</td>' +
     '<td><strong>' + esc(s.rpClass) + ':</strong> ' + esc(state.klass) + '</td>' +
     '<td><strong>' + esc(s.rpCno) + ':</strong> ' + esc(state.cno) + '</td>' +
-    '<td><strong>' + esc(s.rpBest5) + ':</strong> ' + (entries.length ? best5Total() : '—') + '</td>' +
+    '<td><strong>' + esc(s.rpBest5) + ':</strong> ' + (gradeEntries().length ? best5Total() : '—') + '</td>' +
     '</tr></table>';
 
   h += '<h2>' + esc(s.rpResults) + '</h2><table><tr><th>' + esc(s.rpSubject) + '</th><th>' +
     esc(s.rpLevel) + '</th><th>' + esc(s.rpPoints) + '</th></tr>';
   entries.forEach(function (e) {
-    h += '<tr><td>' + esc(e.label) + '</td><td>' + esc(e.lv) + '</td><td>' + e.pts + '</td></tr>';
+    h += '<tr><td>' + esc(e.label) + '</td><td>' + esc(e.csd ? e.grade : e.lv) + '</td><td>' + (e.csd ? '—' : e.pts) + '</td></tr>';
   });
   h += '</table>';
 
