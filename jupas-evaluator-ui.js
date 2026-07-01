@@ -18,7 +18,11 @@
   var INST_ZH = { HKU: '香港大學', CUHK: '香港中文大學', HKUST: '香港科技大學', CityUHK: '香港城市大學', PolyU: '香港理工大學', HKBU: '香港浸會大學', EdUHK: '香港教育大學', LingnanU: '嶺南大學', HKMU: '香港都會大學', SSSDP: '指定專業/界別課程資助計劃 (SSSDP)' };
   var ELIG_LABEL_ZH = { CHI: '中文', ENG: '英文', MATH: '數學', CSD: '公民與社會發展', 'Elective 1': '選修科一', 'Elective 2': '選修科二' };
   var CMP_BAND = { aboveUQ: 'above-uq', aboveM: 'above-median', aboveLQ: 'above-lq', belowLQ: 'below-lq', nodata: 'no-score' };
-  var CHANCE_CLS = { strong: 'p-safe', likely: 'p-safe', possible: 'p-mod', stretch: 'p-mod', unlikely: 'p-risky', ineligible: 'p-inelig', unknown: 'p-unk' };
+  // the engine's 7-value chance synthesis (strong/likely/possible/stretch/unlikely/ineligible/unknown) is
+  // collapsed to 5 display tags — wording-only simplification, the underlying computation is unchanged.
+  var CHANCE_DISPLAY = { strong: 'likely', likely: 'likely', possible: 'moderate', stretch: 'risky', unlikely: 'risky', ineligible: 'ineligible', unknown: 'nodata' };
+  var CHANCE_CLS = { likely: 'p-safe', moderate: 'p-mod', risky: 'p-risky', ineligible: 'p-inelig', nodata: 'p-unk' };
+  function chanceKey(label) { return CHANCE_DISPLAY[label] || 'nodata'; }
   var BAND_VERDICT_CLS = { wrong: 'p-inelig', appropriate: 'p-elig', caution: 'p-mod', flexible: 'p-unk', 'no-data': 'p-unk' };
   var REF_KEYS_ZH = { uq: 'UQ', median: '中位數', lq: 'LQ', mean: '平均', expected_score: '預期' };
   var REF_KEYS_EN = { uq: 'UQ', median: 'Median', lq: 'LQ', mean: 'Mean', expected_score: 'Expected' };
@@ -52,7 +56,7 @@
       assumed: 'ℹ Citizenship & Social Development assumed <b>Attained</b> (school policy: 100% attain CSD). This school’s students take no M1 or Category-C subjects, so those are out of scope by design.',
       th: ['Choice', 'Programme', 'Score', 'Position', 'Chance', 'Intake', 'Eligible', 'Band', 'Note'],
       posLabel: { 'above-uq': '≥ UQ', 'above-median': 'Median–UQ', 'above-lq': 'LQ–Median', 'below-lq': '< LQ', 'no-score': 'No data' },
-      chanceLabel: { strong: 'Strong', likely: 'Likely', possible: 'Possible', stretch: 'Stretch', unlikely: 'Unlikely', ineligible: 'Ineligible', unknown: 'Unknown' },
+      chanceLabel: { likely: 'Likely', moderate: 'Moderate', risky: 'Risky', ineligible: 'Ineligible', nodata: 'No data' },
       bandVerdict: { wrong: 'Wrong band position', appropriate: 'Appropriate', caution: 'Consider Band A', flexible: 'Flexible', 'no-data': 'No data' },
       bandAPct: function (pct) { return 'Band A ' + pct + '%'; },
       yes: 'Yes', no: 'No', noUqData: 'No UQ data', noteIneligible: 'Ineligible', noteSelfDiffers: 'Self-rated differs',
@@ -98,7 +102,7 @@
       assumed: 'ℹ 系統假設公民與社會發展科<b>達標</b>（校方政策：全級 100% 達標）。本校學生不修讀 M1 或丙類（Category C）科目，故此範圍不在計算之內。',
       th: ['志願', '課程', '分數', '位置', '機會', '學額', '資格', 'Band', '備註'],
       posLabel: { 'above-uq': '≥ UQ', 'above-median': '中位數 – UQ', 'above-lq': 'LQ – 中位數', 'below-lq': '< LQ', 'no-score': '沒有資料' },
-      chanceLabel: { strong: '很高', likely: '高', possible: '中等', stretch: '需挑戰', unlikely: '偏低', ineligible: '不符資格', unknown: '未知' },
+      chanceLabel: { likely: '高', moderate: '中等', risky: '搏一搏', ineligible: '不符資格', nodata: '沒有資料' },
       bandVerdict: { wrong: '組別錯誤', appropriate: '組別恰當', caution: '建議置 Band A', flexible: '彈性', 'no-data': '沒有資料' },
       bandAPct: function (pct) { return 'Band A 佔 ' + pct + '%'; },
       yes: '是', no: '否', noUqData: '沒有 UQ 資料', noteIneligible: '不符資格', noteSelfDiffers: '自評有出入',
@@ -142,7 +146,6 @@
       noSafetyNet: function () { return 'No safety net in Bands C–E (an above-median, eligible choice placed lower down).'; },
       mostlyReach: function () { return 'Most choices are below LQ (reaches) — consider adding realistic options.'; },
       overConcentrated: function (d) { return 'Over-concentrated: ' + d.n + ' choices at ' + d.inst + '.'; },
-      orderingIssues: function (d) { return d.n + ' ordering issue(s): a safer programme is ranked above a much riskier one — JUPAS gives offers top-down, so put genuine reaches first.'; },
       summaryLine: function (d) { return 'Filled ' + d.filled + '/20 choices: ' + d.safe + ' safe (≥ median), ' + d.moderate + ' moderate (LQ–median), ' + d.risky + ' reach (< LQ), ' + d.unknown + ' without score data.'; },
       noProblems: function () { return 'No structural problems detected in the choice list.'; },
       addSafeChoices: function () { return 'Recommend at least 2–3 solid "safe" choices in Bands C–E as a fallback.'; },
@@ -159,7 +162,6 @@
       noSafetyNet: function () { return 'C 至 E 組別中沒有安全網（即一個達中位數以上、符合資格的選項排在較後）。'; },
       mostlyReach: function () { return '大部分選項低於下四分位數（屬「搏一搏」）——建議加入較實際的選項。'; },
       overConcentrated: function (d) { return '選項過於集中：' + d.n + ' 個選項均在 ' + d.inst + '。'; },
-      orderingIssues: function (d) { return d.n + ' 個排序問題：較穩妥的課程排在遠比它冒險的課程之前——JUPAS 派位由上而下，應把真正想「搏」的選項排在較前位置。'; },
       summaryLine: function (d) { return '已填 ' + d.filled + '/20 個選項：' + d.safe + ' 個穩妥（≥中位數）、' + d.moderate + ' 個中等（下四分位至中位數）、' + d.risky + ' 個搏一搏（<下四分位）、' + d.unknown + ' 個沒有分數資料。'; },
       noProblems: function () { return '選項名單未發現結構性問題。'; },
       addSafeChoices: function () { return '建議在 C 至 E 組別加入最少 2 至 3 個穩妥選項作為保底。'; },
@@ -306,13 +308,13 @@
       var ref = window.JUPASEngine.refScores(p);
       var studentScore = parseFloat(c.score);
       var mismatch = (!isNaN(studentScore) && ev.calculation.totalScore) && Math.abs(studentScore - ev.calculation.totalScore) > 1.5;
-      var chanceCls = CHANCE_CLS[chance.label] || 'p-unk';
+      var chanceCls = CHANCE_CLS[chanceKey(chance.label)] || 'p-unk';
       var refBreak = refBreakdown(ev);
       var m = '<div class="metrics">';
       m += '<div class="metric"><div class="k">' + esc(s.mEligible) + '</div><div class="v"><span class="pill ' + (ev.eligibility.eligible ? 'p-elig' : 'p-inelig') + '">' + (ev.eligibility.eligible ? s.yes : s.no) + '</span></div></div>';
       m += '<div class="metric"><div class="k">' + esc(s.mScore) + '</div><div class="v">' + ev.calculation.totalScore + (mismatch ? ' <span class="warn-inline">⚠ vs ' + esc(c.score) + '</span>' : (c.score ? ' <span style="color:var(--muted);font-weight:600">(' + esc(c.score) + ')</span>' : '')) + '</div></div>';
       m += '<div class="metric"><div class="k">' + esc(s.mPosition) + '</div><div class="v"><span class="pill ' + posCls(ev.band) + '">' + esc(s.posLabel[ev.band]) + '</span>' + (refBreak ? '<div class="pos-pct">' + esc(refBreak) + '</div>' : '') + noUqNote(ref) + '</div></div>';
-      m += '<div class="metric"><div class="k">' + esc(s.mChance(c.no, band)) + '</div><div class="v"><span class="pill ' + chanceCls + '">' + esc(s.chanceLabel[chance.label]) + '</span></div></div>';
+      m += '<div class="metric"><div class="k">' + esc(s.mChance(c.no, band)) + '</div><div class="v"><span class="pill ' + chanceCls + '">' + esc(s.chanceLabel[chanceKey(chance.label)]) + '</span></div></div>';
       m += '<div class="metric"><div class="k">' + esc(s.mRefMedLq) + '</div><div class="v">' + (ref.median != null ? ref.median : '—') + (ref.lq != null ? ' / ' + ref.lq : '') + (ref.source !== 'actual' && ref.median != null ? ' <span style="color:var(--muted)">(' + ref.source + ')</span>' : '') + '</div></div>';
       var comp = chance.competition;
       m += '<div class="metric"><div class="k">' + esc(s.mQuota) + '</div><div class="v">' + (p.quota != null ? p.quota : '—') + (comp ? ' · ' + comp.ratio.toFixed(0) + esc(s.applicantsPerPlace) : '') + '</div></div>';
@@ -388,7 +390,7 @@
         '<td class="t-prog"><span class="c">' + esc(p.jupas_code) + '</span>' + esc(pName(p)) + '<span class="i">' + esc(pInst(p)) + '</span></td>' +
         '<td>' + (ev.calculation.totalScore != null ? ev.calculation.totalScore : '—') + '</td>' +
         '<td><span class="pill ' + posCls(ev.band) + '">' + esc(s.posLabel[ev.band]) + '</span>' + (pctTxt ? '<div class="pos-pct">' + esc(pctTxt) + '</div>' : '') + noUqNote(ref) + '</td>' +
-        '<td><span class="pill ' + (CHANCE_CLS[chance.label] || 'p-unk') + '">' + esc(s.chanceLabel[chance.label]) + '</span></td>' +
+        '<td><span class="pill ' + (CHANCE_CLS[chanceKey(chance.label)] || 'p-unk') + '">' + esc(s.chanceLabel[chanceKey(chance.label)]) + '</span></td>' +
         '<td>' + (p.quota != null ? p.quota : '—') + '</td>' +
         '<td><span class="pill ' + (ev.eligibility.eligible ? 'p-elig' : 'p-inelig') + '">' + (ev.eligibility.eligible ? s.yes : s.no) + '</span></td>' +
         '<td><span class="pill ' + bandCls + '">' + esc(s.bandVerdict[bandChk.verdict]) + '</span>' + bandSub + '</td>' +

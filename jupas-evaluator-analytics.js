@@ -206,7 +206,10 @@
     Object.keys(stats.byInstitution).forEach(function (inst) {
       if (stats.byInstitution[inst] >= 10) flags.push({ level: 'warn', key: 'overConcentrated', inst: inst, n: stats.byInstitution[inst] });
     });
-    if (inversions.length) flags.push({ level: 'warn', key: 'orderingIssues', n: inversions.length });
+    // NOTE (2026-07-01, per user): ordering-inversion pairs are still computed below (`inversions`,
+    // returned in the strategy object) but are no longer surfaced as a flag/note anywhere — the
+    // commentary was judged not useful. Re-add `flags.push({level:'warn',key:'orderingIssues',n:...})`
+    // here to restore it.
 
     return { stats: stats, flags: flags, inversions: inversions, safetyNet: safetyNet, perChoice: perChoice };
   }
