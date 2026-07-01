@@ -400,9 +400,31 @@
   }
 
   // ---- top-level per-programme evaluation == jupascal ae() ----
+  // A small number of programmes (e.g. JS4502, CUHK Medicine's Global
+  // Physician-Leadership Stream) carry a supplementary eligibility rule on top
+  // of the normal min_requirements_2026 — a minimum total score and/or a
+  // minimum count of top-grade (usually 5**) subjects. Ported from jupascal's
+  // applyExtraEligibility(); counts over ALL of the student's reported grades
+  // (not just the ones selected into the Best-N score), matching upstream.
+  function applyExtraEligibility(elig, grades, totalScore, prog) {
+    var rule = prog.extra_eligibility;
+    if (!rule) return elig;
+    var topGrade = rule.top_grade || "5**";
+    var topCount = 0;
+    Object.keys(grades).forEach(function (k) { if (grades[k] === topGrade) topCount++; });
+    var scoreOk = typeof rule.min_total !== "number" || totalScore >= rule.min_total;
+    var topOk = typeof rule.min_top_grade_count !== "number" || topCount >= rule.min_top_grade_count;
+    if (scoreOk && topOk) return elig;
+    var needParts = [];
+    if (typeof rule.min_total === "number") needParts.push("≥" + rule.min_total);
+    if (typeof rule.min_top_grade_count === "number") needParts.push(rule.min_top_grade_count + "×" + topGrade);
+    return { eligible: false, details: elig.details.concat([{ label: "EXTRA", pass: false,
+      got: totalScore.toFixed(1) + " total, " + topCount + "×" + topGrade, need: needParts.join(" + ") }]) };
+  }
+
   function evaluateProgramme(prog, grades) {
     var calc = computeScore(grades, prog, hasRefStats(prog) ? "2025" : "2026");
-    var elig = checkEligibility(grades, prog.min_requirements_2026, prog);
+    var elig = applyExtraEligibility(checkEligibility(grades, prog.min_requirements_2026, prog), grades, calc.totalScore, prog);
     var comps = comparisons(calc.totalScore, prog);
     return { programme: prog, calculation: calc, eligibility: elig, comparisons: comps,
       band: bandOf(calc.totalScore, prog), hasScoreData: comps.length > 0 };

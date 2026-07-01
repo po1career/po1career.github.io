@@ -16,6 +16,16 @@
     if (i1 <= 3) return 'A'; if (i1 <= 6) return 'B'; if (i1 <= 10) return 'C';
     if (i1 <= 15) return 'D'; return 'E';
   }
+
+  // Non-academic admission requirements (interview/portfolio/audition/test/OEA) —
+  // read directly from the DB's officially-scraped `programme.non_academic` field.
+  // Informational only, never affects eligibility or score. We deliberately do NOT
+  // replicate jupascal's text/discipline-heuristic inference layers (fuzzy, always
+  // hedged in their own UI) — only the confirmed official data.
+  function isTentativeNonAcademic(item) {
+    var w = (item && item.when || '').toLowerCase();
+    return /when necessary|if necessary|if required|where necessary/.test(w);
+  }
   // index offer_statistics -> { year: { app:{A..E,Total,Quota}, off:{...} } }
   function statsByYear(prog) {
     var m = {};
@@ -161,6 +171,7 @@
     Object.keys(seen).forEach(function (k) { if (seen[k] > 1) stats.duplicates.push(k); });
 
     var perChoice = [];
+    var naDuties = []; // choices with a FIRM (non-tentative) non-academic requirement (interview/portfolio/…)
     filled.forEach(function (c) {
       var ev = evalByCode.get(c.code.toUpperCase());
       var item = { no: c.no, code: c.code.toUpperCase(), eval: ev };
@@ -177,6 +188,8 @@
         item.delta = medComp ? medComp.delta : null;
         item.pct = medComp ? medComp.percent : null;
         item.placedBand = placedBand(c.no);
+        var naItems = (ev.programme.non_academic || []).filter(function (na) { return !isTentativeNonAcademic(na); });
+        if (naItems.length) naDuties.push({ no: c.no, types: naItems.map(function (na) { return na.type; }) });
       }
       perChoice.push(item);
     });
@@ -206,6 +219,7 @@
     Object.keys(stats.byInstitution).forEach(function (inst) {
       if (stats.byInstitution[inst] >= 10) flags.push({ level: 'warn', key: 'overConcentrated', inst: inst, n: stats.byInstitution[inst] });
     });
+    if (naDuties.length) flags.push({ level: 'info', key: 'nonAcademicDuties', n: naDuties.length, items: naDuties });
     // NOTE (2026-07-01, per user): ordering-inversion pairs are still computed below (`inversions`,
     // returned in the strategy object) but are no longer surfaced as a flag/note anywhere — the
     // commentary was judged not useful. Re-add `flags.push({level:'warn',key:'orderingIssues',n:...})`
@@ -258,7 +272,7 @@
   window.JUPASAnalytics = {
     placedBand: placedBand, statsByYear: statsByYear, bandSuccess: bandSuccess,
     bandADependency: bandADependency, competition: competition, applicationTrend: applicationTrend,
-    bandPlacementCheck: bandPlacementCheck,
+    bandPlacementCheck: bandPlacementCheck, isTentativeNonAcademic: isTentativeNonAcademic,
     chanceForChoice: chanceForChoice, listStrategy: listStrategy, suggestions: suggestions,
     counselingNotes: counselingNotes
   };

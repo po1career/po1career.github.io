@@ -16,7 +16,7 @@
   var ELECT_LABEL = { bafs: 'BAFS', bio: 'Biology', chem: 'Chemistry', chist: 'Chinese History', chinlit: 'Chinese Literature', econ: 'Economics', geog: 'Geography', hist: 'History', ict: 'ICT', m2: 'Maths Ext. (M2)', phys: 'Physics' };
   var ELECT_LABEL_ZH = { bafs: '企業、會計與財務概論', bio: '生物', chem: '化學', chist: '中國歷史', chinlit: '中國文學', econ: '經濟', geog: '地理', hist: '歷史', ict: '資訊及通訊科技', m2: '數學延伸單元二 (M2)', phys: '物理' };
   var INST_ZH = { HKU: '香港大學', CUHK: '香港中文大學', HKUST: '香港科技大學', CityUHK: '香港城市大學', PolyU: '香港理工大學', HKBU: '香港浸會大學', EdUHK: '香港教育大學', LingnanU: '嶺南大學', HKMU: '香港都會大學', SSSDP: '指定專業/界別課程資助計劃 (SSSDP)' };
-  var ELIG_LABEL_ZH = { CHI: '中文', ENG: '英文', MATH: '數學', CSD: '公民與社會發展', 'Elective 1': '選修科一', 'Elective 2': '選修科二' };
+  var ELIG_LABEL_ZH = { CHI: '中文', ENG: '英文', MATH: '數學', CSD: '公民與社會發展', 'Elective 1': '選修科一', 'Elective 2': '選修科二', EXTRA: '額外要求' };
   var CMP_BAND = { aboveUQ: 'above-uq', aboveM: 'above-median', aboveLQ: 'above-lq', belowLQ: 'below-lq', nodata: 'no-score' };
   // the engine's 7-value chance synthesis (strong/likely/possible/stretch/unlikely/ineligible/unknown) is
   // collapsed to 5 display tags — wording-only simplification, the underlying computation is unchanged.
@@ -67,6 +67,9 @@
       mEligible: 'Eligible', mScore: 'Computed score', mPosition: 'Position (score vs past intakes)',
       mChance: function (no, band) { return 'Overall chance — placed as Choice ' + no + ' (Band ' + band + ')'; },
       mRefMedLq: 'Ref median / LQ', mQuota: 'Quota / competition', mBandA: 'Band-A offer share',
+      mNonAcademic: 'Non-academic requirement',
+      naType: { interview: 'Interview', portfolio: 'Portfolio', audition: 'Audition', 'physical-test': 'Physical test', 'practical-test': 'Practical test', 'written-test': 'Written test', 'aptitude-test': 'Aptitude test', oea: 'OEA note' },
+      naPre: 'before results', naPost: 'after results', naBoth: 'before & after results', naTentative: 'only if necessary — unconfirmed',
       failsPrefix: 'Fails: ', failEntry: function (label, need, got) { return label === 'CSD' ? (eligLabel(label) + ' (need Attained, got ' + got + ')') : (eligLabel(label) + ' (need ' + need + ', got ' + got + ')'); },
       selfDiffers: function (a, b) { return 'Student self-assessed position (' + a + ') differs from computed (' + b + ')'; },
       remarkPrefix: 'Student remark: ', applicantsPerPlace: ' applicants/place',
@@ -118,6 +121,9 @@
       mEligible: '資格', mScore: '計算分數', mPosition: '位置（分數對比過往收生資料）',
       mChance: function (no, band) { return '整體錄取機會 — 置於第 ' + no + ' 志願（Band ' + band + '）'; },
       mRefMedLq: '參考中位數／LQ', mQuota: '學額／競爭情況', mBandA: 'Band A 取錄佔比',
+      mNonAcademic: '非學術要求',
+      naType: { interview: '面試', portfolio: '作品集', audition: '甄選試演', 'physical-test': '體能測試', 'practical-test': '實習測試', 'written-test': '筆試', 'aptitude-test': '性向測試', oea: '其他經驗及成就 (OEA)' },
+      naPre: '放榜前', naPost: '放榜後', naBoth: '放榜前及後', naTentative: '僅在有需要時——未確定',
       failsPrefix: '未達到：', failEntry: function (label, need, got) { if (label === 'CSD') { var g = got === 'Attained' ? '達標' : '未達標'; return eligLabel(label) + '（需要 達標，你是 ' + g + '）'; } return eligLabel(label) + '（需要 ' + need + '，你是 ' + got + '）'; },
       selfDiffers: function (a, b) { return '學生自評位置（' + a + '）與系統計算位置（' + b + '）不同'; },
       remarkPrefix: '學生備註：', applicantsPerPlace: ' 人爭一位',
@@ -162,7 +168,12 @@
       notEligible: function () { return 'Does not meet minimum entry requirements'; },
       bandOfferRate: function (d) { return 'In Band ' + d.band + ', ' + (d.rate * 100).toFixed(1) + '% of applicants were made offers (' + d.offers + '/' + d.apps + ', last ' + d.years + 'y)'; },
       bandADominates: function (d) { return '~' + d.pct + '% of offers go to Band-A applicants — listing it this low rarely succeeds'; },
-      scorePosition: function (d) { return 'Your computed score is ' + POS_PHRASE.en[d.posBand] + ' of past intakes'; }
+      scorePosition: function (d) { return 'Your computed score is ' + POS_PHRASE.en[d.posBand] + ' of past intakes'; },
+      nonAcademicDuties: function (d) {
+        var s = S();
+        var parts = d.items.map(function (it) { return window.JUPASAnalytics.placedBand(it.no) + it.no + ' ' + it.types.map(function (ty) { return s.naType[ty] || ty; }).join('/'); });
+        return d.n + ' choice(s) carry a non-academic admission requirement (interview/portfolio/etc.) — confirm arrangements for: ' + parts.join(', ');
+      }
     },
     zh: {
       emptySlots: function (d) { return '20 個選項中有 ' + d.n + ' 個仍空白——未善用的機會。'; },
@@ -178,7 +189,12 @@
       notEligible: function () { return '未符合最低入學要求'; },
       bandOfferRate: function (d) { return '在 Band ' + d.band + '，' + (d.rate * 100).toFixed(1) + '% 的申請人獲得取錄（' + d.offers + '/' + d.apps + '，最近 ' + d.years + ' 年）'; },
       bandADominates: function (d) { return '約 ' + d.pct + '% 的取錄名額給予 Band A 申請人——排在這麼後的位置甚少成功'; },
-      scorePosition: function (d) { return '你的計算分數' + POS_PHRASE.zh[d.posBand] + '（相比過往收生資料）'; }
+      scorePosition: function (d) { return '你的計算分數' + POS_PHRASE.zh[d.posBand] + '（相比過往收生資料）'; },
+      nonAcademicDuties: function (d) {
+        var s = S();
+        var parts = d.items.map(function (it) { return window.JUPASAnalytics.placedBand(it.no) + it.no + ' ' + it.types.map(function (ty) { return s.naType[ty] || ty; }).join('／'); });
+        return d.n + ' 個選項附帶非學術收生要求（面試／作品集等）——請確認以下安排：' + parts.join('、');
+      }
     }
   };
   function tmsg(o) { var f = MSGT[lang][o.key]; return f ? f(o) : ''; }
@@ -266,6 +282,15 @@
   }
   function noUqNote(ref) { return ref.uq == null ? '<div class="pos-note">' + esc(S().noUqData) + '</div>' : ''; }
 
+  // Non-academic requirement (interview/portfolio/…) display text for one item.
+  function naItemText(item) {
+    var s = S();
+    var label = s.naType[item.type] || item.type;
+    if (window.JUPASAnalytics.isTentativeNonAcademic(item)) return esc(label) + ' <span style="color:var(--muted);font-weight:600">(' + esc(s.naTentative) + ')</span>';
+    var timing = item.timing === 'both' ? s.naBoth : item.timing === 'pre-results' ? s.naPre : item.timing === 'post-results' ? s.naPost : '';
+    return esc(timing ? label + ' · ' + timing : label);
+  }
+
   /* ---------- rendering ---------- */
   function render(payload, opts) {
     opts = opts || {};
@@ -337,6 +362,8 @@
       m += '<div class="metric"><div class="k">' + esc(s.mQuota) + '</div><div class="v">' + (p.quota != null ? p.quota : '—') + (comp ? ' · ' + comp.ratio.toFixed(0) + esc(s.applicantsPerPlace) : '') + '</div></div>';
       var dep = chance.dependency;
       m += '<div class="metric"><div class="k">' + esc(s.mBandA) + '</div><div class="v">' + (dep ? Math.round(dep.share * 100) + '%' : '—') + '</div></div>';
+      var naItems = p.non_academic || [];
+      if (naItems.length) m += '<div class="metric"><div class="k">' + esc(s.mNonAcademic) + '</div><div class="v">' + naItems.map(naItemText).join('<br>') + '</div></div>';
       m += '</div>';
       var r = '<ul class="reasons">';
       chance.reasons.forEach(function (x) { r += '<li>' + esc(tmsg(x)) + '</li>'; });
@@ -397,9 +424,12 @@
       var ref = window.JUPASEngine.refScores(p);
       var pctTxt = medPctText(ev);
       var bandChk = window.JUPASAnalytics.bandPlacementCheck(p, c.no);
-      var note = !ev.eligibility.eligible ? s.noteIneligible
-        : (c.cmp && CMP_BAND[c.cmp] && CMP_BAND[c.cmp] !== ev.band && ev.band !== 'no-score') ? s.noteSelfDiffers
-        : '';
+      var noteParts = [];
+      if (!ev.eligibility.eligible) noteParts.push(s.noteIneligible);
+      else if (c.cmp && CMP_BAND[c.cmp] && CMP_BAND[c.cmp] !== ev.band && ev.band !== 'no-score') noteParts.push(s.noteSelfDiffers);
+      var firmNa = (p.non_academic || []).filter(function (na) { return !window.JUPASAnalytics.isTentativeNonAcademic(na); });
+      if (firmNa.length) noteParts.push(firmNa.map(function (na) { return s.naType[na.type] || na.type; }).join('/'));
+      var note = noteParts.join(' · ');
       var bandCls = BAND_VERDICT_CLS[bandChk.verdict] || 'p-unk';
       var bandSub = bandChk.dependency ? '<div class="pos-pct">' + esc(s.bandAPct(Math.round(bandChk.dependency.share * 100))) + '</div>' : '';
       tr.innerHTML =
