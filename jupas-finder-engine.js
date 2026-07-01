@@ -8,7 +8,7 @@
    See the bundled LICENSE file; this notice must be retained in redistributions.
 
    Exposes:  window.JUPASEngine = {
-     gradesFromPdfPayload(payload) -> { canonicalSubject: grade }   // adds CSD=Attained
+     gradesFromPdfPayload(payload) -> { canonicalSubject: grade }   // reads CSD attained/not
      evaluateProgramme(prog, grades) -> { calculation, eligibility, comparisons, band, hasScoreData }
      evaluateAll(programmes, grades) -> Map code -> result
      refScores(prog), bandOf(score, prog)
@@ -18,9 +18,12 @@
    - Scores are computed on the SAME year-basis as the available reference stats:
      if scores_2025 has uq/median/lq/mean -> compute on the 2025 formula/weights
      (apples-to-apples with the published median/LQ), else on 2026.
-   - The student input page does NOT capture Citizenship & Social Development (CSD).
-     We inject CSD = "Attained" before eligibility (virtually all DSE students attain
-     it and virtually all programmes only require "Attained"). Flagged in the UI.
+   - Citizenship & Social Development (CSD): the student page (jupas-choices.js ?v=9+,
+     2026-06-29) reports it as attained/not-attained; gradesFromPdfPayload reads that
+     (older PDFs lacking the field default to Attained). Eligibility uses meetsCsd(), NOT
+     the generic meetsGrade()/pts() comparison — the DB's CSD min-requirement is encoded as
+     grade "A", which conversion tables map to 0 points, so a plain points comparison would
+     silently pass "Not Attained" too (0 >= 0). meetsCsd() checks the attained status directly.
    - Category-C (foreign-language) handling is preserved but never fires for the
      11 electives the student page offers (none are Cat C).
    ========================================================================== */
@@ -288,6 +291,15 @@
     return pts(got) >= pts(need);
   }
 
+  // CSD ("Citizenship and Social Development") is binary, not a graded scale — but the DB
+  // encodes its min-requirement as grade "A", which conversion tables map to 0 points, so the
+  // generic meetsGrade()/pts() comparison (0 >= 0) would silently treat "Not Attained" as a
+  // pass. Check the actual attained/not-attained status directly instead.
+  function meetsCsd(got, need) {
+    if (!need) return true;
+    return String(got || "").trim().toLowerCase() === "attained";
+  }
+
   function electiveQualifies(pool, subj, grade, prog) {
     var ok = pool.subjects.indexOf("Any") >= 0 || pool.subjects.indexOf("*") >= 0 || subjectMatches(pool.subjects, subj);
     var isM1M2 = subj.indexOf("Module 1") >= 0 || subj.indexOf("Module 2") >= 0;
@@ -331,7 +343,8 @@
   function checkEligibility(grades, minReq, prog) {
     var details = [], eligible = true;
     ["chi", "eng", "math", "csd"].forEach(function (key) {
-      var got = grades[CORE_NAME[key]], need = minReq && minReq[key], pass = meetsGrade(got, need, prog);
+      var got = grades[CORE_NAME[key]], need = minReq && minReq[key];
+      var pass = key === "csd" ? meetsCsd(got, need) : meetsGrade(got, need, prog);
       if (!pass) eligible = false;
       details.push({ label: key.toUpperCase(), pass: pass, got: got || "N/A", need: need });
     });
@@ -417,8 +430,9 @@
     (payload.elect || []).forEach(function (e) {
       if (e && e.s && e.lv && ELECT_CANON[e.s]) g[ELECT_CANON[e.s]] = e.lv;
     });
-    // student page does not capture CSD -> assume Attained (flagged in UI)
-    g["Citizenship and Social Development"] = "Attained";
+    // Student-page exports (jupas-choices.js ?v=9+, 2026-06-29) report CSD directly as
+    // 'attained'/'notattained'. Older PDFs predate this field, so fall back to assuming Attained.
+    g["Citizenship and Social Development"] = (payload.core || {}).csd === "notattained" ? "Not Attained" : "Attained";
     return g;
   }
 

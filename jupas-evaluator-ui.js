@@ -53,7 +53,9 @@
       footer: 'Unofficial teacher tool, for internal guidance only. Admission statistics (median / LQ, offer rates) are from PAST intakes and do not guarantee this year’s results. © 2026 PLK No.1 W.H. Cheung College · Career Team. Includes a third-party scoring engine used under licence.',
       metaName: 'Name', metaClass: 'Class', metaCno: 'Class no.', metaGen: 'Generated',
       gSubject: 'Subject', gLevel: 'Level', gPts: 'Pts (7-scale)', b5Prefix: 'Best-5 (common 7-point scale): ',
-      assumed: 'ℹ Citizenship & Social Development assumed <b>Attained</b> (school policy: 100% attain CSD). This school’s students take no M1 or Category-C subjects, so those are out of scope by design.',
+      csdOkNote: 'ℹ Citizenship &amp; Social Development: reported as <b>Attained</b>. This school’s students take no M1 or Category-C subjects, so those are out of scope by design.',
+      csdAlertNote: '⚠ Citizenship &amp; Social Development: reported as <b>NOT ATTAINED</b>. This is a universal JUPAS minimum entry requirement — it makes the student ineligible for every programme in this database until resolved. Please follow up with the student/school before finalising this list.',
+      csdUnknownNote: 'ℹ Citizenship &amp; Social Development status was not found in this PDF (an older export) — assumed <b>Attained</b>. Ask the student to re-export from the latest JUPAS Choices page to confirm.',
       th: ['Choice', 'Programme', 'Score', 'Position', 'Chance', 'Intake', 'Eligible', 'Band', 'Note'],
       posLabel: { 'above-uq': '≥ UQ', 'above-median': 'Median–UQ', 'above-lq': 'LQ–Median', 'below-lq': '< LQ', 'no-score': 'No data' },
       chanceLabel: { likely: 'Likely', moderate: 'Moderate', risky: 'Risky', ineligible: 'Ineligible', nodata: 'No data' },
@@ -65,7 +67,7 @@
       mEligible: 'Eligible', mScore: 'Computed score', mPosition: 'Position (score vs past intakes)',
       mChance: function (no, band) { return 'Overall chance — placed as Choice ' + no + ' (Band ' + band + ')'; },
       mRefMedLq: 'Ref median / LQ', mQuota: 'Quota / competition', mBandA: 'Band-A offer share',
-      failsPrefix: 'Fails: ', failEntry: function (label, need, got) { return eligLabel(label) + ' (need ' + need + ', got ' + got + ')'; },
+      failsPrefix: 'Fails: ', failEntry: function (label, need, got) { return label === 'CSD' ? (eligLabel(label) + ' (need Attained, got ' + got + ')') : (eligLabel(label) + ' (need ' + need + ', got ' + got + ')'); },
       selfDiffers: function (a, b) { return 'Student self-assessed position (' + a + ') differs from computed (' + b + ')'; },
       remarkPrefix: 'Student remark: ', applicantsPerPlace: ' applicants/place',
       overFilled: function (n) { return n + '/20 filled'; }, overEligible: function (n) { return n + ' eligible'; },
@@ -75,9 +77,12 @@
       suggScore: function (y, m) { return 'your ' + y + ' vs median ' + (m != null ? m : '—'); },
       tvNoFilled: 'No choices entered yet.', tvHighRisk: 'High risk — needs attention before submission.',
       tvWorkable: 'Workable list, with a few things to tidy up.', tvSolid: 'Solid, well-balanced list.',
+      tvCsdBlock: 'Citizenship & Social Development NOT attained — this blocks EVERY JUPAS programme.',
+      csdBlockAction: 'CSD not attained — a universal minimum entry requirement; this alone makes the whole list ineligible.',
       statline: function (d) { return d.filled + '/20 filled · ' + d.safe + ' safe · ' + d.moderate + ' moderate · ' + d.risky + ' reach' + (d.ineligible ? ' · ' + d.ineligible + ' ineligible' : ''); },
       priorityFixes: 'Priority fixes',
       recImport: 'Import the student’s PDF to begin.',
+      recCsd: 'Confirm the CSD result with the student/school first — if correct, this list cannot proceed until resolved.',
       recAddSafe: 'Add 2–3 solid “safe” choices (at/above median) lower in the list as a fallback, then re-check.',
       recResolve: 'Resolve the flagged issues above, then re-export and re-check.',
       recReady: 'List looks ready — confirm the top 3 (Band A) are the genuine first choices.',
@@ -99,7 +104,9 @@
       footer: '本工具只供教師內部參考，並非官方工具。收生統計數字（中位數／下四分位、取錄率）均為過往年度資料，不代表本年度結果。© 2026 保良局第一張永慶中學・升學輔導及生涯規劃組。當中包含第三方計分引擎，並依授權條款使用。',
       metaName: '姓名', metaClass: '班別', metaCno: '學號', metaGen: '匯出時間',
       gSubject: '科目', gLevel: '等級', gPts: '分數（7 分制）', b5Prefix: '最佳五科（共通 7 分制）：',
-      assumed: 'ℹ 系統假設公民與社會發展科<b>達標</b>（校方政策：全級 100% 達標）。本校學生不修讀 M1 或丙類（Category C）科目，故此範圍不在計算之內。',
+      csdOkNote: 'ℹ 公民與社會發展：呈報為<b>達標</b>。本校學生不修讀 M1 或丙類（Category C）科目，故此範圍不在計算之內。',
+      csdAlertNote: '⚠ 公民與社會發展：呈報為<b>未達標</b>。這是全港 JUPAS 課程的共同最低入學要求——在解決之前，學生將不符合資格報讀資料庫中的任何課程。請在敲定這份名單前，先向學生／學校跟進核實。',
+      csdUnknownNote: 'ℹ 此 PDF 未有公民與社會發展的達標資料（較舊版本匯出）——假設為<b>達標</b>。如有疑問，請學生使用最新版「JUPAS 選科自評工具」重新匯出確認。',
       th: ['志願', '課程', '分數', '位置', '機會', '學額', '資格', 'Band', '備註'],
       posLabel: { 'above-uq': '≥ UQ', 'above-median': '中位數 – UQ', 'above-lq': 'LQ – 中位數', 'below-lq': '< LQ', 'no-score': '沒有資料' },
       chanceLabel: { likely: '高', moderate: '中等', risky: '搏一搏', ineligible: '不符資格', nodata: '沒有資料' },
@@ -111,7 +118,7 @@
       mEligible: '資格', mScore: '計算分數', mPosition: '位置（分數對比過往收生資料）',
       mChance: function (no, band) { return '整體錄取機會 — 置於第 ' + no + ' 志願（Band ' + band + '）'; },
       mRefMedLq: '參考中位數／LQ', mQuota: '學額／競爭情況', mBandA: 'Band A 取錄佔比',
-      failsPrefix: '未達到：', failEntry: function (label, need, got) { return eligLabel(label) + '（需要 ' + need + '，你是 ' + got + '）'; },
+      failsPrefix: '未達到：', failEntry: function (label, need, got) { if (label === 'CSD') { var g = got === 'Attained' ? '達標' : '未達標'; return eligLabel(label) + '（需要 達標，你是 ' + g + '）'; } return eligLabel(label) + '（需要 ' + need + '，你是 ' + got + '）'; },
       selfDiffers: function (a, b) { return '學生自評位置（' + a + '）與系統計算位置（' + b + '）不同'; },
       remarkPrefix: '學生備註：', applicantsPerPlace: ' 人爭一位',
       overFilled: function (n) { return n + '/20 已填'; }, overEligible: function (n) { return n + ' 個符合資格'; },
@@ -121,9 +128,12 @@
       suggScore: function (y, m) { return '你的分數 ' + y + '，中位數 ' + (m != null ? m : '—'); },
       tvNoFilled: '尚未輸入任何選項。', tvHighRisk: '高風險 — 提交前需要處理。',
       tvWorkable: '名單大致可行，但有些地方要整理。', tvSolid: '名單穩健，分配均衡。',
+      tvCsdBlock: '公民與社會發展科未達標 — 將令所有 JUPAS 課程均不符合資格。',
+      csdBlockAction: '公民與社會發展未達標——這是全港適用的最低入學要求，單憑此項已令整張名單不符合資格。',
       statline: function (d) { return '已填 ' + d.filled + '/20 · 穩妥 ' + d.safe + ' · 中等 ' + d.moderate + ' · 搏一搏 ' + d.risky + (d.ineligible ? ' · 不符資格 ' + d.ineligible : ''); },
       priorityFixes: '優先處理事項',
       recImport: '請先匯入學生的 PDF。',
+      recCsd: '請先向學生／學校核實公民科成績——如屬實，在解決前整張名單將無法繼續。',
       recAddSafe: '在名單後段加入 2 至 3 個穩妥選項（達到或高於中位數）作保底，然後重新檢查。',
       recResolve: '請先處理以上標示的問題，然後重新匯出並檢查。',
       recReady: '名單看來已準備好 — 請確認首 3 個（Band A）是學生真正的首選。',
@@ -264,6 +274,13 @@
     flash('', true);
     var s = S();
     var grades = window.JUPASEngine.gradesFromPdfPayload(payload);
+    var csdRaw = (payload.core || {}).csd; // 'attained' | 'notattained' | undefined (older PDF)
+    var csdBlocked = csdRaw === 'notattained';
+    var csdBox = $('t-assumed');
+    if (csdBox) {
+      csdBox.className = 'assumed' + (csdBlocked ? ' alert' : '');
+      csdBox.innerHTML = csdBlocked ? s.csdAlertNote : (csdRaw === 'attained' ? s.csdOkNote : s.csdUnknownNote);
+    }
 
     $('meta').innerHTML = '<span><b>' + esc(s.metaName) + ':</b> ' + esc(payload.name || '—') + '</span>' +
       '<span><b>' + esc(s.metaClass) + ':</b> ' + esc(payload.klass || '—') + '</span>' +
@@ -280,7 +297,7 @@
     var choices = (payload.choices || []).map(function (c, i) { c = c || {}; return { code: (c.code || '').trim(), intake: c.intake, score: c.score, cmp: c.cmp, remark: c.remark, no: i + 1, _raw: c }; });
 
     var strat = window.JUPASAnalytics.listStrategy(choices, evalAll);
-    renderTeacherSummary(strat, choices, evalAll);
+    renderTeacherSummary(strat, choices, evalAll, csdBlocked);
     renderSummaryTable(choices, evalAll);
     renderChoices(choices, evalAll);
     renderOverview(strat); renderFlags(strat); renderNotes(strat, choices, evalAll);
@@ -400,23 +417,26 @@
   }
 
   /* ---------- teacher at-a-glance summary (verdict + priority fixes + next step) ---------- */
-  function renderTeacherSummary(strat, choices, evalAll) {
+  function renderTeacherSummary(strat, choices, evalAll, csdBlocked) {
     var box = $('tsummary'); if (!box) return;
     var s = strat.stats, t = S();
     var errs = strat.flags.filter(function (f) { return f.level === 'err'; });
     var warns = strat.flags.filter(function (f) { return f.level === 'warn'; });
 
     var level, lamp, head;
-    if (!s.filled) { level = 'amber'; lamp = '🟠'; head = t.tvNoFilled; }
+    if (csdBlocked) { level = 'red'; lamp = '🔴'; head = t.tvCsdBlock; }
+    else if (!s.filled) { level = 'amber'; lamp = '🟠'; head = t.tvNoFilled; }
     else if (errs.length || s.safe === 0) { level = 'red'; lamp = '🔴'; head = t.tvHighRisk; }
     else if (warns.length) { level = 'amber'; lamp = '🟠'; head = t.tvWorkable; }
     else { level = 'green'; lamp = '🟢'; head = t.tvSolid; }
 
     var statline = t.statline({ filled: s.filled, safe: s.safe, moderate: s.moderate, risky: s.risky, ineligible: s.ineligible });
     var actions = errs.concat(warns).slice(0, 4).map(tmsg);
+    if (csdBlocked) actions = [t.csdBlockAction].concat(actions).slice(0, 4);
 
     var rec;
-    if (!s.filled) rec = t.recImport;
+    if (csdBlocked) rec = t.recCsd;
+    else if (!s.filled) rec = t.recImport;
     else if (s.safe < 3) rec = t.recAddSafe;
     else if (errs.length) rec = t.recResolve;
     else rec = t.recReady;
@@ -444,7 +464,6 @@
     };
     Object.keys(map).forEach(function (id) { var el = $(id); if (el) el.textContent = map[id]; });
     var hd = $('t-herodisc'); if (hd) hd.innerHTML = '<span aria-hidden="true">⚠️</span><span>' + s.heroDisc + '</span>';
-    var as = $('t-assumed'); if (as) as.innerHTML = s.assumed;
     var ft = $('t-footer'); if (ft) ft.textContent = s.footer;
     var th = $('summary-thead'); if (th) th.innerHTML = '<tr>' + s.th.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr>';
   }
