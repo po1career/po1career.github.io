@@ -99,7 +99,13 @@
       csdLabel: '公民與社會發展', csdAttained: '達標', csdNotAttained: '未達標',
       th: ['志願', '課程', '分數', '位置', '機會', '學額', '資格', 'Band', '備註'],
       posLabel: { 'above-uq': '≥ UQ', 'above-median': '中位數 – UQ', 'above-lq': 'LQ – 中位數', 'below-lq': '< LQ', 'no-score': '沒有資料' },
-      chanceLabel: { likely: '高', moderate: '中等', risky: '搏一搏', ineligible: '不符資格', nodata: '沒有資料' },
+      // jupascal.com's own ZH wording for the underlying tiers, reused verbatim rather than
+      // invented afresh: safe->較有把握, fair->機會尚可 (both collapse into our "Likely" —
+      // 較有把握 picked as the stronger/primary member), risky->較為進取 ("Moderate"),
+      // high-risk->風險較高 + unsafe->危險 (both collapse into "Risky" — 風險較高 picked as
+      // the closer literal match to the English word "Risky"), blocked->未達入學要求
+      // ("Ineligible"), unknown->暫無數據 ("No data").
+      chanceLabel: { likely: '較有把握', moderate: '較為進取', risky: '風險較高', ineligible: '未達入學要求', nodata: '暫無數據' },
       bandVerdict: { wrong: '組別錯誤', appropriate: '組別恰當', caution: '建議置 Band A', flexible: '彈性', 'no-data': '沒有資料' },
       bandAPct: function (pct) { return 'Band A 佔 ' + pct + '%'; },
       yes: '是', no: '否', noUqData: '沒有 UQ 資料', noteIneligible: '不符資格', noteSelfDiffers: '自評有出入',
