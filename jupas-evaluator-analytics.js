@@ -3,6 +3,10 @@
    counseling notes, and whole-DB suggestions. Built on JUPASEngine results
    and the live offer_statistics (2012-2025).
    Exposes window.JUPASAnalytics.
+
+   NOTE: flags / reasons / notes are returned as structured {key, ...data}
+   objects, not pre-built English sentences — jupas-evaluator-ui.js renders
+   them bilingually (EN/中) via its MSG template dictionary.
    ========================================================================== */
 (function () {
   'use strict';
@@ -67,10 +71,29 @@
     return { from: first, to: last, pct: (last.v - first.v) / first.v * 100 };
   }
 
+  // ---- Band-placement sanity check -------------------------------------------
+  // Compares where the student placed a choice (Band A-E of the 20-choice list)
+  // against how dependent that programme's offers are on Band-A placements
+  // (bandADependency). Tiers: >=85% share = "high" (near Band-A-only in
+  // practice), 50-85% = "medium" (Band A strongly preferred), <50% = "low"
+  // (offers spread across bands, placement is flexible).
+  var BAND_A_HIGH = 0.85, BAND_A_MED = 0.5;
+  function bandPlacementCheck(prog, choiceNo) {
+    var band = placedBand(choiceNo);
+    var dep = bandADependency(prog);
+    if (!dep) return { placedBand: band, dependency: null, tier: 'no-data', verdict: 'no-data' };
+    var tier = dep.share >= BAND_A_HIGH ? 'high' : dep.share >= BAND_A_MED ? 'medium' : 'low';
+    var verdict;
+    if (tier === 'low') verdict = 'flexible';
+    else if (band === 'A') verdict = 'appropriate';
+    else verdict = tier === 'high' ? 'wrong' : 'caution';
+    return { placedBand: band, dependency: dep, tier: tier, verdict: verdict };
+  }
+
   // ---- per-choice chance synthesis -------------------------------------------
   // Combines: eligibility, score-position band, and the EMPIRICAL success rate of
   // the band the student actually placed the choice in.
-  var CHANCE = { strong: 'Strong', likely: 'Likely', possible: 'Possible', stretch: 'Stretch', unlikely: 'Unlikely', ineligible: 'Ineligible', unknown: 'Unknown' };
+  var CHANCE = { strong: 'strong', likely: 'likely', possible: 'possible', stretch: 'stretch', unlikely: 'unlikely', ineligible: 'ineligible', unknown: 'unknown' };
 
   function chanceForChoice(evalResult, choiceNo) {
     var prog = evalResult.programme;
@@ -81,7 +104,7 @@
     var out = { placedBand: band, bandSuccess: bs, dependency: dep, competition: comp,
       positionBand: evalResult.band, reasons: [] };
 
-    if (!evalResult.eligibility.eligible) { out.label = CHANCE.ineligible; out.reasons.push('Does not meet minimum entry requirements'); return out; }
+    if (!evalResult.eligibility.eligible) { out.label = CHANCE.ineligible; out.reasons.push({ key: 'notEligible' }); return out; }
 
     // position score: 4=>=UQ-ish/median strong, down to 1 below LQ
     var posRank = { 'above-uq': 4, 'above-median': 3, 'above-lq': 2, 'below-lq': 1, 'no-score': null }[evalResult.band];
@@ -93,12 +116,12 @@
       else if (bs.rate >= 0.15) empRank = 3;
       else if (bs.rate >= 0.04) empRank = 2;
       else empRank = 1;
-      out.reasons.push('In Band ' + band + ', ' + (bs.rate * 100).toFixed(1) + '% of applicants were made offers (' + bs.offers + '/' + bs.apps + ', last ' + bs.yearsUsed + 'y)');
+      out.reasons.push({ key: 'bandOfferRate', band: band, rate: bs.rate, offers: bs.offers, apps: bs.apps, years: bs.yearsUsed });
     }
     if (dep && dep.share >= 0.9 && (band === 'C' || band === 'D' || band === 'E'))
-      out.reasons.push('~' + Math.round(dep.share * 100) + '% of offers go to Band-A applicants — listing it this low rarely succeeds');
+      out.reasons.push({ key: 'bandADominates', pct: Math.round(dep.share * 100) });
 
-    if (posRank != null) out.reasons.push('Your computed score is ' + ({ 'above-uq': 'at/above UQ', 'above-median': 'between median and UQ', 'above-lq': 'between LQ and median', 'below-lq': 'below LQ' }[evalResult.band]) + ' of past intakes');
+    if (posRank != null) out.reasons.push({ key: 'scorePosition', posBand: evalResult.band });
 
     // Synthesis: JUPAS offers go top-down, so the EMPIRICAL offer rate of the band
     // the student placed the choice in is the dominant signal. Score position refines
@@ -173,17 +196,17 @@
         ['C', 'D', 'E'].indexOf(p.placedBand) >= 0;
     });
 
-    // build flags
-    if (stats.empty > 0) flags.push({ level: 'warn', text: stats.empty + ' of 20 choice slots are empty — unused opportunities.' });
-    if (stats.duplicates.length) flags.push({ level: 'err', text: 'Duplicate choice(s): ' + stats.duplicates.join(', ') + ' — wastes a slot.' });
-    if (stats.ineligible) flags.push({ level: 'err', text: stats.ineligible + ' choice(s) fail minimum requirements — effectively wasted unless grades change.' });
-    if (filled.length && stats.safe === 0) flags.push({ level: 'err', text: 'No "safe" choice (none at/above median) — high risk of receiving no offer.' });
-    if (!safetyNet.length && filled.length) flags.push({ level: 'warn', text: 'No safety net in Bands C–E (an above-median, eligible choice placed lower down).' });
-    if (filled.length && stats.risky / Math.max(1, filled.length) >= 0.6) flags.push({ level: 'warn', text: 'Most choices are below LQ (reaches) — consider adding realistic options.' });
+    // build flags — structured {level, key, ...data}, translated by ui.js
+    if (stats.empty > 0) flags.push({ level: 'warn', key: 'emptySlots', n: stats.empty });
+    if (stats.duplicates.length) flags.push({ level: 'err', key: 'duplicates', codes: stats.duplicates });
+    if (stats.ineligible) flags.push({ level: 'err', key: 'ineligibleCount', n: stats.ineligible });
+    if (filled.length && stats.safe === 0) flags.push({ level: 'err', key: 'noSafe' });
+    if (!safetyNet.length && filled.length) flags.push({ level: 'warn', key: 'noSafetyNet' });
+    if (filled.length && stats.risky / Math.max(1, filled.length) >= 0.6) flags.push({ level: 'warn', key: 'mostlyReach' });
     Object.keys(stats.byInstitution).forEach(function (inst) {
-      if (stats.byInstitution[inst] >= 10) flags.push({ level: 'warn', text: 'Over-concentrated: ' + stats.byInstitution[inst] + ' choices at ' + inst + '.' });
+      if (stats.byInstitution[inst] >= 10) flags.push({ level: 'warn', key: 'overConcentrated', inst: inst, n: stats.byInstitution[inst] });
     });
-    if (inversions.length) flags.push({ level: 'warn', text: inversions.length + ' ordering issue(s): a safer programme is ranked above a much riskier one — JUPAS gives offers top-down, so put genuine reaches first.' });
+    if (inversions.length) flags.push({ level: 'warn', key: 'orderingIssues', n: inversions.length });
 
     return { stats: stats, flags: flags, inversions: inversions, safetyNet: safetyNet, perChoice: perChoice };
   }
@@ -215,21 +238,24 @@
     return capped;
   }
 
-  // ---- counseling notes: assemble human-readable advice -----------------------
+  // ---- counseling notes: assemble structured advice entries -------------------
+  // Returns an array of {key, ...data} (optionally with `level` when it mirrors
+  // a strategy flag) — ui.js renders these bilingually.
   function counselingNotes(strategy, choices, evalByCode) {
     var notes = [];
     var s = strategy.stats;
-    notes.push('Filled ' + s.filled + '/20 choices: ' + s.safe + ' safe (≥ median), ' + s.moderate + ' moderate (LQ–median), ' + s.risky + ' reach (< LQ), ' + s.unknown + ' without score data.');
-    strategy.flags.forEach(function (f) { notes.push((f.level === 'err' ? '⚠ ' : '• ') + f.text); });
-    if (!strategy.flags.length) notes.push('No structural problems detected in the choice list.');
+    notes.push({ key: 'summaryLine', filled: s.filled, safe: s.safe, moderate: s.moderate, risky: s.risky, unknown: s.unknown });
+    strategy.flags.forEach(function (f) { notes.push(f); });
+    if (!strategy.flags.length) notes.push({ key: 'noProblems' });
     // band balance suggestion
-    if (s.filled && s.safe < 3) notes.push('Recommend at least 2–3 solid "safe" choices in Bands C–E as a fallback.');
+    if (s.filled && s.safe < 3) notes.push({ key: 'addSafeChoices' });
     return notes;
   }
 
   window.JUPASAnalytics = {
     placedBand: placedBand, statsByYear: statsByYear, bandSuccess: bandSuccess,
     bandADependency: bandADependency, competition: competition, applicationTrend: applicationTrend,
+    bandPlacementCheck: bandPlacementCheck,
     chanceForChoice: chanceForChoice, listStrategy: listStrategy, suggestions: suggestions,
     counselingNotes: counselingNotes
   };

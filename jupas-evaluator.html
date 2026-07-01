@@ -124,6 +124,15 @@
   .t-empty{color:var(--muted);font-style:italic;} .t-note{font-size:0.78rem;color:var(--risky);font-weight:700;}
   .detail-h{font-size:0.95rem;margin:18px 0 8px;color:var(--link);font-weight:800;}
   footer{margin-top:24px;color:var(--muted);font-size:0.74rem;border-top:1px solid var(--border);padding-top:14px;}
+  /* per-cell micro-annotations: % deviation, no-UQ / band-share notes */
+  .pos-pct{font-size:0.72rem;color:var(--muted);margin-top:2px;font-weight:700;}
+  .pos-note{font-size:0.72rem;color:var(--mod);margin-top:2px;font-weight:700;}
+  /* language toggle (matches jupas-finder / jupas-tool) */
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+  .lang-toggle{position:relative;z-index:1;flex:none;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px;display:inline-flex;gap:2px;}
+  .lang-toggle button{border:none;background:transparent;padding:5px 13px;border-radius:999px;cursor:pointer;font-size:0.9rem;color:var(--muted);font-family:inherit;font-weight:700;}
+  .lang-toggle button.active{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .lock-zh{margin:2px 0 14px;color:var(--ink);font-size:1.05rem;}
   @media print{ body{background:#fff;} .no-print{display:none !important;} .panel{box-shadow:none;border:1px solid #ccc;break-inside:avoid;} .choice{break-inside:avoid;} }
 </style>
   <style>
@@ -156,6 +165,7 @@
   <div class="lockbox">
     <div class="lock-icon">🔒</div>
     <h2>Teacher passcode</h2>
+    <p class="lock-zh">教師通行碼</p>
     <p class="lock-sub">PLK No.1 W.H. Cheung College · Career Team only<br>只供升學輔導組老師使用</p>
     <input type="password" id="passcode" autocomplete="off" placeholder="Passcode 通行碼">
     <button id="unlock-btn" type="button">Unlock 解鎖</button>
@@ -167,20 +177,23 @@
 <div id="app" class="wrap" style="display:none">
   <div class="hero">
     <img class="hero-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
-    <div class="hero-titles">
-      <span class="hero-eyebrow">🔐 STAFF · JUPAS EVALUATOR</span>
-      <h1>JUPAS All-in-One Evaluator</h1>
-      <p class="subtitle">Upload a student's exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).</p>
-      <p class="hero-disc"><span aria-hidden="true">⚠️</span><span>Unofficial reference tool. Figures come from past intakes and don't guarantee this year's results — always confirm programme details, entry requirements and the latest data on the official <a href="https://www.jupas.edu.hk" target="_blank" rel="noopener">JUPAS website</a> and each university's own website before advising students.</span></p>
+    <div class="hero-top">
+      <div class="hero-titles">
+        <span class="hero-eyebrow" id="t-eyebrow">🔐 STAFF · JUPAS EVALUATOR</span>
+        <h1 id="t-title">JUPAS All-in-One Evaluator</h1>
+        <p class="subtitle" id="t-subtitle">Upload a student's exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).</p>
+        <p class="hero-disc" id="t-herodisc"><span aria-hidden="true">⚠️</span><span>Unofficial reference tool. Figures come from past intakes and don't guarantee this year's results — always confirm programme details, entry requirements and the latest data on the official <a href="https://www.jupas.edu.hk" target="_blank" rel="noopener">JUPAS website</a> and each university's own website before advising students.</span></p>
+      </div>
+      <div class="lang-toggle"><button id="lang-en" class="active">EN</button><button id="lang-zh">中</button></div>
     </div>
   </div>
 
   <div class="panel no-print" id="upload-panel">
-    <h2>1 · Load the student PDF</h2>
+    <h2 id="t-panel1h">1 · Load the student PDF</h2>
     <label class="drop" id="drop">
       <div class="up-ic" aria-hidden="true">⬆️</div>
-      <div class="big">Drop the student's PDF here, or click to choose</div>
-      <div class="hint" style="margin:0">The file the student exported from the JUPAS Choice Evaluator page.</div>
+      <div class="big" id="t-dropbig">Drop the student's PDF here, or click to choose</div>
+      <div class="hint" style="margin:0" id="t-drophint">The file the student exported from the JUPAS Choice Evaluator page.</div>
       <input type="file" id="file" accept=".pdf,application/pdf">
     </label>
     <div class="row-actions"><span id="db-status" class="msg"></span></div>
@@ -190,54 +203,43 @@
   <div id="results" class="hidden">
     <div class="panel" id="tsum-panel">
       <div class="row-actions no-print" style="justify-content:flex-end;margin:0 0 8px">
-        <button class="btn btn-ghost" onclick="window.print()">🖨 Print / Save as PDF report</button>
+        <button class="btn btn-ghost" id="print-btn" onclick="window.print()">🖨 Print / Save as PDF report</button>
       </div>
-      <h2>Teacher summary — at a glance</h2>
+      <h2 id="t-tsumh">Teacher summary — at a glance</h2>
       <div id="tsummary"></div>
     </div>
     <div class="panel">
-      <h2>Student</h2>
+      <h2 id="t-studenth">Student</h2>
       <div class="meta" id="meta"></div>
       <table class="grades" id="grades-tbl"></table>
       <div class="b5" id="b5"></div>
-      <div class="assumed">ℹ Citizenship & Social Development assumed <b>Attained</b> (school policy: 100% attain CSD). This school's students take no M1 or Category-C subjects, so those are out of scope by design.</div>
+      <div class="assumed" id="t-assumed">ℹ Citizenship & Social Development assumed <b>Attained</b> (school policy: 100% attain CSD). This school's students take no M1 or Category-C subjects, so those are out of scope by design.</div>
     </div>
-    <div class="panel"><h2>Overview</h2><div class="chips" id="overview-chips"></div><div id="flags"></div></div>
+    <div class="panel"><h2 id="t-overviewh">Overview</h2><div class="chips" id="overview-chips"></div><div id="flags"></div></div>
     <div class="panel">
-      <h2>The 20 choices</h2>
-      <p class="hint">Computed score is on the same basis as each programme's published median/LQ. "Chance" combines the student's score position with the historical offer rate of the band the choice was placed in.</p>
+      <h2 id="t-choicesh">The 20 choices</h2>
+      <p class="hint" id="t-choiceshint">Computed score is on the same basis as each programme's published median/LQ. "Chance" combines the student's score position with the historical offer rate of the band the choice was placed in.</p>
       <div class="tablewrap">
         <table class="choices" id="summary-tbl">
-          <thead><tr><th>Choice</th><th>Programme</th><th>Score</th><th>Position</th><th>Chance</th><th>Note</th></tr></thead>
+          <thead id="summary-thead"><tr><th>Choice</th><th>Programme</th><th>Score</th><th>Position</th><th>Chance</th><th>Intake</th><th>Eligible</th><th>Band</th><th>Note</th></tr></thead>
           <tbody id="summary-rows"></tbody>
         </table>
       </div>
-      <h3 class="detail-h no-print">Full detail per choice</h3>
+      <h3 class="detail-h no-print" id="t-detailh">Full detail per choice</h3>
       <div id="choices" class="no-print"></div>
     </div>
-    <div class="panel"><h2>Counseling notes</h2><ul id="notes"></ul></div>
-    <div class="panel"><h2>Good-fit programmes not chosen <span style="font-weight:600;font-size:0.8em;color:var(--muted)">(eligible · at/above median)</span></h2><div id="suggestions"></div></div>
+    <div class="panel"><h2 id="t-notesh">Counseling notes</h2><ul id="notes"></ul></div>
+    <div class="panel"><h2><span id="t-suggh">Good-fit programmes not chosen</span> <span id="t-suggsub" style="font-weight:600;font-size:0.8em;color:var(--muted)">(eligible · at/above median)</span></h2><div id="suggestions"></div></div>
   </div>
 
-  <footer>
-    Unofficial teacher tool, for internal guidance only. Admission statistics (median / LQ, offer rates) are from PAST intakes and do not guarantee this year's results.
-    <div class="license-box">
-      <div class="lic-h">Credits &amp; licence</div>
-      <p>The scoring engine (<code>engine.js</code>) and admissions database are a derivative work of the
-        <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> project —
-        <b>© 2026 JUPASCal</b>, used under the
-        <a href="https://github.com/JUPASCal/JUPASCal.github.io?tab=MIT-1-ov-file" target="_blank" rel="noopener">MIT License</a>.</p>
-      <p>PDF ingestion, analytics, teacher report and UI — <b>© 2026 PLK No.1 W.H. Cheung College · Career Team</b>,
-        also released under the MIT License.</p>
-      <p class="lic-asis">THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
-        Full copyright &amp; permission notice: <a href="jupas-evaluator-LICENSE.txt" target="_blank" rel="noopener">jupas-evaluator-LICENSE.txt</a>.</p>
-    </div>
+  <footer id="t-footer">
+    Unofficial teacher tool, for internal guidance only. Admission statistics (median / LQ, offer rates) are from PAST intakes and do not guarantee this year's results. © 2026 PLK No.1 W.H. Cheung College · Career Team. Includes a third-party scoring engine used under licence.
   </footer>
 </div>
 
 <script src="jupas-evaluator-engine.js"></script>
 <script src="jupas-evaluator-analytics.js"></script>
-<script src="jupas-evaluator-ui.js?v=2"></script>
+<script src="jupas-evaluator-ui.js?v=3"></script>
 <div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
 </body>
 </html>
