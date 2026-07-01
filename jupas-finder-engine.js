@@ -290,7 +290,12 @@
 
   function electiveQualifies(pool, subj, grade, prog) {
     var ok = pool.subjects.indexOf("Any") >= 0 || pool.subjects.indexOf("*") >= 0 || subjectMatches(pool.subjects, subj);
-    if (!ok && pool.note && pool.note.indexOf("Category A") >= 0 && (subj.indexOf("Module 1") >= 0 || subj.indexOf("Module 2") >= 0)) ok = true;
+    var isM1M2 = subj.indexOf("Module 1") >= 0 || subj.indexOf("Module 2") >= 0;
+    var noteExcludesM1M2 = pool.note && pool.note.indexOf("excluding M1/M2") >= 0;
+    if (!ok && pool.note && pool.note.indexOf("Category A") >= 0 && isM1M2 && !noteExcludesM1M2) ok = true;
+    // "CategoryA" token (added to the DB 2026-07): any Category-A subject qualifies, minus
+    // whatever the pool's own note excludes (seen so far: "excluding M1/M2").
+    if (!ok && pool.subjects.indexOf("CategoryA") >= 0 && !isCatC(subj) && !(isM1M2 && noteExcludesM1M2)) ok = true;
     if (!ok) return false;
     if (!catCExclusionOk(prog, subj, grade, pool)) return false;
     return meetsGrade(grade, pool.grade, prog, subj);
