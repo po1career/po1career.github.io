@@ -104,6 +104,10 @@
   // Combines: eligibility, score-position band, and the EMPIRICAL success rate of
   // the band the student actually placed the choice in.
   var CHANCE = { strong: 'strong', likely: 'likely', possible: 'possible', stretch: 'stretch', unlikely: 'unlikely', ineligible: 'ineligible', unknown: 'unknown' };
+  // Small intake -> a noisy, volatile year-to-year cut-off even for a strong score, so
+  // it never reads as fully "Likely". Threshold mirrors jupascal.com's own "few places"
+  // dampener, derived from this dataset's own quota quartiles (~20/32/80).
+  var FEW_QUOTA = 20;
 
   function chanceForChoice(evalResult, choiceNo) {
     var prog = evalResult.programme;
@@ -153,6 +157,12 @@
         'low-strong':  CHANCE.stretch, 'low-ok':  CHANCE.unlikely, 'low-weak':  CHANCE.unlikely,
         'closed-strong': CHANCE.stretch, 'closed-ok': CHANCE.unlikely, 'closed-weak': CHANCE.unlikely
       }[viab + '-' + sc];
+    }
+
+    // Few-places dampener: cap a top-tier read down one notch when the intake is tiny.
+    if ((out.label === CHANCE.strong || out.label === CHANCE.likely) && prog.quota != null && prog.quota <= FEW_QUOTA) {
+      out.reasons.push({ key: 'fewPlacesDampened', quota: prog.quota });
+      out.label = CHANCE.possible;
     }
     return out;
   }

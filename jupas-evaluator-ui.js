@@ -168,6 +168,7 @@
       notEligible: function () { return 'Does not meet minimum entry requirements'; },
       bandOfferRate: function (d) { return 'In Band ' + d.band + ', ' + (d.rate * 100).toFixed(1) + '% of applicants were made offers (' + d.offers + '/' + d.apps + ', last ' + d.years + 'y)'; },
       bandADominates: function (d) { return '~' + d.pct + '% of offers go to Band-A applicants — listing it this low rarely succeeds'; },
+      fewPlacesDampened: function (d) { return 'Small quota (' + d.quota + ' places) — a strong read is capped to Moderate, since a tiny intake makes the cut-off swing a lot year to year'; },
       scorePosition: function (d) { return 'Your computed score is ' + POS_PHRASE.en[d.posBand] + ' of past intakes'; },
       nonAcademicDuties: function (d) {
         var s = S();
@@ -189,6 +190,7 @@
       notEligible: function () { return '未符合最低入學要求'; },
       bandOfferRate: function (d) { return '在 Band ' + d.band + '，' + (d.rate * 100).toFixed(1) + '% 的申請人獲得取錄（' + d.offers + '/' + d.apps + '，最近 ' + d.years + ' 年）'; },
       bandADominates: function (d) { return '約 ' + d.pct + '% 的取錄名額給予 Band A 申請人——排在這麼後的位置甚少成功'; },
+      fewPlacesDampened: function (d) { return '學額較少（' + d.quota + ' 個）——評級由「高」調低至「中等」，因為學額太少令收生分數線每年波動較大'; },
       scorePosition: function (d) { return '你的計算分數' + POS_PHRASE.zh[d.posBand] + '（相比過往收生資料）'; },
       nonAcademicDuties: function (d) {
         var s = S();
