@@ -18,9 +18,11 @@
   var INST_ZH = { HKU: '香港大學', CUHK: '香港中文大學', HKUST: '香港科技大學', CityUHK: '香港城市大學', PolyU: '香港理工大學', HKBU: '香港浸會大學', EdUHK: '香港教育大學', LingnanU: '嶺南大學', HKMU: '香港都會大學', SSSDP: '指定專業/界別課程資助計劃 (SSSDP)' };
   var ELIG_LABEL_ZH = { CHI: '中文', ENG: '英文', MATH: '數學', CSD: '公民與社會發展', 'Elective 1': '選修科一', 'Elective 2': '選修科二', EXTRA: '額外要求' };
   var CMP_BAND = { aboveUQ: 'above-uq', aboveM: 'above-median', aboveLQ: 'above-lq', belowLQ: 'below-lq', nodata: 'no-score' };
-  // the engine's 7-value chance synthesis (strong/likely/possible/stretch/unlikely/ineligible/unknown) is
-  // collapsed to 5 display tags — wording-only simplification, the underlying computation is unchanged.
-  var CHANCE_DISPLAY = { strong: 'likely', likely: 'likely', possible: 'moderate', stretch: 'risky', unlikely: 'risky', ineligible: 'ineligible', unknown: 'nodata' };
+  // jupascal's 7 native risk tiers (safe/fair/risky/high-risk/unsafe/blocked/unknown)
+  // collapsed to our 5 display tags, grouped by jupascal's OWN tone (good/good/warn/
+  // alert/bad/bad/neutral) — blocked and unsafe share jupascal's "bad" tone but stay
+  // split here since eligibility is a hard gate, not a soft risk read.
+  var CHANCE_DISPLAY = { safe: 'likely', fair: 'likely', risky: 'moderate', 'high-risk': 'risky', unsafe: 'risky', blocked: 'ineligible', unknown: 'nodata' };
   var CHANCE_CLS = { likely: 'p-safe', moderate: 'p-mod', risky: 'p-risky', ineligible: 'p-inelig', nodata: 'p-unk' };
   function chanceKey(label) { return CHANCE_DISPLAY[label] || 'nodata'; }
   var BAND_VERDICT_CLS = { wrong: 'p-inelig', appropriate: 'p-elig', caution: 'p-mod', flexible: 'p-unk', 'no-data': 'p-unk' };
@@ -36,9 +38,12 @@
   function eligLabel(l) { return lang === 'zh' ? (ELIG_LABEL_ZH[l] || l) : l; }
 
   /* ---------- static / dynamic text dictionary ---------- */
-  var POS_PHRASE = {
-    en: { 'above-uq': 'at/above UQ', 'above-median': 'between median and UQ', 'above-lq': 'between LQ and median', 'below-lq': 'below LQ' },
-    zh: { 'above-uq': '達到或高於上四分位數', 'above-median': '介乎中位數與上四分位數之間', 'above-lq': '介乎下四分位數與中位數之間', 'below-lq': '低於下四分位數' }
+  // 6-level score-band phrases for the Chance reasons list (jupascal's getScoreBand
+  // buckets) — distinct from posLabel below, which is the Position column's own
+  // simpler 4-level band.
+  var SCORE_BAND_PHRASE = {
+    en: { uq: 'at or above this programme’s upper quartile (or its estimated equivalent)', med: 'at or above the median but below the upper quartile', 'near-med': 'just below the median', 'near-lq': 'around the lower quartile', 'below-lq': 'below the lower quartile', 'far-below-lq': 'well below the lower quartile' },
+    zh: { uq: '達到或高於本課程的上四分位數（或其估算值）', med: '達到或高於中位數，但低於上四分位數', 'near-med': '僅低於中位數', 'near-lq': '接近下四分位數', 'below-lq': '低於下四分位數', 'far-below-lq': '遠低於下四分位數' }
   };
   var STR = {
     en: {
@@ -134,10 +139,15 @@
       noProblems: function () { return 'No structural problems detected in the choice list.'; },
       addSafeChoices: function () { return 'Recommend at least 2–3 solid "safe" choices in Bands C–E as a fallback.'; },
       notEligible: function () { return 'Does not meet minimum entry requirements'; },
-      bandOfferRate: function (d) { return 'In Band ' + d.band + ', ' + (d.rate * 100).toFixed(1) + '% of applicants were made offers (' + d.offers + '/' + d.apps + ', last ' + d.years + 'y)'; },
-      bandADominates: function (d) { return '~' + d.pct + '% of offers go to Band-A applicants — listing it this low rarely succeeds'; },
-      fewPlacesDampened: function (d) { return 'Small quota (' + d.quota + ' places) — a strong read is capped to Moderate, since a tiny intake makes the cut-off swing a lot year to year'; },
-      scorePosition: function (d) { return 'Your computed score is ' + POS_PHRASE.en[d.posBand] + ' of past intakes'; },
+      noScoreBenchmark: function () { return 'No published median/mean/expected score to compare against, or no computed total — chance can’t be estimated.'; },
+      scoreBandPosition: function (d) { return 'Your computed score is ' + SCORE_BAND_PHRASE.en[d.scoreBand] + '.'; },
+      slotRole: function (d) {
+        if (d.index === 0) return 'Placed as Choice 1 (A1) — the most lenient tier; an ambitious score is fine here.';
+        if (d.index === 1) return 'Placed as Choice 2 (A2) — treated as a realistic target.';
+        if (d.index === 2) return 'Placed as Choice 3 (A3) — your Band-A anchor; this one should be more certain.';
+        return 'Placed as Choice ' + (d.index + 1) + ', outside Band A — only a score at/above the upper quartile counts as a real shot here.';
+      },
+      fewPlacesDampened: function (d) { return 'Small quota (' + d.quota + ' places) — even this strong a read is treated more cautiously internally, since a tiny intake makes the cut-off swing a lot year to year (may not change the tag shown, but it is the more conservative edge of "Likely")'; },
       nonAcademicDuties: function (d) {
         var s = S();
         var parts = d.items.map(function (it) { return window.JUPASAnalytics.placedBand(it.no) + it.no + ' ' + it.types.map(function (ty) { return s.naType[ty] || ty; }).join('/'); });
@@ -156,10 +166,15 @@
       noProblems: function () { return '選項名單未發現結構性問題。'; },
       addSafeChoices: function () { return '建議在 C 至 E 組別加入最少 2 至 3 個穩妥選項作為保底。'; },
       notEligible: function () { return '未符合最低入學要求'; },
-      bandOfferRate: function (d) { return '在 Band ' + d.band + '，' + (d.rate * 100).toFixed(1) + '% 的申請人獲得取錄（' + d.offers + '/' + d.apps + '，最近 ' + d.years + ' 年）'; },
-      bandADominates: function (d) { return '約 ' + d.pct + '% 的取錄名額給予 Band A 申請人——排在這麼後的位置甚少成功'; },
-      fewPlacesDampened: function (d) { return '學額較少（' + d.quota + ' 個）——評級由「高」調低至「中等」，因為學額太少令收生分數線每年波動較大'; },
-      scorePosition: function (d) { return '你的計算分數' + POS_PHRASE.zh[d.posBand] + '（相比過往收生資料）'; },
+      noScoreBenchmark: function () { return '沒有公布的中位數／平均分／預期分數作比較，或未能計算總分——無法評估機會。'; },
+      scoreBandPosition: function (d) { return '你的計算分數' + SCORE_BAND_PHRASE.zh[d.scoreBand] + '。'; },
+      slotRole: function (d) {
+        if (d.index === 0) return '置於第 1 志願（A1）——最寬鬆的一級，大膽／進取的分數也可接受。';
+        if (d.index === 1) return '置於第 2 志願（A2）——視為較實際的目標。';
+        if (d.index === 2) return '置於第 3 志願（A3）——你在 Band A 的「錨」，應該更有把握。';
+        return '置於第 ' + (d.index + 1) + ' 志願，Band A 以外——只有達到或高於上四分位數的分數才視為有實質機會。';
+      },
+      fewPlacesDampened: function (d) { return '學額較少（' + d.quota + ' 個）——即使分數本屬「高」評級，內部仍會較審慎看待，因為學額太少令收生分數線每年波動較大（標籤未必因此改變，但屬於「高」評級中較保守的一端）'; },
       nonAcademicDuties: function (d) {
         var s = S();
         var parts = d.items.map(function (it) { return window.JUPASAnalytics.placedBand(it.no) + it.no + ' ' + it.types.map(function (ty) { return s.naType[ty] || ty; }).join('／'); });
@@ -324,9 +339,9 @@
       m += '<div class="metric"><div class="k">' + esc(s.mPosition) + '</div><div class="v"><span class="pill ' + posCls(ev.band) + '">' + esc(s.posLabel[ev.band]) + '</span>' + (refBreak ? '<div class="pos-pct">' + esc(refBreak) + '</div>' : '') + noUqNote(ref) + '</div></div>';
       m += '<div class="metric"><div class="k">' + esc(s.mChance(c.no, band)) + '</div><div class="v"><span class="pill ' + chanceCls + '">' + esc(s.chanceLabel[chanceKey(chance.label)]) + '</span></div></div>';
       m += '<div class="metric"><div class="k">' + esc(s.mRefMedLq) + '</div><div class="v">' + (ref.median != null ? ref.median : '—') + (ref.lq != null ? ' / ' + ref.lq : '') + (ref.source !== 'actual' && ref.median != null ? ' <span style="color:var(--muted)">(' + ref.source + ')</span>' : '') + '</div></div>';
-      var comp = chance.competition;
+      var comp = window.JUPASAnalytics.competition(p);
       m += '<div class="metric"><div class="k">' + esc(s.mQuota) + '</div><div class="v">' + (p.quota != null ? p.quota : '—') + (comp ? ' · ' + comp.ratio.toFixed(0) + esc(s.applicantsPerPlace) : '') + '</div></div>';
-      var dep = chance.dependency;
+      var dep = window.JUPASAnalytics.bandADependency(p);
       m += '<div class="metric"><div class="k">' + esc(s.mBandA) + '</div><div class="v">' + (dep ? Math.round(dep.share * 100) + '%' : '—') + '</div></div>';
       var naItems = p.non_academic || [];
       if (naItems.length) m += '<div class="metric"><div class="k">' + esc(s.mNonAcademic) + '</div><div class="v">' + naItems.map(naItemText).join('<br>') + '</div></div>';

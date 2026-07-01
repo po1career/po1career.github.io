@@ -100,70 +100,85 @@
     return { placedBand: band, dependency: dep, tier: tier, verdict: verdict };
   }
 
-  // ---- per-choice chance synthesis -------------------------------------------
-  // Combines: eligibility, score-position band, and the EMPIRICAL success rate of
-  // the band the student actually placed the choice in.
-  var CHANCE = { strong: 'strong', likely: 'likely', possible: 'possible', stretch: 'stretch', unlikely: 'unlikely', ineligible: 'ineligible', unknown: 'unknown' };
-  // Small intake -> a noisy, volatile year-to-year cut-off even for a strong score, so
-  // it never reads as fully "Likely". Threshold mirrors jupascal.com's own "few places"
-  // dampener, derived from this dataset's own quota quartiles (~20/32/80).
-  var FEW_QUOTA = 20;
+  // ---- per-choice chance: 100% ported from jupascal.com's own risk-tag algorithm ---
+  // (github.com/JUPASCal/JUPASCal.github.io, src/lib/analysis.ts getScoreBand()/
+  // getSlotRisk()/riskMeta() — cloned and read directly, not reverse-engineered from
+  // the minified bundle). This REPLACES the previous empirical-offer-rate model —
+  // band viability now lives entirely in bandPlacementCheck() / the Band column.
+  // Constants and thresholds are copied verbatim from their source.
+  var UQ_K = 1.25;            // synthetic-UQ = median + UQ_K * upperSpread when no real UQ
+  var SPREAD_FLOOR_FRAC = 0.05; // minimum lower spread, as a fraction of the median
+  var A_SLOT_COUNT = 3;       // Band A = choices #1-3; only these get per-slot tables
+  var FEW_QUOTA = 20;         // intake at/below this -> noisy cut-off, cap "safe" to "fair"
+
+  // 6-level score-vs-quartile bucket, gap-based (distinct from engine.js's simpler
+  // 4-level bandOf()/ev.band that drives the Position column — jupascal itself keeps
+  // these as two separate systems too: getBenchmarkBand (4-level) vs getScoreBand
+  // (6-level, Chance-only)). Ported verbatim from jupascal's getScoreBand().
+  function getScoreBand(evalResult) {
+    // refScores() is byte-for-byte identical to jupascal's effectiveBenchmarks()
+    // (same median->mean->expected_score fallback) — reused directly, not re-derived.
+    var ref = window.JUPASEngine.refScores(evalResult.programme);
+    var median = ref.median, lq = ref.lq, publishedUq = ref.uq;
+    var total = evalResult.calculation.totalScore;
+    if (median == null || !total) return 'unknown';
+    var rawSpread = lq != null ? Math.max(median - lq, 0) : 0;
+    var spread = Math.max(rawSpread, median * SPREAD_FLOOR_FRAC);
+    var upperSpread = rawSpread > 0 ? rawSpread : spread;
+    var uq = (publishedUq != null && publishedUq > median) ? publishedUq : median + UQ_K * upperSpread;
+    if (total >= uq) return 'uq';
+    if (total >= median) return 'med';
+    if (lq != null) {
+      var nearMedFloor = median - (rawSpread > 0 ? rawSpread / 2 : spread / 2);
+      if (total >= nearMedFloor) return 'near-med';
+      if (total >= lq) return 'near-lq';
+      if (total >= lq - spread) return 'below-lq';
+      return 'far-below-lq';
+    }
+    if (total >= median - spread / 2) return 'near-med';
+    if (total >= median - spread) return 'near-lq';
+    if (total >= median - 2 * spread) return 'below-lq';
+    return 'far-below-lq';
+  }
+
+  // Per-slot risk tables: choice #1/#2/#3 (index 0/1/2, "A1/A2/A3") each escalate in
+  // strictness; choice #4+ collapses to one binary rule. Ported verbatim.
+  var SLOT_TABLE = [
+    { uq: 'safe', med: 'safe',  'near-med': 'fair',      'near-lq': 'fair',      'below-lq': 'high-risk', 'far-below-lq': 'high-risk' }, // A1
+    { uq: 'safe', med: 'fair',  'near-med': 'risky',     'near-lq': 'risky',     'below-lq': 'high-risk', 'far-below-lq': 'unsafe' },    // A2
+    { uq: 'safe', med: 'risky', 'near-med': 'high-risk', 'near-lq': 'unsafe',    'below-lq': 'unsafe',    'far-below-lq': 'unsafe' }     // A3
+  ];
+
+  function getSlotRisk(evalResult, index) {
+    if (!evalResult.eligibility.eligible) return 'blocked';
+    var band = getScoreBand(evalResult);
+    if (band === 'unknown') return 'unknown';
+    var quota = evalResult.programme.quota != null ? evalResult.programme.quota : null;
+    var fewPlaces = quota != null && quota <= FEW_QUOTA;
+    var level = index < A_SLOT_COUNT ? SLOT_TABLE[index][band] : (band === 'uq' ? 'risky' : 'unsafe');
+    if (fewPlaces && level === 'safe') level = 'fair';
+    return level;
+  }
 
   function chanceForChoice(evalResult, choiceNo) {
-    var prog = evalResult.programme;
+    var index = choiceNo - 1;
     var band = placedBand(choiceNo);
-    var bs = bandSuccess(prog, band, 3);
-    var dep = bandADependency(prog);
-    var comp = competition(prog);
-    var out = { placedBand: band, bandSuccess: bs, dependency: dep, competition: comp,
-      positionBand: evalResult.band, reasons: [] };
+    var scoreBand = getScoreBand(evalResult);
+    var tier = getSlotRisk(evalResult, index);
+    var out = { placedBand: band, scoreBand: scoreBand, reasons: [] };
 
-    if (!evalResult.eligibility.eligible) { out.label = CHANCE.ineligible; out.reasons.push({ key: 'notEligible' }); return out; }
+    if (tier === 'blocked') { out.label = tier; out.reasons.push({ key: 'notEligible' }); return out; }
+    if (tier === 'unknown') { out.label = tier; out.reasons.push({ key: 'noScoreBenchmark' }); return out; }
 
-    // position score: 4=>=UQ-ish/median strong, down to 1 below LQ
-    var posRank = { 'above-uq': 4, 'above-median': 3, 'above-lq': 2, 'below-lq': 1, 'no-score': null }[evalResult.band];
+    out.reasons.push({ key: 'scoreBandPosition', scoreBand: scoreBand });
+    out.reasons.push({ key: 'slotRole', index: index, band: band });
 
-    // empirical band reality
-    var empRank = null;
-    if (bs) {
-      if (bs.rate >= 0.5) empRank = 4;
-      else if (bs.rate >= 0.15) empRank = 3;
-      else if (bs.rate >= 0.04) empRank = 2;
-      else empRank = 1;
-      out.reasons.push({ key: 'bandOfferRate', band: band, rate: bs.rate, offers: bs.offers, apps: bs.apps, years: bs.yearsUsed });
-    }
-    if (dep && dep.share >= 0.9 && (band === 'C' || band === 'D' || band === 'E'))
-      out.reasons.push({ key: 'bandADominates', pct: Math.round(dep.share * 100) });
+    var quota = evalResult.programme.quota != null ? evalResult.programme.quota : null;
+    var fewPlaces = quota != null && quota <= FEW_QUOTA;
+    var preDampTier = index < A_SLOT_COUNT ? SLOT_TABLE[index][scoreBand] : (scoreBand === 'uq' ? 'risky' : 'unsafe');
+    if (fewPlaces && preDampTier === 'safe' && tier === 'fair') out.reasons.push({ key: 'fewPlacesDampened', quota: quota });
 
-    if (posRank != null) out.reasons.push({ key: 'scorePosition', posBand: evalResult.band });
-
-    // Synthesis: JUPAS offers go top-down, so the EMPIRICAL offer rate of the band
-    // the student placed the choice in is the dominant signal. Score position refines
-    // it. A strong score in a band that historically never admits => "Stretch"
-    // (i.e. move it to a higher band), not "Possible".
-    var viab = null; // viability of the placed band, from history
-    if (bs) { viab = bs.rate >= 0.15 ? 'high' : bs.rate >= 0.04 ? 'med' : bs.rate >= 0.01 ? 'low' : 'closed'; }
-    var sc = posRank == null ? null : (posRank >= 3 ? 'strong' : posRank === 2 ? 'ok' : 'weak');
-
-    if (viab == null && sc == null) { out.label = CHANCE.unknown; return out; }
-    if (viab == null) {            // no offer stats -> score only (can't confirm "Strong")
-      out.label = sc === 'strong' ? CHANCE.likely : sc === 'ok' ? CHANCE.possible : CHANCE.unlikely;
-    } else if (sc == null) {       // no score -> empirical viability only
-      out.label = viab === 'high' ? CHANCE.likely : viab === 'med' ? CHANCE.possible : CHANCE.unlikely;
-    } else {
-      out.label = {
-        'high-strong': CHANCE.strong,  'high-ok': CHANCE.likely,   'high-weak': CHANCE.stretch,
-        'med-strong':  CHANCE.likely,  'med-ok':  CHANCE.possible, 'med-weak':  CHANCE.stretch,
-        'low-strong':  CHANCE.stretch, 'low-ok':  CHANCE.unlikely, 'low-weak':  CHANCE.unlikely,
-        'closed-strong': CHANCE.stretch, 'closed-ok': CHANCE.unlikely, 'closed-weak': CHANCE.unlikely
-      }[viab + '-' + sc];
-    }
-
-    // Few-places dampener: cap a top-tier read down one notch when the intake is tiny.
-    if ((out.label === CHANCE.strong || out.label === CHANCE.likely) && prog.quota != null && prog.quota <= FEW_QUOTA) {
-      out.reasons.push({ key: 'fewPlacesDampened', quota: prog.quota });
-      out.label = CHANCE.possible;
-    }
+    out.label = tier;
     return out;
   }
 
@@ -283,6 +298,7 @@
     placedBand: placedBand, statsByYear: statsByYear, bandSuccess: bandSuccess,
     bandADependency: bandADependency, competition: competition, applicationTrend: applicationTrend,
     bandPlacementCheck: bandPlacementCheck, isTentativeNonAcademic: isTentativeNonAcademic,
+    getScoreBand: getScoreBand, getSlotRisk: getSlotRisk,
     chanceForChoice: chanceForChoice, listStrategy: listStrategy, suggestions: suggestions,
     counselingNotes: counselingNotes
   };
