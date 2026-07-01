@@ -56,8 +56,6 @@
   table.grades{border-collapse:collapse;margin-top:10px;font-size:0.9rem;}
   table.grades td,table.grades th{border:1px solid var(--border);padding:4px 12px;text-align:left;} table.grades th{background:var(--accent-soft);}
   .b5{margin-top:10px;font-weight:800;color:var(--accent-dark);}
-  .assumed{font-size:0.8rem;color:var(--mod);background:var(--mod-bg);border-radius:8px;padding:6px 10px;display:inline-block;margin-top:8px;}
-  .assumed.alert{color:var(--risky);background:var(--risky-bg);font-weight:800;display:block;}
   .choice{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff;}
   .choice.band-A{border-left:5px solid var(--accent);} .choice.band-B{border-left:5px solid #7d9a78;}
   .choice.band-C{border-left:5px solid #6189a3;} .choice.band-D{border-left:5px solid #927ba0;} .choice.band-E{border-left:5px solid #bd7d54;}
@@ -76,10 +74,6 @@
   .reasons{margin-top:8px;font-size:0.8rem;color:var(--muted);} .reasons li{margin:1px 0;}
   .warn-inline{color:var(--risky);font-weight:800;}
   .band-sep{font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--link);margin:14px 0 6px;}
-  .flag{padding:8px 12px;border-radius:10px;margin-bottom:6px;font-size:0.88rem;font-weight:600;}
-  .flag.err{background:var(--risky-bg);color:var(--risky);} .flag.warn{background:var(--mod-bg);color:var(--mod);} .flag.ok{background:var(--vsafe-bg);color:var(--vsafe);}
-  .flag.info{background:var(--unk-bg);color:var(--unk);}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
   .sugg{border-bottom:1px solid var(--border);padding:7px 0;font-size:0.88rem;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;} .sugg .code{font-weight:800;color:var(--link);min-width:64px;}
   .hidden{display:none;}
   /* hero (matches the site's tool pages) */
@@ -97,22 +91,6 @@
     background:rgba(255,255,255,.82);border:1px solid #e8c9a8;border-left:4px solid var(--accent-dark);border-radius:10px;
     padding:9px 13px;font-size:0.82rem;font-weight:600;color:#7a3517;line-height:1.55;}
   .hero-disc a{color:var(--link);font-weight:800;}
-  /* footer credit / licence box */
-  .license-box{margin-top:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);padding:12px 14px;font-size:0.74rem;line-height:1.6;}
-  .license-box .lic-h{font-weight:800;color:var(--link);text-transform:uppercase;letter-spacing:.04em;font-size:0.72rem;margin-bottom:6px;}
-  .license-box p{margin:0 0 6px;} .license-box p:last-child{margin-bottom:0;}
-  .license-box code{background:var(--accent-soft);padding:1px 5px;border-radius:5px;}
-  .license-box .lic-asis{color:var(--muted);font-size:0.7rem;}
-  .license-box a{color:var(--link);font-weight:700;}
-  /* teacher at-a-glance summary */
-  .verdict{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
-  .verdict .lamp{font-size:1.5rem;line-height:1;}
-  .verdict .vhead{font-weight:800;font-size:1.06rem;}
-  .verdict.v-red .vhead{color:var(--risky);} .verdict.v-amber .vhead{color:var(--mod);} .verdict.v-green .vhead{color:var(--vsafe);}
-  .tsum-stat{color:var(--muted);font-size:.86rem;font-weight:700;margin:0 0 8px;}
-  .tsum-lbl{font-weight:800;font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-  .tsum-actions{margin:4px 0 0;padding-left:18px;} .tsum-actions li{margin:3px 0;font-size:.9rem;}
-  .tsum-rec{margin-top:12px;background:var(--accent-soft);border-radius:10px;padding:10px 13px;font-size:.9rem;font-weight:700;color:var(--link);}
   /* summary table of the 20 choices (adopted from the teacher page) */
   .tablewrap{overflow-x:auto;}
   table.choices{border-collapse:collapse;width:100%;min-width:720px;font-size:0.86rem;}
@@ -203,21 +181,15 @@
   </div>
 
   <div id="results" class="hidden">
-    <div class="panel" id="tsum-panel">
-      <div class="row-actions no-print" style="justify-content:flex-end;margin:0 0 8px">
-        <button class="btn btn-ghost" id="print-btn" onclick="window.print()">🖨 Print / Save as PDF report</button>
-      </div>
-      <h2 id="t-tsumh">Teacher summary — at a glance</h2>
-      <div id="tsummary"></div>
+    <div class="row-actions no-print" style="justify-content:flex-end;margin:0 0 8px">
+      <button class="btn btn-ghost" id="print-btn" onclick="window.print()">🖨 Print / Save as PDF report</button>
     </div>
     <div class="panel">
       <h2 id="t-studenth">Student</h2>
       <div class="meta" id="meta"></div>
       <table class="grades" id="grades-tbl"></table>
       <div class="b5" id="b5"></div>
-      <div class="assumed" id="t-assumed">ℹ Citizenship & Social Development assumed <b>Attained</b> (school policy: 100% attain CSD). This school's students take no M1 or Category-C subjects, so those are out of scope by design.</div>
     </div>
-    <div class="panel"><h2 id="t-overviewh">Overview</h2><div class="chips" id="overview-chips"></div><div id="flags"></div></div>
     <div class="panel">
       <h2 id="t-choicesh">The 20 choices</h2>
       <p class="hint" id="t-choiceshint">Computed score is on the same basis as each programme's published median/LQ. "Chance" combines the student's score position with the historical offer rate of the band the choice was placed in.</p>
@@ -241,7 +213,7 @@
 
 <script src="jupas-evaluator-engine.js"></script>
 <script src="jupas-evaluator-analytics.js"></script>
-<script src="jupas-evaluator-ui.js?v=6"></script>
+<script src="jupas-evaluator-ui.js?v=7"></script>
 <div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
 </body>
 </html>
