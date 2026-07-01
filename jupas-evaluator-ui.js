@@ -48,7 +48,7 @@
   var STR = {
     en: {
       title: 'JUPAS Evaluator (Teacher)', eyebrow: '🔐 STAFF · JUPAS EVALUATOR', heroTitle: 'JUPAS All-in-One Evaluator',
-      heroSubtitle: 'Upload a student’s exported "JUPAS Choices" PDF. Scores, eligibility, competitiveness, admission chance and list strategy are computed against the live JUPAS 2026 database (422 programmes, offer statistics 2012–2025).',
+      heroSubtitle: 'Upload a student’s exported "JUPAS Choices" PDF. Scores, eligibility (including CSD and any extra entry rules), admission chance, Band placement, and non-academic requirements (interviews, portfolios, etc.) are computed for all 20 choices against the live JUPAS 2026 database (422 programmes).',
       heroDisc: 'Unofficial reference tool. Figures come from past intakes and don’t guarantee this year’s results — always confirm programme details, entry requirements and the latest data on the official <a href="https://www.jupas.edu.hk" target="_blank" rel="noopener">JUPAS website</a> and each university’s own website before advising students.',
       panel1h: '1 · Load the student PDF', dropBig: 'Drop the student’s PDF here, or click to choose',
       dropHint: 'The file the student exported from the JUPAS Choice Evaluator page.', printBtn: '🖨 Print / Save as PDF report',
@@ -86,7 +86,7 @@
     },
     zh: {
       title: 'JUPAS 評估工具（教師版）', eyebrow: '🔐 職員專用 · JUPAS 評估工具', heroTitle: 'JUPAS 全方位評估工具',
-      heroSubtitle: '上載學生從「JUPAS 選科自評工具」匯出的 PDF。系統會根據 JUPAS 2026 最新資料庫（422 個課程、2012–2025 收生統計）計算分數、資格、競爭力、錄取機會及選科策略。',
+      heroSubtitle: '上載學生從「JUPAS 選科自評工具」匯出的 PDF。系統會根據 JUPAS 2026 最新資料庫（422 個課程）為全部 20 個選項計算分數、資格（包括公民與社會發展科及任何額外收生要求）、錄取機會、Band 位置，以及非學術收生要求（面試、作品集等）。',
       heroDisc: '非官方參考工具。數據來自過往年度收生資料，不保證本年度結果 — 建議學生前務必於官方<a href="https://www.jupas.edu.hk" target="_blank" rel="noopener">JUPAS 網站</a>及各大學網站核實課程資料及最新入學要求。',
       panel1h: '1 · 上載學生 PDF', dropBig: '將學生的 PDF 拖放至此，或按此選擇檔案',
       dropHint: '學生從 JUPAS 選科自評工具頁面匯出的檔案。', printBtn: '🖨 列印／儲存為 PDF 報告',
