@@ -3,6 +3,9 @@
    Faithful port of jupascal.com's dataWorker engine (de-minified + renamed),
    so computed scores match jupascal exactly.
 
+   SHARED by jupas-evaluator.html AND jupas-finder.html — the single copy both
+   tools load. When bumping its ?v= cache-buster, bump it in BOTH pages.
+
    Adapted from JUPASCal — https://github.com/JUPASCal/JUPASCal.github.io
    Licensed under the MIT License. Copyright (c) 2026 JUPASCal.
    See the bundled LICENSE file; this notice must be retained in redistributions.
