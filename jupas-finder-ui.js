@@ -1,5 +1,5 @@
 /* JUPAS Programme Finder+ — UI controller + passcode gate.
-   Loads after jupas-finder-engine.js, -analytics.js, -core.js.
+   Loads after jupas-engine.js (shared with jupas-evaluator.html), -analytics.js, -core.js.
    Gate mirrors jupas-tool.js (PBKDF2-SHA256 150k + AES-GCM-256) but decrypts a JSON DB.
    Adapted from JUPASCal (MIT, © 2026 JUPASCal). */
 (function () {

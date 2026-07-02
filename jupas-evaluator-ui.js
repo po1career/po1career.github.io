@@ -1,5 +1,5 @@
 /* JUPAS All-in-One Evaluator (TEACHER) — UI + passcode gate + bilingual (EN/中).
-   Loads after jupas-evaluator-engine.js and jupas-evaluator-analytics.js.
+   Loads after jupas-engine.js (shared with jupas-finder.html) and jupas-evaluator-analytics.js.
    Gate mirrors po1career's jupas-choices.js: PBKDF2-SHA256 150k + AES-GCM-256,
    decrypting jupas-evaluator-db.enc.json into the in-memory programmes DB.
    Adapted from JUPASCal (MIT, © 2026 JUPASCal) — see LICENSE. */

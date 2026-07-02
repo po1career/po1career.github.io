@@ -1,4 +1,4 @@
-This tool is a derivative work. Its scoring engine (jupas-finder-engine.js) is a
+This tool is a derivative work. Its scoring engine (jupas-engine.js) is a
 port of, and its admissions database is taken from, the JUPASCal project —
 https://github.com/JUPASCal/JUPASCal.github.io — distributed under the MIT License,
 reproduced below. The MIT License requires that this copyright and permission notice

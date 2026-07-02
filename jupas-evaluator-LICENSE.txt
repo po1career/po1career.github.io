@@ -1,4 +1,4 @@
-This tool is a derivative work. Its scoring engine (engine.js) is a port of, and
+This tool is a derivative work. Its scoring engine (jupas-engine.js) is a port of, and
 its admissions database (JUPAS_2026_Unified_Data.json, programme_details_2026.json)
 is taken from, the JUPASCal project — https://github.com/JUPASCal/JUPASCal.github.io
 — which is distributed under the MIT License, reproduced below. The MIT License
