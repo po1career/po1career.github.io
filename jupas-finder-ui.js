@@ -47,6 +47,9 @@
       targets: '🎯 My targets', targetsHint: 'Your dream programmes and exactly what it would take to reach them.',
       shortlist: '⭐ My shortlist', printbtn: '🖨 Print my shortlist',
       moreN: function (n) { return '+ ' + n + ' more'; },
+      unlock: function (subj, from, to, n) { return '💡 Biggest single boost: raising <b>' + subj + '</b> from ' + from + ' to ' + to + ' would bring <b>' + n + '</b> more programme' + (n === 1 ? '' : 's') + ' within reach.'; },
+      chanceTip: 'Estimated as if placed in Band A (a top-3 choice), from past intakes — placing it lower reduces the chance.',
+      aria: { elective: 'Elective subject ', level: 'Level for elective ', inst: 'Filter by institution', sort: 'Sort order', star: 'Add to shortlist', starOn: 'Remove from shortlist', tgt: 'Set as target', tgtOn: 'Remove target', details: 'Toggle details for ' },
       footerHtml: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are NOT comparable across institutions; admission statistics and chances are from PAST intakes and do not guarantee this year\'s results. Always verify on www.jupas.edu.hk.<br><br>Scoring engine and database adapted from <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> under the MIT License — © 2026 JUPASCal. See jupas-finder-LICENSE.txt.',
       footer: '' },
     zh: { home: '← 返回主頁', title: 'JUPAS 課程搜尋器＋', subtitle: '輸入成績，找出適合你的課程，並看看你距離心儀課程有多近。',
@@ -70,6 +73,9 @@
       targets: '🎯 我的目標', targetsHint: '你的心儀課程，以及達成所需的條件。',
       shortlist: '⭐ 我的候選名單', printbtn: '🖨 列印候選名單',
       moreN: function (n) { return '再顯示 ' + n + ' 個'; },
+      unlock: function (subj, from, to, n) { return '💡 最大單科提升：<b>' + subj + '</b> 由 ' + from + ' 升至 ' + to + '，可令多 <b>' + n + '</b> 個課程變成「有機會」。'; },
+      chanceTip: '假設放在 Band A（首三志願）、按過往數據的估算——放在較後志願機會會較低。',
+      aria: { elective: '選修科 ', level: '選修科等級 ', inst: '按院校篩選', sort: '排序方式', star: '加入候選名單', starOn: '移出候選名單', tgt: '設為目標', tgtOn: '取消目標', details: '顯示／收起詳情：' },
       footerHtml: '本工具只供保良局第一張永慶中學學生參考，並非 JUPAS 官方工具。分數按各課程自己的公式計算，不可跨院校比較；收生統計及機會均為過往年度數據，不代表本年度結果。報讀前請於 www.jupas.edu.hk 核實。<br><br>計分引擎及資料庫改編自 <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a>，採用 MIT 授權 — © 2026 JUPASCal。詳見 jupas-finder-LICENSE.txt。',
       footer: '' }
   };
@@ -79,6 +85,14 @@
   function pName(p) { return lang === 'zh' ? (p.name_zh || p.name_en) : p.name_en; }
   function pInst(p) { return lang === 'zh' ? (p.institution_zh || p.institution) : p.institution; }
   function electLabel(k) { return lang === 'zh' ? (F.ELECT_LABEL_ZH[k] || k) : (F.ELECT_LABEL[k] || k); }
+  // label for a subject KEY (core or elective) in the active language — the core
+  // layer's what-if / roadmap labels are English-only
+  function subjKeyLabel(key, fallback) {
+    var c = CORE_FIELDS.find(function (x) { return x.k === key; });
+    if (c) return c[lang];
+    if (key && (F.ELECT_LABEL[key] || F.ELECT_LABEL_ZH[key])) return electLabel(key);
+    return fallback;
+  }
 
   /* ---------- grade inputs ---------- */
   function lvOptions(sel, val) {
@@ -86,16 +100,16 @@
   }
   function buildCores() {
     $('cores').innerHTML = CORE_FIELDS.map(function (c) {
-      return '<div class="grow"><label>' + esc(c[lang]) + '</label><select class="lv" data-core="' + c.k + '">' + lvOptions(null, '') + '</select></div>';
+      return '<div class="grow"><label>' + esc(c[lang]) + '</label><select class="lv" data-core="' + c.k + '" aria-label="' + esc(c[lang]) + '">' + lvOptions(null, '') + '</select></div>';
     }).join('');
     $('cores').querySelectorAll('select').forEach(function (s) { s.addEventListener('change', onGradeChange); });
   }
   function buildElectives() {
     var rows = '';
     for (var i = 0; i < 4; i++) {
-      rows += '<div class="grow"><select class="subj" data-el="' + i + '"><option value="">' + t().pickSubj + '</option>' +
+      rows += '<div class="grow"><select class="subj" data-el="' + i + '" aria-label="' + esc(t().aria.elective) + (i + 1) + '"><option value="">' + t().pickSubj + '</option>' +
         ELECTS.map(function (k) { return '<option value="' + k + '">' + esc(electLabel(k)) + '</option>'; }).join('') +
-        '</select><select class="lv" data-ellv="' + i + '">' + lvOptions(null, '') + '</select></div>';
+        '</select><select class="lv" data-ellv="' + i + '" aria-label="' + esc(t().aria.level) + (i + 1) + '">' + lvOptions(null, '') + '</select></div>';
     }
     $('electives').innerHTML = rows;
     $('electives').querySelectorAll('select').forEach(function (s) { s.addEventListener('change', onGradeChange); });
@@ -103,15 +117,39 @@
   function readInput() {
     var inp = { name: $('in-name').value, klass: $('in-class').value, csAttained: $('cs-att').classList.contains('on'), electives: [] };
     $('cores').querySelectorAll('select').forEach(function (s) { inp[s.getAttribute('data-core')] = s.value; });
+    var seen = {};
     for (var i = 0; i < 4; i++) {
       var subj = $('electives').querySelector('[data-el="' + i + '"]').value;
       var lv = $('electives').querySelector('[data-ellv="' + i + '"]').value;
-      if (subj && lv) inp.electives.push({ subj: subj, lv: lv });
+      if (subj && lv && !seen[subj]) { seen[subj] = true; inp.electives.push({ subj: subj, lv: lv }); }
     }
     return inp;
   }
   function inputReady(inp) { return inp.chi && inp.eng && inp.math && inp.electives.length >= 2; }
-  var onGradeChange = function () { saveState(); };
+  // a subject picked in one elective slot is disabled in the others — duplicates
+  // would silently collapse to a single grade in buildGrades
+  function syncElectiveOptions() {
+    var sels = $('electives').querySelectorAll('.subj');
+    var chosen = Array.prototype.map.call(sels, function (s) { return s.value; });
+    sels.forEach(function (sel) {
+      sel.querySelectorAll('option').forEach(function (o) {
+        o.disabled = !!o.value && o.value !== sel.value && chosen.indexOf(o.value) >= 0;
+      });
+    });
+  }
+  function setCs(att) {
+    $('cs-att').classList.toggle('on', att); $('cs-not').classList.toggle('on', !att);
+    $('cs-att').setAttribute('aria-pressed', String(att)); $('cs-not').setAttribute('aria-pressed', String(!att));
+  }
+  var onGradeChange = function () {
+    syncElectiveOptions();
+    saveState();
+    // results already on screen -> recompute live so they never go stale
+    if (results) {
+      var inp = readInput();
+      if (inputReady(inp)) { input = inp; runPipeline(); }
+    }
+  };
 
   /* ---------- compute + render ---------- */
   function runPipeline() {
@@ -144,7 +182,11 @@
   function renderProgress() {
     var aim = results.filter(function (r) { return r.eligible && F.TIER_RANK[r.tier] >= F.TIER_RANK.reach; }).length;
     var elig = results.filter(function (r) { return r.eligible; }).length;
-    $('progress').innerHTML = t().progress(aim, elig);
+    var html = t().progress(aim, elig);
+    var top = F.bestUnlock(DB, input).options[0];   // ~60ms over the full DB
+    if (top && top.unlocked > 0)
+      html += '<div class="unlock-hint">' + t().unlock(esc(subjKeyLabel(top.key, top.subject)), top.from, top.to, top.unlocked) + '</div>';
+    $('progress').innerHTML = html;
   }
 
   function renderCatChips() {
@@ -188,7 +230,7 @@
     var estim = (r.estimated && r.medScore != null) ? ' <span class="estim">' + (lang === 'zh' ? '估算' : 'est.') + '</span>' : '';
     var scoreLine = '<div class="scoreline">' + esc(s.yourScore) + ' <b>' + r.score + '</b>' +
       (r.medScore != null ? ' · ' + esc(s.med) + ' ' + r.medScore + estim + gapHtml(r) : '') + '</div>';
-    var chanceLine = '<div class="scoreline">' + esc(s.chance) + ': <b>' + esc(chanceTxt(r.chance.label)) + '</b></div>';
+    var chanceLine = '<div class="scoreline" title="' + esc(s.chanceTip) + '">' + esc(s.chance) + ': <b>' + esc(chanceTxt(r.chance.label)) + '</b></div>';
     var comp = r.chance.competition, dep = r.chance.dependency, nums = [];
     if (comp) nums.push(comp.ratio.toFixed(0) + ' ' + esc(s.applicants));
     if (dep) nums.push(esc(s.bandA) + ' ' + Math.round(dep.share * 100) + '%');
@@ -199,16 +241,17 @@
       var f = r.eval.eligibility.details.filter(function (d) { return !d.pass; })[0];
       if (f) { var what = f.label.indexOf('Elective') === 0 ? (f.note || (lang === 'zh' ? '指定選修科' : 'a required elective')) : (f.label === 'CSD' ? (lang === 'zh' ? '公民科達標' : 'CS attained') : f.label + ' ≥ ' + f.need); notyet = '<div class="notyet">' + (lang === 'zh' ? '未符合：需 ' : 'Not yet — needs ') + esc(what) + '</div>'; }
     }
-    var star = '<button class="iconbtn' + (shortlist.has(p.jupas_code) ? ' on' : '') + '" data-star="' + code + '" title="shortlist">★</button>';
+    var starOn = shortlist.has(p.jupas_code);
+    var star = '<button class="iconbtn' + (starOn ? ' on' : '') + '" data-star="' + code + '" title="' + esc(starOn ? s.aria.starOn : s.aria.star) + '" aria-label="' + esc(starOn ? s.aria.starOn : s.aria.star) + '" aria-pressed="' + starOn + '">★</button>';
     var tgtOn = targets.has(p.jupas_code);
-    var tgt = '<button class="iconbtn' + (tgtOn ? ' on' : '') + '" data-target="' + code + '"' + ((!tgtOn && targets.size >= MAX_TARGETS) ? ' disabled' : '') + ' title="target">🎯</button>';
+    var tgt = '<button class="iconbtn' + (tgtOn ? ' on' : '') + '" data-target="' + code + '"' + ((!tgtOn && targets.size >= MAX_TARGETS) ? ' disabled' : '') + ' title="' + esc(tgtOn ? s.aria.tgtOn : s.aria.tgt) + '" aria-label="' + esc(tgtOn ? s.aria.tgtOn : s.aria.tgt) + '" aria-pressed="' + tgtOn + '">🎯</button>';
     return '<div class="prog' + (r.eligible ? '' : ' inelig') + '" data-code="' + code + '">' +
       '<div class="code-row"><span class="code">' + code + '</span><span class="tier t-' + r.tier + '">' + esc(s.tiers[r.tier]) + '</span>' + lic +
       '<span class="card-acts">' + star + tgt + '</span></div>' +
       '<div class="pname">' + esc(pName(p)) + '</div><div class="inst">' + esc(pInst(p)) + '</div>' +
       scoreLine + chanceLine + numLine + notyet + '<div class="tags">' + tags + '</div>' +
-      '<button class="det-btn" data-det="' + code + '">' + esc(s.details) + ' ▾</button>' +
-      '<div class="detail" id="det-' + code + '"></div></div>';
+      '<button class="det-btn" data-det="' + code + '" aria-expanded="false" aria-label="' + esc(s.aria.details) + code + '">' + esc(s.details) + ' ▾</button>' +
+      '<div class="detail"></div></div>';
   }
 
   function detailHtml(r) {
@@ -233,7 +276,7 @@
     if (ups.length) {
       h += '<div class="k">' + esc(s.whatif) + '</div>';
       h += ups.map(function (b) {
-        return '<div class="wi-row"><span>' + esc(b.subject) + ' ' + b.from + '→' + b.to + '</span><span class="wi-up">+' + b.deltaScore + (b.tierChanged ? ' → ' + esc(s.tiers[b.newTier]) : '') + '</span></div>';
+        return '<div class="wi-row"><span>' + esc(subjKeyLabel(b.key, b.subject)) + ' ' + b.from + '→' + b.to + '</span><span class="wi-up">+' + b.deltaScore + (b.tierChanged ? ' → ' + esc(s.tiers[b.newTier]) : '') + '</span></div>';
       }).join('');
     }
     if (p.url) h += '<div style="margin-top:8px"><a class="det-btn" href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(s.official) + '</a></div>';
@@ -274,14 +317,14 @@
       var r = resultFor(code); if (!r) return '';
       var p = r.prog, rm = F.roadmapTo(p, input), cls = 'plan', body = '';
       var head = '<div class="rh">🎯 ' + esc(p.jupas_code) + ' ' + esc(pName(p)) + ' <span class="inst">' + esc(pInst(p)) + '</span>' +
-        '<button class="iconbtn" data-target="' + esc(p.jupas_code) + '" style="float:right">✕</button></div>';
+        '<button class="iconbtn" data-target="' + esc(p.jupas_code) + '" style="float:right" aria-label="' + esc(s.aria.tgtOn) + '">✕</button></div>';
       function tail(rm) { return '<div class="numbers" style="margin-top:4px">' + r.score + ' → ' + rm.endScore + (rm.med != null ? ' (' + esc(s.med) + ' ' + rm.med + ')' : '') + '</div>'; }
       if (rm.status === 'onTrack') { cls = 'ok'; body = '<div>' + (lang === 'zh' ? '你已達到或高於去年中位數 — 保持下去！' : 'You\'re at or above last year\'s median — keep it up!') + ' (' + esc(s.yourScore) + ' ' + r.score + (rm.med != null ? ' · ' + esc(s.med) + ' ' + rm.med : '') + ')</div>'; }
       else if (rm.status === 'noData') { body = '<div>' + (lang === 'zh' ? '此課程沒有公布收生分數作比較。' : 'No published cut-off to compare against — explore it on the official page.') + '</div>'; }
       else if (rm.status === 'needCS') { cls = 'hard'; body = '<div class="fail">' + (lang === 'zh' ? '先要在公民與社會發展科達標。' : 'First you must attain Citizenship & Social Development.') + '</div>'; }
       else if (rm.status === 'blockedSubject') { cls = 'hard'; body = '<div class="fail">' + (lang === 'zh' ? '此課程需要你未修讀的選修科：' : 'Needs an elective you didn\'t take: ') + esc((rm.missing || []).join(' / ')) + '</div>'; }
       else {
-        var steps = rm.steps.map(function (st) { return '<span class="step">' + esc(st.subject) + ' ' + st.from + '→' + st.to + '</span>'; }).join('');
+        var steps = rm.steps.map(function (st) { return '<span class="step">' + esc(subjKeyLabel(st.key, st.subject)) + ' ' + st.from + '→' + st.to + '</span>'; }).join('');
         if (rm.reached) { body = '<div>' + (lang === 'zh' ? '達到去年中位數的路線：' : 'A path to last year\'s median:') + '</div>' + steps + tail(rm); }
         else { cls = 'hard'; body = '<div>' + (lang === 'zh' ? '非常競爭 — 即使提升以下科目仍可能未達中位數，請先全力鞏固：' : 'Very competitive — even raising these may not reach the median; focus on maximising:') + '</div>' + steps + tail(rm); }
       }
@@ -336,13 +379,14 @@
   function applyInputToUI(inp) {
     if (!inp) return;
     $('in-name').value = inp.name || ''; $('in-class').value = inp.klass || '';
-    $('cs-att').classList.toggle('on', inp.csAttained !== false); $('cs-not').classList.toggle('on', inp.csAttained === false);
+    setCs(inp.csAttained !== false);
     $('cores').querySelectorAll('select').forEach(function (sel) { sel.value = inp[sel.getAttribute('data-core')] || ''; });
     for (var i = 0; i < 4; i++) {
       var e = (inp.electives || [])[i] || {};
       var subj = $('electives').querySelector('[data-el="' + i + '"]'), lv = $('electives').querySelector('[data-ellv="' + i + '"]');
       if (subj) subj.value = e.subj || ''; if (lv) lv.value = e.lv || '';
     }
+    syncElectiveOptions();
   }
   function restoreState() {
     try {
@@ -354,10 +398,14 @@
   }
 
   function toggleDetail(b) {
-    var code = b.getAttribute('data-det'), panel = $('det-' + code);
+    // scope to this card: the same programme can be rendered in both the main
+    // list and the "nearly there" panel, so a global id lookup hits the wrong one
+    var code = b.getAttribute('data-det');
+    var cardEl = b.closest ? b.closest('.prog') : null;
+    var panel = cardEl && cardEl.querySelector('.detail');
     if (!panel) return;
-    if (panel.classList.contains('open')) { panel.classList.remove('open'); panel.innerHTML = ''; b.textContent = t().details + ' ▾'; return; }
-    panel.innerHTML = detailHtml(resultFor(code)); panel.classList.add('open'); b.textContent = t().hide + ' ▴';
+    if (panel.classList.contains('open')) { panel.classList.remove('open'); panel.innerHTML = ''; b.textContent = t().details + ' ▾'; b.setAttribute('aria-expanded', 'false'); return; }
+    panel.innerHTML = detailHtml(resultFor(code)); panel.classList.add('open'); b.textContent = t().hide + ' ▴'; b.setAttribute('aria-expanded', 'true');
   }
   function expandMore(b) {
     var tier = b.getAttribute('data-more'), arr = render._groups[tier];
@@ -380,6 +428,7 @@
     var s = t();
     document.documentElement.lang = lang === 'zh' ? 'zh-HK' : 'en';
     $('lang-en').classList.toggle('active', lang === 'en'); $('lang-zh').classList.toggle('active', lang === 'zh');
+    $('lang-en').setAttribute('aria-pressed', String(lang === 'en')); $('lang-zh').setAttribute('aria-pressed', String(lang === 'zh'));
     var map = { 't-home': s.home, 't-title': s.title, 't-subtitle': s.subtitle, 't-s1': s.s1, 't-cs': s.cs,
       't-electhint': s.electhint, 'find-btn': s.find, 't-s2': s.s2, 't-s3': s.s3, 't-s4': s.s4, 't-s4hint': s.s4hint,
       't-s5': s.s5, 't-lic': s.lic, 't-incin': s.incin, 'clear-btn': s.clear, 'cs-att': s.att, 'cs-not': s.notatt,
@@ -391,7 +440,9 @@
       't-sort-att': lang === 'zh' ? '排序：最接近／高於中位數' : 'Sort: Closest to / above median' };
     Object.keys(map).forEach(function (id) { var el = $(id); if (el) el.textContent = map[id]; });
     $('search').placeholder = s.search; $('in-name').placeholder = lang === 'zh' ? '姓名（可選）' : 'Name (optional)'; $('in-class').placeholder = lang === 'zh' ? '班別' : 'Class';
-    var pc = $('passcode'); if (pc) pc.placeholder = s.pcPh;
+    var pc = $('passcode'); if (pc) { pc.placeholder = s.pcPh; pc.setAttribute('aria-label', s.pcPh); }
+    $('search').setAttribute('aria-label', s.search);
+    $('inst').setAttribute('aria-label', s.aria.inst); $('sort').setAttribute('aria-label', s.aria.sort);
     var ft = $('t-footer'); if (ft) ft.innerHTML = s.footerHtml;
     document.title = s.title;
   }
@@ -399,15 +450,15 @@
     lang = l; try { localStorage.setItem('clp_lang', l); } catch (e) {}
     var saved = readInput();                         // preserve entered grades across the rebuild
     applyStatic(); buildCores(); buildElectives(); applyInputToUI(saved);
-    if (results) { buildInstOptions(); renderCatChips(); render(); renderTargets(); renderShortlist(); }
+    if (results) { buildInstOptions(); renderProgress(); renderCatChips(); render(); renderTargets(); renderShortlist(); }
   }
 
   /* ---------- wiring ---------- */
   function wire() {
     $('lang-en').addEventListener('click', function () { setLang('en'); });
     $('lang-zh').addEventListener('click', function () { setLang('zh'); });
-    $('cs-att').addEventListener('click', function () { $('cs-att').classList.add('on'); $('cs-not').classList.remove('on'); });
-    $('cs-not').addEventListener('click', function () { $('cs-not').classList.add('on'); $('cs-att').classList.remove('on'); });
+    $('cs-att').addEventListener('click', function () { setCs(true); onGradeChange(); });
+    $('cs-not').addEventListener('click', function () { setCs(false); onGradeChange(); });
     $('find-btn').addEventListener('click', compute);
     ['search', 'inst', 'sort', 'lic', 'incIn'].forEach(function (id) { $(id).addEventListener('input', function () { if (results) render(); }); $(id).addEventListener('change', function () { if (results) render(); }); });
     $('clear-btn').addEventListener('click', function () { activeCats.clear(); $('search').value = ''; $('inst').value = ''; $('sort').value = 'fit'; $('lic').checked = false; $('incIn').checked = false; if (results) { renderCatChips(); render(); } });
