@@ -50,8 +50,7 @@
       unlock: function (subj, from, to, n) { return '💡 Biggest single boost: raising <b>' + subj + '</b> from ' + from + ' to ' + to + ' would bring <b>' + n + '</b> more programme' + (n === 1 ? '' : 's') + ' within reach.'; },
       chanceTip: 'Estimated as if placed in Band A (a top-3 choice), from past intakes — placing it lower reduces the chance.',
       aria: { elective: 'Elective subject ', level: 'Level for elective ', inst: 'Filter by institution', sort: 'Sort order', star: 'Add to shortlist', starOn: 'Remove from shortlist', tgt: 'Set as target', tgtOn: 'Remove target', details: 'Toggle details for ' },
-      footerHtml: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are NOT comparable across institutions; admission statistics and chances are from PAST intakes and do not guarantee this year\'s results. Always verify on www.jupas.edu.hk.<br><br>Scoring engine and database adapted from <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a> under the MIT License — © 2026 JUPASCal. See jupas-finder-LICENSE.txt.',
-      footer: '' },
+      footer: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are not comparable across institutions; admission statistics and chances are from past intakes and do not guarantee this year\'s results. © 2026 PLK No.1 W.H. Cheung College · Career Team. Includes a third-party scoring engine and database used under licence.' },
     zh: { home: '← 返回主頁', title: 'JUPAS 課程搜尋器＋', subtitle: '輸入成績，找出適合你的課程，並看看你距離心儀課程有多近。',
       s1: '1 · 你的資料及文憑試成績', cs: '公民與社會發展科', att: '達標', notatt: '未達標',
       electhint: '選擇 2 至 4 個選修科及其等級。', find: '搜尋課程', pickSubj: '— 科目 —', lv: '等級',
@@ -76,8 +75,7 @@
       unlock: function (subj, from, to, n) { return '💡 最大單科提升：<b>' + subj + '</b> 由 ' + from + ' 升至 ' + to + '，可令多 <b>' + n + '</b> 個課程變成「有機會」。'; },
       chanceTip: '假設放在 Band A（首三志願）、按過往數據的估算——放在較後志願機會會較低。',
       aria: { elective: '選修科 ', level: '選修科等級 ', inst: '按院校篩選', sort: '排序方式', star: '加入候選名單', starOn: '移出候選名單', tgt: '設為目標', tgtOn: '取消目標', details: '顯示／收起詳情：' },
-      footerHtml: '本工具只供保良局第一張永慶中學學生參考，並非 JUPAS 官方工具。分數按各課程自己的公式計算，不可跨院校比較；收生統計及機會均為過往年度數據，不代表本年度結果。報讀前請於 www.jupas.edu.hk 核實。<br><br>計分引擎及資料庫改編自 <a href="https://github.com/JUPASCal/JUPASCal.github.io" target="_blank" rel="noopener">JUPASCal</a>，採用 MIT 授權 — © 2026 JUPASCal。詳見 jupas-finder-LICENSE.txt。',
-      footer: '' }
+      footer: '本工具只供保良局第一張永慶中學學生參考，並非 JUPAS 官方工具。分數按各課程自己的公式計算，不可跨院校比較；收生統計及機會均為過往年度數據，不代表本年度結果。© 2026 保良局第一張永慶中學・升學輔導及生涯規劃組。當中包含第三方計分引擎及資料庫，並依授權條款使用。' }
   };
   function t() { return S[lang]; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -443,7 +441,7 @@
     var pc = $('passcode'); if (pc) { pc.placeholder = s.pcPh; pc.setAttribute('aria-label', s.pcPh); }
     $('search').setAttribute('aria-label', s.search);
     $('inst').setAttribute('aria-label', s.aria.inst); $('sort').setAttribute('aria-label', s.aria.sort);
-    var ft = $('t-footer'); if (ft) ft.innerHTML = s.footerHtml;
+    var ft = $('t-footer'); if (ft) ft.textContent = s.footer;
     document.title = s.title;
   }
   function setLang(l) {
