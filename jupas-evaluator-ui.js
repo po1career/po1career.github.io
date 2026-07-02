@@ -194,6 +194,29 @@
   function flash(t, ok) { var e = $('msg'); if (!e) return; e.textContent = t; e.className = 'msg ' + (ok ? 'ok' : 'err'); }
   function indexProgrammes(arr) { PROGRAMMES = arr; BY_CODE = new Map(); arr.forEach(function (p) { BY_CODE.set(p.jupas_code.toUpperCase(), p); }); }
 
+  /* ---------- payload sanitisation ----------
+     The JCDATA payload comes from an UPLOADED file — treat it as untrusted.
+     Coerce every field the UI touches to a length-capped string (a crafted
+     payload with e.g. a numeric `code` used to throw inside render via
+     `(c.code || '').trim()`, leaving the page half-rendered). */
+  function asStr(v, max) { return (typeof v === 'string' ? v : v == null ? '' : String(v)).slice(0, max); }
+  function sanitizePayload(p) {
+    p = (p && typeof p === 'object' && !Array.isArray(p)) ? p : {};
+    var core = (p.core && typeof p.core === 'object' && !Array.isArray(p.core)) ? p.core : {};
+    return {
+      name: asStr(p.name, 80), klass: asStr(p.klass, 20), cno: asStr(p.cno, 20), generated: asStr(p.generated, 40),
+      core: { chi: asStr(core.chi, 4), eng: asStr(core.eng, 4), math: asStr(core.math, 4), csd: asStr(core.csd, 12) },
+      elect: (Array.isArray(p.elect) ? p.elect : []).slice(0, 6).map(function (e) {
+        e = (e && typeof e === 'object') ? e : {};
+        return { s: asStr(e.s, 12), lv: asStr(e.lv, 4) };
+      }),
+      choices: (Array.isArray(p.choices) ? p.choices : []).slice(0, 20).map(function (c) {
+        c = (c && typeof c === 'object') ? c : {};
+        return { code: asStr(c.code, 12), intake: asStr(c.intake, 12), score: asStr(c.score, 12), cmp: asStr(c.cmp, 12), remark: asStr(c.remark, 400) };
+      })
+    };
+  }
+
   /* ---------- passcode gate (PBKDF2 + AES-GCM, same as jupas-choices.js) ---------- */
   var PBKDF2_ITER = 150000, GATE_LS = 'jupas_eval_pass', ENC_URL = 'jupas-evaluator-db.enc.json', encBlob = null;
   function b64ToBytes(b64) { return Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }); }
@@ -212,11 +235,13 @@
   function tryUnlock(passcode, remember) {
     return decryptDb(passcode).then(function (arr) {
       indexProgrammes(arr);
-      if (remember) { try { localStorage.setItem(GATE_LS, passcode); } catch (e) {} }
+      // sessionStorage, not localStorage: the teacher passcode should not persist
+      // on shared staff machines beyond the browser session
+      if (remember) { try { sessionStorage.setItem(GATE_LS, passcode); } catch (e) {} }
       $('lock').style.display = 'none'; $('app').style.display = '';
       $('db-status').textContent = S().msgDbUnlocked(arr.length); $('db-status').className = 'msg ok';
       return true;
-    }).catch(function () { try { localStorage.removeItem(GATE_LS); } catch (e) {} return false; });
+    }).catch(function () { try { sessionStorage.removeItem(GATE_LS); } catch (e) {} return false; });
   }
   function showLock(msg) { $('app').style.display = 'none'; $('lock').style.display = 'flex'; $('lock-err').textContent = msg || ''; }
   function wireLock() {
@@ -230,9 +255,10 @@
   }
   function initGate() {
     wireLock();
+    try { localStorage.removeItem(GATE_LS); } catch (e) {}   // purge copies persisted by older versions
     fetch(ENC_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
       encBlob = j;
-      var saved = null; try { saved = localStorage.getItem(GATE_LS); } catch (e) {}
+      var saved = null; try { saved = sessionStorage.getItem(GATE_LS); } catch (e) {}
       if (saved) return tryUnlock(saved, false).then(function (ok) { if (!ok) showLock(''); });
       showLock('');
     }).catch(function () { showLock('Could not load the encrypted database file. 無法載入加密資料庫檔案。'); });
@@ -286,6 +312,7 @@
   function render(payload, opts) {
     opts = opts || {};
     if (!PROGRAMMES) { flash(S().msgDbLocked, false); return; }
+    payload = sanitizePayload(payload);
     lastPayload = payload;
     flash('', true);
     var s = S();
@@ -297,11 +324,11 @@
       '<span><b>' + esc(s.metaCno) + ':</b> ' + esc(payload.cno || '—') + '</span>' +
       '<span><b>' + esc(s.metaGen) + ':</b> ' + esc(payload.generated || '—') + '</span>';
     var rows = '<tr><th>' + esc(s.gSubject) + '</th><th>' + esc(s.gLevel) + '</th><th>' + esc(s.gPts) + '</th></tr>', entries = [];
-    ['chi', 'eng', 'math'].forEach(function (k) { var lv = (payload.core || {})[k]; if (lv) { entries.push([coreLabel(k), lv]); rows += '<tr><td>' + esc(coreLabel(k)) + '</td><td>' + esc(lv) + '</td><td>' + DSE_PTS[lv] + '</td></tr>'; } });
+    ['chi', 'eng', 'math'].forEach(function (k) { var lv = (payload.core || {})[k]; if (lv) { entries.push([coreLabel(k), lv]); rows += '<tr><td>' + esc(coreLabel(k)) + '</td><td>' + esc(lv) + '</td><td>' + (DSE_PTS[lv] != null ? DSE_PTS[lv] : '—') + '</td></tr>'; } });
     var csdNotAttained = csdRaw === 'notattained';
     var csdCellText = csdNotAttained ? s.csdNotAttained : s.csdAttained;
     rows += '<tr><td>' + esc(s.csdLabel) + '</td><td>' + (csdNotAttained ? '<span class="warn-inline">' + esc(csdCellText) + '</span>' : esc(csdCellText)) + '</td><td>—</td></tr>';
-    (payload.elect || []).forEach(function (e) { if (e && e.lv) { var nm = electLabel(e.s); entries.push([nm, e.lv]); rows += '<tr><td>' + esc(nm) + '</td><td>' + esc(e.lv) + '</td><td>' + DSE_PTS[e.lv] + '</td></tr>'; } });
+    (payload.elect || []).forEach(function (e) { if (e && e.lv) { var nm = electLabel(e.s); entries.push([nm, e.lv]); rows += '<tr><td>' + esc(nm) + '</td><td>' + esc(e.lv) + '</td><td>' + (DSE_PTS[e.lv] != null ? DSE_PTS[e.lv] : '—') + '</td></tr>'; } });
     $('grades-tbl').innerHTML = rows;
     var best5 = entries.map(function (e) { return DSE_PTS[e[1]] || 0; }).sort(function (a, b) { return b - a; }).slice(0, 5).reduce(function (a, b) { return a + b; }, 0);
     $('b5').textContent = s.b5Prefix + best5;
@@ -428,8 +455,8 @@
     document.documentElement.lang = lang === 'zh' ? 'zh-HK' : 'en';
     document.title = s.title;
     var lb = $('lang-en'), lz = $('lang-zh');
-    if (lb) lb.classList.toggle('active', lang === 'en');
-    if (lz) lz.classList.toggle('active', lang === 'zh');
+    if (lb) { lb.classList.toggle('active', lang === 'en'); lb.setAttribute('aria-pressed', String(lang === 'en')); }
+    if (lz) { lz.classList.toggle('active', lang === 'zh'); lz.setAttribute('aria-pressed', String(lang === 'zh')); }
     var map = {
       't-eyebrow': s.eyebrow, 't-title': s.heroTitle, 't-subtitle': s.heroSubtitle, 't-panel1h': s.panel1h,
       't-dropbig': s.dropBig, 't-drophint': s.dropHint, 'print-btn': s.printBtn,
@@ -440,6 +467,7 @@
     var hd = $('t-herodisc'); if (hd) hd.innerHTML = '<span aria-hidden="true">⚠️</span><span>' + s.heroDisc + '</span>';
     var ft = $('t-footer'); if (ft) ft.textContent = s.footer;
     var th = $('summary-thead'); if (th) th.innerHTML = '<tr>' + s.th.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr>';
+    var ds = $('db-status'); if (ds && PROGRAMMES) { ds.textContent = s.msgDbUnlocked(PROGRAMMES.length); ds.className = 'msg ok'; }
   }
   function setLang(l) {
     lang = l; try { localStorage.setItem('clp_lang', l); } catch (e) {}
@@ -454,6 +482,11 @@
     ['dragover', 'dragenter'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('drag'); }); });
     ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('drag'); }); });
     drop.addEventListener('drop', function (e) { var f = e.dataTransfer.files[0]; if (f) parsePdf(f, render); });
+    // the hidden file input is unreachable by keyboard — make the drop zone a button
+    drop.setAttribute('role', 'button'); drop.setAttribute('tabindex', '0');
+    drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } });
+    // CSP (script-src 'self') blocks inline onclick= handlers — wire print here
+    var pb = $('print-btn'); if (pb) pb.addEventListener('click', function () { window.print(); });
   }
   function wireLang() {
     var lb = $('lang-en'), lz = $('lang-zh');
