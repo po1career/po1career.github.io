@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>JUPAS Planner</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/notosanstc.css">
+<style>
+  :root{
+    --bg:#FAF4E6; --card:#FFFDF8; --ink:#5B3A24; --muted:#8a6f59; --accent:#C9A24B;
+    --accent-dark:#A9842F; --link:#936c1f; --accent-soft:#F3E8CE; --border:#E8DCC2;
+    --shadow:0 8px 24px rgba(91,58,36,0.08);
+    --good:#1f7a4d; --good-bg:#e7f6ee; --mid:#92660a; --mid-bg:#fdf3da;
+    --bad:#b3403a; --bad-bg:#fdecea; --unk:#6b7280; --unk-bg:#f1f1ef;
+    --banda:#a9842f; --bandb:#7d9a78;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Nunito","Noto Sans TC","PingFang HK",Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 420px at 100% -8%,rgba(201,162,75,0.13),transparent 60%),
+      radial-gradient(900px 380px at -8% 2%,rgba(139,168,136,0.11),transparent 55%),
+      var(--bg);
+    background-attachment:fixed;color:var(--ink);line-height:1.5;}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px 16px 80px;}
+  h1{font-size:1.5rem;margin:0;font-weight:800;}
+  .subtitle{color:var(--muted);margin:4px 0 16px;font-size:0.9rem;}
+  .hero{position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--border);
+    box-shadow:var(--shadow);padding:24px 26px;margin:6px 0 20px;
+    background:
+      linear-gradient(90deg,rgba(255,253,248,0.95) 0%,rgba(255,253,248,0.66) 46%,rgba(255,253,248,0.20) 100%),
+      url("images/header-bg.svg") center/cover no-repeat,
+      var(--accent-soft);}
+  .hero .top{align-items:flex-start;margin-bottom:0;position:relative;z-index:1;}
+  .hero-titles{max-width:64ch;}
+  .hero h1{font-size:1.95rem;margin:0;}
+  .hero .subtitle{margin:8px 0 0;}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;
+    background:rgba(255,255,255,0.72);color:var(--link);border:1px solid var(--border);border-radius:999px;
+    padding:4px 12px;font-weight:800;font-size:0.74rem;letter-spacing:0.1em;}
+  .hero-sprig{position:absolute;top:-16px;right:-8px;width:168px;opacity:0.5;transform:rotate(6deg);pointer-events:none;z-index:0;}
+  .hero-disc{display:flex;gap:9px;align-items:flex-start;margin:14px 0 0;position:relative;z-index:1;
+    background:#fbeee2;border:1px solid #e8c9a8;border-left:5px solid var(--accent-dark);border-radius:12px;
+    padding:11px 14px;max-width:70ch;}
+  .hero-disc .dw{font-size:1rem;line-height:1.5;flex:none;}
+  .hero-disc p{margin:0;color:#7a3517;font-size:0.82rem;line-height:1.6;font-weight:600;}
+  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .lang-toggle{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px;display:inline-flex;gap:2px;}
+  .lang-toggle button{border:none;background:transparent;padding:5px 13px;border-radius:999px;cursor:pointer;font-size:0.9rem;color:var(--muted);font-family:inherit;font-weight:700;}
+  .lang-toggle button.active{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .home-link{display:inline-block;color:var(--link);text-decoration:none;font-size:0.88rem;font-weight:700;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .panel::before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),#8BA888);}
+  .panel h2{margin:2px 0 12px;font-size:1.05rem;font-weight:800;}
+  .hint{color:var(--muted);font-size:0.82rem;margin:0 0 10px;}
+  /* lock */
+  .lockscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(820px 320px at 50% -6%,rgba(201,162,75,0.18),transparent 62%),var(--bg);}
+  .lockbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px 26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .lockbox::before{content:"";position:absolute;left:0;top:0;width:100%;height:5px;background:linear-gradient(90deg,var(--accent),var(--accent-dark));}
+  .lock-icon{width:62px;height:62px;margin:4px auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:radial-gradient(circle at 50% 35%,#fff,var(--accent-soft));border:1px solid var(--border);}
+  .lockbox h2{margin:0;font-size:1.25rem;font-weight:800;}
+  .lock-sub{color:var(--muted);font-size:0.84rem;margin:8px 0 16px;}
+  .lockbox input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem;margin-bottom:12px;text-align:center;font-family:inherit;background:#fffdf7;color:var(--ink);}
+  .lockbox button{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-size:1rem;cursor:pointer;font-family:inherit;font-weight:800;}
+  .lock-err{color:#b91c1c;font-size:0.85rem;min-height:20px;margin-top:8px;}
+  /* inputs */
+  select,input[type=text]{padding:8px 10px;border:1px solid var(--border);border-radius:9px;font-size:0.92rem;font-family:inherit;background:#fffdf7;color:var(--ink);}
+  .pid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .pid input{width:170px;}
+  .btn{border:none;border-radius:10px;padding:10px 18px;font-family:inherit;font-weight:800;font-size:0.92rem;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;}
+  .btn-ghost{background:#fffdf7;color:var(--link);border:1px solid var(--border);}
+  .check{display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;}
+  .filt-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  /* grades grid: subjects × three plans */
+  .gwrap{overflow-x:auto;}
+  table.gtable{border-collapse:collapse;width:100%;min-width:560px;}
+  .gtable th,.gtable td{border-bottom:1px solid #f3ecd9;padding:7px 8px;text-align:left;vertical-align:middle;}
+  .gtable th{font-size:0.74rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  .gtable th .plab{display:block;font-size:0.86rem;text-transform:none;letter-spacing:0;color:var(--ink);}
+  .gtable td:first-child{font-weight:700;font-size:0.9rem;}
+  .gtable select{width:100%;max-width:130px;}
+  .copybtn{border:1px solid var(--border);background:#fffdf7;color:var(--link);border-radius:7px;cursor:pointer;font-family:inherit;font-size:0.7rem;font-weight:700;padding:2px 7px;margin-top:3px;}
+  /* plan sections */
+  .plan-q{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:9px 13px;
+    font-size:0.86rem;font-weight:600;color:var(--link);margin:0 0 12px;}
+  .slot{border:1px solid var(--border);border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:10px;}
+  .slot-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .slot-chip{flex:none;font-weight:800;font-size:0.8rem;color:#fff;border-radius:8px;padding:4px 10px;}
+  .slot-chip.ba{background:linear-gradient(135deg,var(--accent),var(--accent-dark));}
+  .slot-chip.bb{background:var(--bandb);}
+  .slot-pick{position:relative;flex:1;min-width:220px;}
+  .slot-pick input{width:100%;}
+  .slot-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;
+    color:var(--muted);font-size:1rem;font-family:inherit;padding:2px 6px;display:none;}
+  .slot-pick.has .slot-clear{display:block;}
+  .slot-pick.has input{padding-right:30px;color:var(--link);font-weight:700;}
+  .ac-list{position:absolute;left:0;right:0;top:calc(100% + 3px);z-index:30;background:#fff;border:1px solid var(--border);
+    border-radius:10px;box-shadow:var(--shadow);max-height:260px;overflow-y:auto;}
+  .ac-item{padding:8px 11px;font-size:0.85rem;cursor:pointer;border-bottom:1px solid #f6f0df;}
+  .ac-item:last-child{border-bottom:none;}
+  .ac-item.hi,.ac-item:hover{background:var(--accent-soft);}
+  .ac-item b{color:var(--link);}
+  .ac-item .ai{color:var(--muted);}
+  .ac-none{padding:8px 11px;font-size:0.82rem;color:var(--muted);}
+  /* interest stars */
+  .stars{display:inline-flex;gap:1px;flex:none;}
+  .stars button{border:none;background:none;cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 1px;color:#cdbd92;font-family:inherit;}
+  .stars button.on{color:var(--accent-dark);}
+  .stars-lab{font-size:0.76rem;color:var(--muted);font-weight:700;margin-right:2px;}
+  /* info card */
+  .slot-card{margin-top:10px;border-top:1px dashed var(--border);padding-top:9px;display:none;}
+  .slot-card.open{display:block;}
+  .sc-head{font-weight:800;font-size:0.92rem;margin-bottom:6px;}
+  .sc-head .inst{color:var(--muted);font-weight:700;font-size:0.8rem;margin-left:6px;}
+  .kv{display:grid;grid-template-columns:172px 1fr;gap:4px 12px;font-size:0.83rem;}
+  .kv .k{color:var(--muted);font-weight:800;font-size:0.72rem;text-transform:uppercase;letter-spacing:.03em;padding-top:2px;}
+  .kv .v{min-width:0;}
+  .mygrade{border:1px solid var(--border);border-radius:9px;background:#fffdf7;padding:6px 10px;display:inline-block;}
+  .mg-score{font-weight:800;font-size:1.05rem;color:var(--accent-dark);}
+  .pill{display:inline-block;font-size:0.72rem;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:1px;}
+  .p-good{background:var(--good-bg);color:var(--good);} .p-mid{background:var(--mid-bg);color:var(--mid);}
+  .p-bad{background:var(--bad-bg);color:var(--bad);} .p-unk{background:var(--unk-bg);color:var(--unk);}
+  .elig-no{color:var(--bad);font-weight:700;} .elig-yes{color:var(--good);font-weight:700;}
+  /* conditional offers */
+  table.offers{border-collapse:collapse;width:100%;min-width:520px;}
+  .offers th,.offers td{border-bottom:1px solid #f3ecd9;padding:6px 6px;text-align:left;}
+  .offers th{font-size:0.74rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  .offers input{width:100%;}
+  .offers td.n{color:var(--muted);font-weight:800;width:26px;}
+  .bring{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;
+    font-size:0.82rem;color:var(--link);font-weight:600;margin-top:12px;line-height:1.7;}
+  footer{margin-top:24px;color:var(--muted);font-size:0.74rem;border-top:1px solid var(--border);padding-top:14px;}
+  #print-report{display:none;}
+  @media (max-width:600px){
+    .wrap{padding:16px 12px 64px;}
+    h1{font-size:1.3rem;} .subtitle{font-size:0.86rem;}
+    .hero{padding:18px 16px;} .hero h1{font-size:1.5rem;} .hero-sprig{width:118px;opacity:0.4;}
+    .panel{padding:14px 14px;}
+    select,input[type=text],input[type=password],.lockbox input{font-size:16px;}
+    .pid{flex-direction:column;} .pid input{width:100%;}
+    .kv{grid-template-columns:1fr;gap:1px 0;}
+    .kv .k{margin-top:7px;}
+    .slot-top{align-items:stretch;flex-direction:column;gap:8px;}
+    .slot-chip{align-self:flex-start;}
+    .stars button{font-size:1.5rem;padding:4px 3px;}
+    #print-btn{width:100%;}
+  }
+  @media print{
+    body{background:#fff;}
+    .po1bar,.po1credit,#lock,#app{display:none!important;}
+    #print-report{display:block!important;color:#000;font-size:11.5px;}
+    #print-report h1{font-size:16px;margin:0 0 3px;}
+    #print-report h2{font-size:13px;margin:12px 0 5px;border-bottom:1.5px solid #000;padding-bottom:2px;}
+    #print-report table{border-collapse:collapse;width:100%;margin-bottom:6px;}
+    #print-report th,#print-report td{border:0.5px solid #888;padding:3px 5px;text-align:left;vertical-align:top;}
+    #print-report th{background:#eee;}
+    #print-report tr{page-break-inside:avoid;}
+    #print-report .pr-plan{page-break-inside:avoid;}
+    #print-report .pr-note{font-size:10.5px;margin-top:8px;}
+  }
+</style>
+<style>
+  /* Consistent slim site bar + footer credit across tool pages (self-scoped, palette-fixed). */
+  .po1bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:8px 16px;background:#FAF4E6;border-bottom:2px solid #C9A24B;
+    font-family:"Nunito",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  .po1bar a.po1bar-brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+    color:#5B3A24;font-weight:700;font-size:.92rem;line-height:1.2}
+  .po1bar a.po1bar-brand:hover b{text-decoration:underline}
+  .po1bar a.po1bar-brand img{width:26px;height:26px;border-radius:50%;
+    border:1.5px solid #C9A24B;display:block;flex:none}
+  .po1bar a.po1bar-brand b{color:#8a5e18;font-weight:800}
+  .po1credit{max-width:960px;margin:30px auto 22px;padding:14px 20px 0;
+    border-top:1px solid #e7d6a8;text-align:center;color:#8a5e18;font-size:.8rem;line-height:1.6;
+    font-family:"Nunito",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  @media(max-width:560px){ .po1bar a.po1bar-brand{font-size:.82rem} }
+</style>
+</head>
+<body>
+<div class="po1bar">
+  <a class="po1bar-brand" href="index.html" aria-label="PLK No.1 Career Team — home">
+    <img src="images/logo.jpg?v=2" alt="">
+    <span>PLK No.1 W.H. Cheung College <b>· Career Team</b></span>
+  </a>
+</div>
+
+<div id="lock" class="lockscreen" style="display:none">
+  <div class="lockbox">
+    <div class="lock-icon">🔒</div>
+    <h2 id="t-lock">Enter passcode</h2>
+    <p class="lock-sub" id="t-locksub">For PLK No.1 students only</p>
+    <input type="password" id="passcode" autocomplete="off" placeholder="Passcode">
+    <button id="unlock-btn" type="button">Unlock</button>
+    <div id="lock-err" class="lock-err"></div>
+    <a href="index.html" class="home-link" id="t-lockhome" style="display:inline-block;margin-top:14px">← Back to home</a>
+  </div>
+</div>
+
+<div id="app" class="wrap" style="display:none">
+  <a href="index.html" class="home-link" id="t-home" style="margin-bottom:6px">← Back to home</a>
+  <div class="hero">
+    <img class="hero-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
+    <div class="top">
+      <div class="hero-titles">
+        <span class="hero-eyebrow">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M12 3 1 8l11 5 9-4.09V15h2V8L12 3z" fill="currentColor"></path>
+            <path d="M5 11.6V15c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.4l-7 3.18-7-3.18z" fill="currentColor" opacity=".55"></path>
+          </svg>
+          JUPAS
+        </span>
+        <h1 id="t-title">JUPAS Planner</h1>
+        <p class="subtitle" id="t-subtitle"></p>
+        <div class="hero-disc">
+          <span class="dw" aria-hidden="true">⚠️</span>
+          <p id="t-herodisc"></p>
+        </div>
+      </div>
+      <div class="lang-toggle"><button id="lang-en" class="active">EN</button><button id="lang-zh">中</button></div>
+    </div>
+  </div>
+
+  <!-- 1 · particulars + grades for the three scenarios -->
+  <div class="panel">
+    <h2 id="t-s1">1 · Your details &amp; grades for the three scenarios</h2>
+    <div class="pid">
+      <input type="text" id="in-name" maxlength="40" placeholder="Name (optional)">
+      <input type="text" id="in-class" maxlength="10" placeholder="Class">
+    </div>
+    <p class="hint" id="t-ghint"></p>
+    <div class="gwrap"><table class="gtable" id="gtable"></table></div>
+    <div class="filt-row" style="margin-top:12px">
+      <label class="check"><input type="checkbox" id="remember" checked> <span id="t-remember">Save on this computer</span></label>
+      <button class="btn btn-ghost" id="print-btn" type="button" style="padding:8px 14px;margin-left:auto">🖨</button>
+    </div>
+    <p class="hint" id="t-sharednote" style="margin-top:6px"></p>
+  </div>
+
+  <!-- 2/3/4 · the three plans -->
+  <div class="panel" id="plan-A">
+    <h2 class="t-planh" data-plan="A"></h2>
+    <p class="plan-q" data-plan="A"></p>
+    <div class="slots" data-plan="A"></div>
+  </div>
+  <div class="panel" id="plan-B">
+    <h2 class="t-planh" data-plan="B"></h2>
+    <p class="plan-q" data-plan="B"></p>
+    <div class="slots" data-plan="B"></div>
+  </div>
+  <div class="panel" id="plan-C">
+    <h2 class="t-planh" data-plan="C"></h2>
+    <p class="plan-q" data-plan="C"></p>
+    <div class="slots" data-plan="C"></div>
+  </div>
+
+  <!-- 5 · conditional offers -->
+  <div class="panel">
+    <h2 id="t-offersh"></h2>
+    <div class="filt-row" style="margin-bottom:10px">
+      <label style="font-size:0.86rem;font-weight:700" id="t-offdate"></label>
+      <input type="text" id="off-date" maxlength="20" style="width:150px">
+    </div>
+    <div class="gwrap"><table class="offers" id="offers"></table></div>
+    <div class="bring" id="t-bring"></div>
+  </div>
+
+  <footer id="t-footer"></footer>
+</div>
+
+<div id="print-report"></div>
+
+<script src="jupas-engine.js?v=1"></script>
+<script src="jupas-planner.js?v=1"></script>
+<div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
+</body>
+</html>
