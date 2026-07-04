@@ -239,21 +239,27 @@
     var spread = refs.lq != null ? Math.max(med - +refs.lq, floor) : floor;
     return med + 1.25 * spread;
   }
-  // slot-differential tag for "My grade": green when the score clears the slot's own
-  // threshold (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · B4–B6 ≥ UQ+10%) AND all requirements
-  // are met; amber when there is no reference data or quota < 20; red otherwise.
+  // slot-differential tag for "My grade": green when eligible AND the score clears the
+  // slot's own threshold (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · B4–B6 ≥ UQ+10%). Quartile
+  // position OUTRANKS quota: a score below the threshold is always red, even for a small
+  // programme. Amber only when the position can't be beaten fairly — no reference data,
+  // or (for a score that DOES clear the threshold) a quota < 20. Ineligible is always red.
   function slotTag(prog, ev, slotIdx) {
     if (!ev.eligibility.eligible) return { cls: 'p-bad' };
     var refs = E.refScores(prog);
-    if (refs.median == null && refs.lq == null && refs.uq == null) return { cls: 'p-mid', note: 'noData' };
-    var quota = parseInt(prog.quota, 10);
-    if (!isNaN(quota) && quota < 20) return { cls: 'p-mid', note: 'fewPlaces' };
-    var score = +ev.calculation.totalScore, ok = false, thr = null, EPS = 1e-9;
+    var score = +ev.calculation.totalScore, thr = null, EPS = 1e-9;
     if (slotIdx === 0) thr = refs.lq != null ? +refs.lq : refs.median != null ? +refs.median : null;
     else if (slotIdx === 1) thr = refs.median != null ? +refs.median : null;
     else { var uqEff = effectiveUq(refs); thr = uqEff != null ? uqEff * (slotIdx === 2 ? 1 : 1.10) : null; }
-    ok = thr != null && score >= thr - EPS;
-    return { cls: ok ? 'p-good' : 'p-bad' };
+    // No reference data to judge this slot's quartile position -> amber.
+    if (thr == null) return { cls: 'p-mid', note: 'noData' };
+    // Quartile position is decisive and OUTRANKS the small-quota caution: a score below
+    // the slot's threshold is always red, even when quota < 20.
+    if (score < thr - EPS) return { cls: 'p-bad' };
+    // Score clears the slot threshold; only now does a small quota downgrade green -> amber.
+    var quota = parseInt(prog.quota, 10);
+    if (!isNaN(quota) && quota < 20) return { cls: 'p-mid', note: 'fewPlaces' };
+    return { cls: 'p-good' };
   }
   function pctText(ev) {
     if (!ev.comparisons.length) return '';
