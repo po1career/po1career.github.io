@@ -11,7 +11,6 @@
   var SAVE_KEY = 'jupas_planner_state', REM_KEY = 'jupas_planner_remember';
   var PLANS = ['A', 'B', 'C'];
   var SLOTS = ['A1', 'A2', 'A3', 'B4', 'B5', 'B6'];
-  var INST_ORDER = ['HKU', 'CUHK', 'HKUST', 'CityUHK', 'PolyU', 'HKBU', 'EdUHK', 'LingnanU', 'HKMU', 'SSSDP'];
   var ELECTS = ['phys', 'chem', 'bio', 'econ', 'bafs', 'ict', 'geog', 'hist', 'chist', 'chinlit', 'm2'];
   var ELECT_CANON = {
     phys: 'Physics', chem: 'Chemistry', bio: 'Biology', econ: 'Economics',
@@ -32,7 +31,9 @@
     zh: { interview: '面試', portfolio: '作品集', audition: '試演', 'physical-test': '體能測試', 'practical-test': '實務測試', 'written-test': '筆試', 'aptitude-test': '能力測試', oea: 'OEA' }
   };
   // engine fail labels: CHI/ENG/MATH/CSD (key.toUpperCase()), Elective 1/2, EXTRA
-  var ELIG_LABEL_ZH = { 'CHI': '中文', 'ENG': '英文', 'MATH': '數學', 'CSD': '公社', 'Elective 1': '選修 1', 'Elective 2': '選修 2', 'EXTRA': '額外要求' };
+  var ELIG_LABEL_ZH = { 'CHI': '中文', 'ENG': '英文', 'MATH': '數學', 'CSD': '公民與社會發展', 'Elective 1': '選修 1', 'Elective 2': '選修 2', 'EXTRA': '額外要求' };
+  // zh labels for the engine's comparison keys (EN uses the engine's own labels)
+  var REF_LABEL_ZH = { uq: '上四分位', median: '中位數', lq: '下四分位', mean: '平均', expected_score: '預估' };
 
   var S = {
     en: {
@@ -44,11 +45,12 @@
       s1: '1 · Your details & grades for the three scenarios',
       ghint: 'Review your HKDSE performance objectively, then fill in one set of grades per scenario. Pick your elective subjects once — enter each scenario’s level for them.',
       namePh: 'Name (optional)', classPh: 'Class',
-      subject: 'Subject', chi: 'Chinese', eng: 'English', math: 'Mathematics', csd: 'CSD',
+      subject: 'Subject', chi: 'Chinese', eng: 'English', math: 'Mathematics', csd: 'Citizenship and Social Development',
       elect: 'Elective', pickSubj: '— subject —', lv: 'Level', att: 'Attained', notatt: 'Not attained',
       copyA: '⟵ copy Plan A', remember: 'Save on this computer',
       sharednote: 'On a shared or school computer, untick the box — your plan then stays only in this tab.',
-      print: 'Print my plan',
+      print: 'Print my plan', pdfBtn: 'Save as PDF',
+      pdfHint: '“Save as PDF” opens your browser’s print window — choose “Save as PDF” as the printer / destination there.',
       planh: { A: '2 · Plan A — results as expected', B: '3 · Plan B — results better than expected', C: '4 · Plan C — results worse than expected' },
       planq: {
         A: 'If your results are similar to your expectation, which JUPAS programmes will you enrol for? Fill in your Band A & B choices below.',
@@ -57,8 +59,7 @@
       },
       gradeRow: { A: 'Expected grade', B: 'Best possible grade', C: 'Worst possible grade' },
       searchPh: 'Type JS code or programme name…', noMatch: 'No matching programme',
-      interest: 'Interest', clearSlot: 'Clear this choice',
-      similar: 'Similar programmes at other institutions', req: 'Admission requirements',
+      interest: 'Interest', clearSlot: 'Clear this choice', req: 'Admission requirements',
       calc: 'Score calculation / weighted subjects', interview: 'Interview arrangement',
       scores: 'Past admission scores', myGrade: 'My grade (this scenario)', quota: '2026 quota',
       anyElect: 'any elective', catA: 'any Cat. A elective', of: 'of', need: 'need',
@@ -66,11 +67,11 @@
       timBefore: 'before results', timAfter: 'after results', timBoth: 'before & after results', ifNec: '(if necessary)',
       eligYes: 'Eligible', eligNo: 'Not eligible',
       band: { 'above-uq': '≥ UQ', 'above-median': '≥ Median', 'above-lq': '≥ LQ', 'below-lq': '< LQ', 'no-score': 'No ref data' },
-      vsMedian: 'vs median', extraReq: 'plus total ≥ {t} & {n} × {g}',
+      fewPlaces: 'few places (quota < 20)', extraReq: 'plus total ≥ {t} & {n} × {g}',
       offersh: '5 · My conditional offers', offdate: 'As of (date):',
       offInst: 'Institution (local / non-local)', offProg: 'Programme', offReq: 'Requirement (if any)',
       bring: 'On results day, bring this plan to school together with: (1) your original JUPAS programme choice list; (2) programme choices and any conditional-offer information; (3) application information for other study / training options — to discuss with your career teachers, class teacher, subject teachers or social worker.',
-      footer: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme’s own formula and are not comparable across institutions; programme data and admission references are from past intakes, may be inaccurate and do not guarantee this year’s results — always verify on www.jupas.edu.hk and each university’s website. Planning framework adapted from HKACMGM / Faith Education results-day materials. © 2026 PLK No.1 W.H. Cheung College · Career Team. Includes a third-party scoring engine and database used under licence.',
+      footer: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme’s own formula and are not comparable across institutions; programme data and admission references are from past intakes, may be inaccurate and do not guarantee this year’s results — always verify on www.jupas.edu.hk and each university’s website. © 2026 PLK No.1 W.H. Cheung College · Career Team. Includes a third-party scoring engine and database used under licence.',
       prTitle: 'JUPAS Planner — Results-day action plan', prName: 'Name', prClass: 'Class', prDate: 'Printed',
       prChoice: 'Choice', prProg: 'Programme', prScore: 'My grade', prRefs: 'Admission refs', prGrades: 'Grades'
     },
@@ -83,10 +84,11 @@
       s1: '1 · 你的資料及三種情境的成績',
       ghint: '請客觀地預測自己文憑試的表現，為每個情境填寫一組成績。選修科目只需選一次——再分別填寫各情境的等級。',
       namePh: '姓名（可選）', classPh: '班別',
-      subject: '科目', chi: '中文', eng: '英文', math: '數學', csd: '公社',
+      subject: '科目', chi: '中文', eng: '英文', math: '數學', csd: '公民與社會發展',
       elect: '選修', pickSubj: '— 科目 —', lv: '等級', att: '達標', notatt: '未達標',
       copyA: '⟵ 複製計劃一', remember: '在此電腦儲存', sharednote: '如使用共用或學校電腦，請取消勾選，資料只會留在此分頁。',
-      print: '列印我的計劃',
+      print: '列印我的計劃', pdfBtn: '儲存為 PDF',
+      pdfHint: '「儲存為 PDF」會開啟瀏覽器的列印視窗——請在「印表機／目的地」選擇「儲存為 PDF」。',
       planh: { A: '2 · 計劃一——成績如預期', B: '3 · 計劃二——成績比預期好', C: '4 · 計劃三——成績比預期差' },
       planq: {
         A: '若如願考獲該成績，你會報讀哪些聯招課程？請在下方填寫 Band A 及 Band B 志願。',
@@ -95,8 +97,7 @@
       },
       gradeRow: { A: '預期成績', B: '比預期好的成績', C: '比預期差的成績' },
       searchPh: '輸入課程編號或名稱…', noMatch: '沒有符合的課程',
-      interest: '興趣程度', clearSlot: '清除此志願',
-      similar: '其他院校的同類課程', req: '課程入學要求',
+      interest: '興趣程度', clearSlot: '清除此志願', req: '課程入學要求',
       calc: '計分方法／計分較重科目', interview: '面試安排',
       scores: '過往收生成績', myGrade: '我的成績（此情境）', quota: '2026 學額',
       anyElect: '任何選修', catA: '任何甲類選修', of: '其中', need: '需',
@@ -104,11 +105,11 @@
       timBefore: '放榜前', timAfter: '放榜後', timBoth: '放榜前後', ifNec: '（如有需要）',
       eligYes: '符合資格', eligNo: '未符合資格',
       band: { 'above-uq': '≥ 上四分位', 'above-median': '≥ 中位數', 'above-lq': '≥ 下四分位', 'below-lq': '低於下四分位', 'no-score': '沒有參考數據' },
-      vsMedian: '與中位數比較', extraReq: '另需總分 ≥ {t} 及 {n} 科 {g}',
+      fewPlaces: '學額較少（少於 20）', extraReq: '另需總分 ≥ {t} 及 {n} 科 {g}',
       offersh: '5 · 院校有條件取錄情況', offdate: '截至（日期）：',
       offInst: '院校（本地／非本地）', offProg: '課程', offReq: '有條件取錄的成績要求（如有）',
       bring: '請於放榜當天將此計劃連同：(1) 原本聯招課程排序；(2) 課程選擇及有條件取錄通知；(3) 其他已報名的升學／職訓課程資料，帶回學校，讓生涯規劃組老師、班主任、科任老師或社工了解你的想法和預備。',
-      footer: '本工具只供保良局第一張永慶中學學生參考，並非 JUPAS 官方工具。分數按各課程自己的公式計算，不可跨院校比較；課程資料及收生數據為過往年度資料，可能不準確，亦不代表本年度結果——請以 www.jupas.edu.hk 及各大學網站為準。規劃框架參考香港輔導教師協會／Faith Education 放榜資料。© 2026 保良局第一張永慶中學・升學輔導及生涯規劃組。當中包含第三方計分引擎及資料庫，並依授權條款使用。',
+      footer: '本工具只供保良局第一張永慶中學學生參考，並非 JUPAS 官方工具。分數按各課程自己的公式計算，不可跨院校比較；課程資料及收生數據為過往年度資料，可能不準確，亦不代表本年度結果——請以 www.jupas.edu.hk 及各大學網站為準。© 2026 保良局第一張永慶中學・升學輔導及生涯規劃組。當中包含第三方計分引擎及資料庫，並依授權條款使用。',
       prTitle: 'JUPAS 放榜行動計劃', prName: '姓名', prClass: '班別', prDate: '列印日期',
       prChoice: '排序', prProg: '課程', prScore: '我的成績', prRefs: '收生參考', prGrades: '成績'
     }
@@ -180,18 +181,6 @@
 
   // ---------------- auto-fill helpers ----------------
   function subjShort(name) { return SUBJ_SHORT[lang][name] || name; }
-  function similarInsts(prog) {
-    var cats = prog.categories || [];
-    if (!cats.length) return '—';
-    var seen = {};
-    DB.forEach(function (q) {
-      if (q.institution === prog.institution) return;
-      var qc = q.categories || [];
-      for (var i = 0; i < qc.length; i++) if (cats.indexOf(qc[i]) >= 0) { seen[q.institution] = 1; return; }
-    });
-    var out = INST_ORDER.filter(function (n) { return seen[n]; });
-    return out.length ? out.join(' · ') : '—';
-  }
   function poolText(pool) {
     if (!pool || !pool.subjects || !pool.subjects.length) return '';
     var n = parseInt(pool.count, 10) || 1, g = pool.grade || '';
@@ -240,16 +229,49 @@
     if (o.median == null && o.mean == null && o.expected_score != null) parts.push((lang === 'zh' ? '預估 ' : 'Expected ') + fmt(+o.expected_score));
     return parts.length ? '2025: ' + parts.join(' · ') : t().noData;
   }
-  function eligLabel(lb) { return lang === 'zh' ? (ELIG_LABEL_ZH[lb] || lb) : lb; }
-  function myGradeHtml(prog, p) {
+  function eligLabel(lb) { return lb === 'CSD' ? t().csd : lang === 'zh' ? (ELIG_LABEL_ZH[lb] || lb) : lb; }
+  // effective UQ: the published one when usable, else synthesized the same way the
+  // Chance algorithm estimates it (median + 1.25 × upper spread, floored at 5% of median)
+  function effectiveUq(refs) {
+    if (refs.uq != null && +refs.uq > +refs.median) return +refs.uq;
+    if (refs.median == null) return null;
+    var med = +refs.median, floor = 0.05 * med;
+    var spread = refs.lq != null ? Math.max(med - +refs.lq, floor) : floor;
+    return med + 1.25 * spread;
+  }
+  // slot-differential tag for "My grade": green when the score clears the slot's own
+  // threshold (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · B4–B6 ≥ UQ+10%) AND all requirements
+  // are met; amber when there is no reference data or quota < 20; red otherwise.
+  function slotTag(prog, ev, slotIdx) {
+    if (!ev.eligibility.eligible) return { cls: 'p-bad' };
+    var refs = E.refScores(prog);
+    if (refs.median == null && refs.lq == null && refs.uq == null) return { cls: 'p-mid', note: 'noData' };
+    var quota = parseInt(prog.quota, 10);
+    if (!isNaN(quota) && quota < 20) return { cls: 'p-mid', note: 'fewPlaces' };
+    var score = +ev.calculation.totalScore, ok = false, thr = null, EPS = 1e-9;
+    if (slotIdx === 0) thr = refs.lq != null ? +refs.lq : refs.median != null ? +refs.median : null;
+    else if (slotIdx === 1) thr = refs.median != null ? +refs.median : null;
+    else { var uqEff = effectiveUq(refs); thr = uqEff != null ? uqEff * (slotIdx === 2 ? 1 : 1.10) : null; }
+    ok = thr != null && score >= thr - EPS;
+    return { cls: ok ? 'p-good' : 'p-bad' };
+  }
+  function pctText(ev) {
+    if (!ev.comparisons.length) return '';
+    return ev.comparisons.map(function (c) {
+      var lab = lang === 'zh' ? (REF_LABEL_ZH[c.key] || c.label) : c.label;
+      var pc = Math.round(c.percent);
+      return lab + ' ' + (pc >= 0 ? '+' : '') + pc + '%';
+    }).join(' · ');
+  }
+  function myGradeHtml(prog, p, slotIdx) {
     if (!planReady(p)) return '<span class="hint" style="margin:0">' + esc(t().enterGrades) + '</span>';
     var ev = E.evaluateProgramme(prog, buildGrades(p));
-    var band = ev.band, cls = band === 'above-uq' || band === 'above-median' ? 'p-good' : band === 'above-lq' ? 'p-mid' : band === 'below-lq' ? 'p-bad' : 'p-unk';
+    var tag = slotTag(prog, ev, slotIdx);
     var h = '<span class="mygrade"><span class="mg-score">' + esc(fmt(ev.calculation.totalScore)) + '</span>';
-    h += '<span class="pill ' + cls + '">' + esc(t().band[band] || band) + '</span></span>';
-    var med = null;
-    for (var i = 0; i < ev.comparisons.length; i++) if (ev.comparisons[i].key !== 'uq' && ev.comparisons[i].key !== 'lq') { med = ev.comparisons[i]; break; }
-    if (med) h += ' <span style="font-size:0.78rem;color:var(--muted)">' + esc(t().vsMedian) + ' ' + (med.delta >= 0 ? '+' : '') + esc(fmt(med.delta)) + '</span>';
+    h += '<span class="pill ' + tag.cls + '">' + esc(t().band[ev.band] || ev.band) + '</span></span>';
+    var cmp = pctText(ev);
+    if (cmp) h += ' <span style="font-size:0.78rem;color:var(--muted)">' + esc(cmp) + '</span>';
+    if (tag.note === 'fewPlaces') h += ' <span style="font-size:0.78rem;color:var(--mid);font-weight:700">· ' + esc(t().fewPlaces) + '</span>';
     if (ev.eligibility.eligible) h += '<div class="elig-yes" style="margin-top:4px;font-size:0.8rem">✓ ' + esc(t().eligYes) + '</div>';
     else {
       var fails = (ev.eligibility.details || []).filter(function (d) { return !d.pass; });
@@ -370,13 +392,12 @@
     var h = '<div class="sc-head">' + esc(prog.jupas_code) + ' · ' + esc(progName(prog)) +
       '<span class="inst">' + esc(progInst(prog)) + '</span></div>';
     h += '<div class="kv">';
-    h += '<div class="k">' + esc(t().similar) + '</div><div class="v">' + esc(similarInsts(prog)) + '</div>';
     h += '<div class="k">' + esc(t().req) + '</div><div class="v">' + esc(reqText(prog)) + '</div>';
     h += '<div class="k">' + esc(t().calc) + '</div><div class="v">' + esc(str(formulaText(prog), 160)) + '</div>';
     h += '<div class="k">' + esc(t().interview) + '</div><div class="v">' + esc(interviewText(prog)) + '</div>';
     h += '<div class="k">' + esc(t().scores) + '</div><div class="v">' + esc(scoresText(prog)) + '</div>';
     h += '<div class="k">' + esc(t().quota) + '</div><div class="v">' + esc(prog.quota != null ? String(prog.quota) : '—') + '</div>';
-    h += '<div class="k">' + esc(t().myGrade) + '</div><div class="v">' + myGradeHtml(prog, p) + '</div>';
+    h += '<div class="k">' + esc(t().myGrade) + '</div><div class="v">' + myGradeHtml(prog, p, i) + '</div>';
     h += '</div>';
     els.card.innerHTML = h;
     els.card.classList.add('open');
@@ -497,7 +518,8 @@
         var mg = '—';
         if (planReady(p)) {
           var ev = E.evaluateProgramme(prog, buildGrades(p));
-          mg = fmt(ev.calculation.totalScore) + ' · ' + (t().band[ev.band] || '') + ' · ' + (ev.eligibility.eligible ? '✓' : '✗ ' + t().eligNo);
+          var pct = pctText(ev);
+          mg = fmt(ev.calculation.totalScore) + ' · ' + (t().band[ev.band] || '') + (pct ? ' · ' + pct : '') + ' · ' + (ev.eligibility.eligible ? '✓' : '✗ ' + t().eligNo);
         }
         h += '<tr><td>' + lab + '</td><td>' + esc(prog.jupas_code) + ' ' + esc(progName(prog)) + ' (' + esc(prog.institution) + ')</td>' +
           '<td>' + starsTxt(c.interest) + '</td><td>' + esc(mg) + '</td><td>' + esc(scoresText(prog)) + '</td>' +
@@ -523,12 +545,14 @@
     var map = { 't-home': s.home, 't-lockhome': s.lockHome, 't-lock': s.lock, 't-locksub': s.locksub,
       't-title': s.title, 't-subtitle': s.subtitle, 't-herodisc': s.heroDisc,
       't-s1': s.s1, 't-ghint': s.ghint, 't-remember': s.remember, 't-sharednote': s.sharednote,
+      't-pdfhint': s.pdfHint,
       't-offersh': s.offersh, 't-offdate': s.offdate, 't-bring': s.bring, 't-footer': s.footer };
     Object.keys(map).forEach(function (id) { var el = $(id); if (el) el.textContent = map[id]; });
     $('unlock-btn').textContent = s.unlockBtn;
     $('passcode').placeholder = s.pcPh; $('passcode').setAttribute('aria-label', s.pcPh);
     $('in-name').placeholder = s.namePh; $('in-class').placeholder = s.classPh;
     $('print-btn').textContent = '🖨 ' + s.print;
+    $('pdf-btn').textContent = '💾 ' + s.pdfBtn;
     document.querySelectorAll('.t-planh').forEach(function (el) { el.textContent = s.planh[el.getAttribute('data-plan')]; });
     document.querySelectorAll('.plan-q').forEach(function (el) { el.textContent = s.planq[el.getAttribute('data-plan')]; });
     document.title = s.title;
@@ -596,6 +620,9 @@
       } catch (e) {}
     });
     $('print-btn').addEventListener('click', function () { buildPrint(); window.print(); });
+    // "Save as PDF" uses the same print document — the browser's print dialog offers
+    // a PDF destination (no third-party PDF library allowed under this site's CSP).
+    $('pdf-btn').addEventListener('click', function () { buildPrint(); window.print(); });
   }
 
   function init() {
@@ -618,6 +645,7 @@
     grades: buildGrades,
     rebuild: rebuildAll,
     matches: matches,
+    tag: slotTag, effUq: effectiveUq,
     print: function () { buildPrint(); return $('print-report').innerHTML; }
   };
 })();

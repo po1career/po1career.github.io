@@ -146,7 +146,7 @@
     .slot-top{align-items:stretch;flex-direction:column;gap:8px;}
     .slot-chip{align-self:flex-start;}
     .stars button{font-size:1.5rem;padding:4px 3px;}
-    #print-btn{width:100%;}
+    #print-btn,#pdf-btn{width:100%;}
   }
   @media print{
     body{background:#fff;}
@@ -235,7 +235,9 @@
     <div class="filt-row" style="margin-top:12px">
       <label class="check"><input type="checkbox" id="remember" checked> <span id="t-remember">Save on this computer</span></label>
       <button class="btn btn-ghost" id="print-btn" type="button" style="padding:8px 14px;margin-left:auto">🖨</button>
+      <button class="btn btn-ghost" id="pdf-btn" type="button" style="padding:8px 14px">💾</button>
     </div>
+    <p class="hint" id="t-pdfhint" style="margin-top:6px"></p>
     <p class="hint" id="t-sharednote" style="margin-top:6px"></p>
   </div>
 
@@ -273,7 +275,7 @@
 <div id="print-report"></div>
 
 <script src="jupas-engine.js?v=1"></script>
-<script src="jupas-planner.js?v=1"></script>
+<script src="jupas-planner.js?v=2"></script>
 <div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
 </body>
 </html>
