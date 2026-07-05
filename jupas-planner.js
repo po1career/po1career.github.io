@@ -50,7 +50,7 @@
       copyA: '⟵ copy Plan A', remember: 'Save on this computer',
       sharednote: 'On a shared or school computer, untick the box — your plan then stays only in this tab.',
       print: 'Print my plan', pdfBtn: 'Save as PDF',
-      pdfHint: '“Save as PDF” opens your browser’s print window — choose “Save as PDF” as the printer / destination there.',
+      pdfHint: '“Save as PDF” downloads a two-page A4 summary for teacher reference straight away (generated in English).',
       planh: { A: '2 · Plan A — results as expected', B: '3 · Plan B — results better than expected', C: '4 · Plan C — results worse than expected' },
       planq: {
         A: 'If your results are similar to your expectation, which JUPAS programmes will you enrol for? Fill in your Band A & B choices below.',
@@ -59,7 +59,7 @@
       },
       gradeRow: { A: 'Expected grade', B: 'Best possible grade', C: 'Worst possible grade' },
       searchPh: 'Type JS code or programme name…', noMatch: 'No matching programme',
-      interest: 'Interest', clearSlot: 'Clear this choice', req: 'Admission requirements',
+      clearSlot: 'Clear this choice', req: 'Admission requirements',
       calc: 'Score calculation / weighted subjects', interview: 'Interview arrangement',
       scores: 'Past admission scores', myGrade: 'My grade (this scenario)', quota: '2026 quota',
       anyElect: 'any elective', catA: 'any Cat. A elective', of: 'of', need: 'need',
@@ -88,7 +88,7 @@
       elect: '選修', pickSubj: '— 科目 —', lv: '等級', att: '達標', notatt: '未達標',
       copyA: '⟵ 複製計劃一', remember: '在此電腦儲存', sharednote: '如使用共用或學校電腦，請取消勾選，資料只會留在此分頁。',
       print: '列印我的計劃', pdfBtn: '儲存為 PDF',
-      pdfHint: '「儲存為 PDF」會開啟瀏覽器的列印視窗——請在「印表機／目的地」選擇「儲存為 PDF」。',
+      pdfHint: '按「儲存為 PDF」會立即下載兩頁 A4 摘要（以英文生成），供老師參考。',
       planh: { A: '2 · 計劃一——成績如預期', B: '3 · 計劃二——成績比預期好', C: '4 · 計劃三——成績比預期差' },
       planq: {
         A: '若如願考獲該成績，你會報讀哪些聯招課程？請在下方填寫 Band A 及 Band B 志願。',
@@ -97,7 +97,7 @@
       },
       gradeRow: { A: '預期成績', B: '比預期好的成績', C: '比預期差的成績' },
       searchPh: '輸入課程編號或名稱…', noMatch: '沒有符合的課程',
-      interest: '興趣程度', clearSlot: '清除此志願', req: '課程入學要求',
+      clearSlot: '清除此志願', req: '課程入學要求',
       calc: '計分方法／計分較重科目', interview: '面試安排',
       scores: '過往收生成績', myGrade: '我的成績（此情境）', quota: '2026 學額',
       anyElect: '任何選修', catA: '任何甲類選修', of: '其中', need: '需',
@@ -122,7 +122,7 @@
 
   // ---------------- state ----------------
   function blankPlan() {
-    return { chi: '', eng: '', math: '', csd: 'att', e: ['', '', '', ''], choices: SLOTS.map(function () { return { code: '', interest: 0 }; }) };
+    return { chi: '', eng: '', math: '', csd: 'att', e: ['', '', '', ''], choices: SLOTS.map(function () { return { code: '' }; }) };
   }
   var state = {
     name: '', klass: '', electSubjs: ['', '', '', ''],
@@ -154,7 +154,7 @@
       if (Array.isArray(sp.choices)) for (var j = 0; j < 6; j++) {
         var c = sp.choices[j] || {};
         tp.choices[j].code = byCode[c.code] ? c.code : '';
-        tp.choices[j].interest = Math.max(0, Math.min(5, parseInt(c.interest, 10) || 0));
+        // (older saved states may carry an "interest" field — feature removed, ignored)
       }
     });
     if (Array.isArray(d.offers)) for (var m = 0; m < 6; m++) {
@@ -239,26 +239,39 @@
     var spread = refs.lq != null ? Math.max(med - +refs.lq, floor) : floor;
     return med + 1.25 * spread;
   }
-  // slot-differential tag for "My grade": green when eligible AND the score clears the
-  // slot's own threshold (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · B4–B6 ≥ UQ+10%). Quartile
-  // position OUTRANKS quota: a score below the threshold is always red, even for a small
-  // programme. Amber only when the position can't be beaten fairly — no reference data,
-  // or (for a score that DOES clear the threshold) a quota < 20. Ineligible is always red.
+  // slot-differential tag for "My grade" — CONSERVATIVE-MAX algorithm (user rule: when
+  // factors disagree, the final tag is the MOST conservative; red > amber > green).
+  // Every factor is scored independently, then the worst severity wins:
+  //   eligibility ......... fail → red
+  //   quartile position ... score < the slot's own threshold → red
+  //                         (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · B4–B6 ≥ UQ+10%);
+  //                         no reference data to judge it → amber
+  //   quota ............... quota < 20 → amber ("few places" caution)
+  // Consequences: below-threshold + small quota = RED (quartile position outranks the
+  // quota caution); meets-threshold + small quota = AMBER (caution downgrades green);
+  // green ONLY when eligible + threshold met + no caution applies.
   function slotTag(prog, ev, slotIdx) {
-    if (!ev.eligibility.eligible) return { cls: 'p-bad' };
-    var refs = E.refScores(prog);
-    var score = +ev.calculation.totalScore, thr = null, EPS = 1e-9;
+    var factors = [];                                        // {sev: 0 green · 1 amber · 2 red, note}
+    // 1 · eligibility
+    if (!ev.eligibility.eligible) factors.push({ sev: 2 });
+    // 2 · quartile position vs this slot's threshold
+    var refs = E.refScores(prog), thr = null, EPS = 1e-9;
     if (slotIdx === 0) thr = refs.lq != null ? +refs.lq : refs.median != null ? +refs.median : null;
     else if (slotIdx === 1) thr = refs.median != null ? +refs.median : null;
     else { var uqEff = effectiveUq(refs); thr = uqEff != null ? uqEff * (slotIdx === 2 ? 1 : 1.10) : null; }
-    // No reference data to judge this slot's quartile position -> amber.
-    if (thr == null) return { cls: 'p-mid', note: 'noData' };
-    // Quartile position is decisive and OUTRANKS the small-quota caution: a score below
-    // the slot's threshold is always red, even when quota < 20.
-    if (score < thr - EPS) return { cls: 'p-bad' };
-    // Score clears the slot threshold; only now does a small quota downgrade green -> amber.
+    if (thr == null) factors.push({ sev: 1, note: 'noData' });
+    else if (+ev.calculation.totalScore < thr - EPS) factors.push({ sev: 2 });
+    // 3 · quota caution
     var quota = parseInt(prog.quota, 10);
-    if (!isNaN(quota) && quota < 20) return { cls: 'p-mid', note: 'fewPlaces' };
+    if (!isNaN(quota) && quota < 20) factors.push({ sev: 1, note: 'fewPlaces' });
+    // most conservative factor decides
+    var worst = 0;
+    factors.forEach(function (f) { if (f.sev > worst) worst = f.sev; });
+    if (worst === 2) return { cls: 'p-bad' };
+    if (worst === 1) {
+      var noData = factors.some(function (f) { return f.note === 'noData'; });
+      return { cls: 'p-mid', note: noData ? 'noData' : 'fewPlaces' };
+    }
     return { cls: 'p-good' };
   }
   function pctText(ev) {
@@ -373,7 +386,7 @@
   }
   function slotEls(p, i) {
     var slot = document.querySelector('.slot[data-plan="' + p + '"][data-i="' + i + '"]');
-    return { slot: slot, pick: slot.querySelector('.slot-pick'), input: slot.querySelector('.pcode'), list: slot.querySelector('.ac-list'), card: slot.querySelector('.slot-card'), stars: slot.querySelector('.stars') };
+    return { slot: slot, pick: slot.querySelector('.slot-pick'), input: slot.querySelector('.pcode'), list: slot.querySelector('.ac-list'), card: slot.querySelector('.slot-card') };
   }
   function setInputDisplay(p, i) {
     var els = slotEls(p, i), c = state.plans[p].choices[i];
@@ -382,15 +395,6 @@
       els.input.value = c.code + ' · ' + progName(prog);
       els.pick.classList.add('has');
     } else { els.input.value = ''; els.pick.classList.remove('has'); }
-  }
-  function renderStars(p, i) {
-    var els = slotEls(p, i), v = state.plans[p].choices[i].interest;
-    els.stars.querySelectorAll('button').forEach(function (b, k) {
-      var on = k < v;
-      b.classList.toggle('on', on);
-      b.textContent = on ? '★' : '☆';
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
   }
   function renderCard(p, i) {
     var els = slotEls(p, i), c = state.plans[p].choices[i], prog = c.code && byCode[c.code];
@@ -421,10 +425,7 @@
         '<span class="slot-chip ' + (i < 3 ? 'ba' : 'bb') + '">' + lab + '</span>' +
         '<div class="slot-pick"><input type="text" class="pcode" autocomplete="off" placeholder="' + esc(t().searchPh) + '" aria-label="' + lab + ' ' + esc(t().searchPh) + '">' +
         '<button type="button" class="slot-clear" aria-label="' + esc(t().clearSlot) + '">✕</button>' +
-        '<div class="ac-list" hidden></div></div>' +
-        '<span class="stars-lab">' + esc(t().interest) + '</span><span class="stars" role="group" aria-label="' + esc(t().interest) + ' ' + lab + '">' +
-        '<button type="button" data-s="1">☆</button><button type="button" data-s="2">☆</button><button type="button" data-s="3">☆</button><button type="button" data-s="4">☆</button><button type="button" data-s="5">☆</button>' +
-        '</span></div>' +
+        '<div class="ac-list" hidden></div></div></div>' +
         '<div class="slot-card"></div></div>';
     });
     box.innerHTML = h;
@@ -465,15 +466,7 @@
       els.slot.querySelector('.slot-clear').addEventListener('click', function () {
         state.plans[p].choices[i].code = ''; setInputDisplay(p, i); renderCard(p, i); saveSoon(); els.input.focus();
       });
-      els.stars.querySelectorAll('button').forEach(function (b) {
-        b.addEventListener('click', function () {
-          var v = +b.getAttribute('data-s');
-          var c = state.plans[p].choices[i];
-          c.interest = c.interest === v ? 0 : v;
-          renderStars(p, i); saveSoon();
-        });
-      });
-      setInputDisplay(p, i); renderStars(p, i); renderCard(p, i);
+      setInputDisplay(p, i); renderCard(p, i);
     });
   }
 
@@ -497,7 +490,6 @@
   }
 
   // ---------------- print ----------------
-  function starsTxt(n) { var s = ''; for (var i = 0; i < 5; i++) s += i < n ? '★' : '☆'; return s; }
   function gradesLine(p) {
     var pl = state.plans[p], parts = [];
     if (pl.chi) parts.push(t().chi + ' ' + pl.chi);
@@ -517,10 +509,10 @@
     PLANS.forEach(function (p) {
       h += '<div class="pr-plan"><h2>' + esc(t().planh[p].replace(/^\d+ · /, '')) + '</h2>';
       h += '<div><b>' + esc(t().prGrades) + ':</b> ' + esc(gradesLine(p)) + '</div>';
-      h += '<table><tr><th>' + esc(t().prChoice) + '</th><th>' + esc(t().prProg) + '</th><th>' + esc(t().interest) + '</th><th>' + esc(t().prScore) + '</th><th>' + esc(t().prRefs) + '</th><th>' + esc(t().quota) + '</th><th>' + esc(t().interview) + '</th></tr>';
+      h += '<table><tr><th>' + esc(t().prChoice) + '</th><th>' + esc(t().prProg) + '</th><th>' + esc(t().prScore) + '</th><th>' + esc(t().prRefs) + '</th><th>' + esc(t().quota) + '</th><th>' + esc(t().interview) + '</th></tr>';
       SLOTS.forEach(function (lab, i) {
         var c = state.plans[p].choices[i], prog = c.code && byCode[c.code];
-        if (!prog) { h += '<tr><td>' + lab + '</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; return; }
+        if (!prog) { h += '<tr><td>' + lab + '</td><td></td><td></td><td></td><td></td><td></td></tr>'; return; }
         var mg = '—';
         if (planReady(p)) {
           var ev = E.evaluateProgramme(prog, buildGrades(p));
@@ -528,7 +520,7 @@
           mg = fmt(ev.calculation.totalScore) + ' · ' + (t().band[ev.band] || '') + (pct ? ' · ' + pct : '') + ' · ' + (ev.eligibility.eligible ? '✓' : '✗ ' + t().eligNo);
         }
         h += '<tr><td>' + lab + '</td><td>' + esc(prog.jupas_code) + ' ' + esc(progName(prog)) + ' (' + esc(prog.institution) + ')</td>' +
-          '<td>' + starsTxt(c.interest) + '</td><td>' + esc(mg) + '</td><td>' + esc(scoresText(prog)) + '</td>' +
+          '<td>' + esc(mg) + '</td><td>' + esc(scoresText(prog)) + '</td>' +
           '<td>' + esc(prog.quota != null ? String(prog.quota) : '—') + '</td><td>' + esc(interviewText(prog)) + '</td></tr>';
       });
       h += '</table></div>';
@@ -543,6 +535,173 @@
     h += '<div class="pr-note">' + esc(t().bring) + '</div>';
     h += '<div class="pr-note">' + esc(t().footer) + '</div>';
     $('print-report').innerHTML = h;
+  }
+
+  // ---------------- one-click PDF download ----------------
+  // Hand-built PDF (like jupas-choices.js's exporter): standard Helvetica only, so the
+  // content is ASCII/English regardless of the UI language — no third-party PDF library
+  // is possible under this site's CSP / zero-third-party rule. Exactly 2 A4 pages of
+  // essential teacher-reference information.
+  var PDF_UNI = { '’': "'", '‘': "'", '“': '"', '”': '"', '–': '-', '—': '-', '·': '|', '≥': '>=', '≤': '<=', '×': 'x', '✓': 'Y', '✗': 'N', '，': ', ', '、': ', ', '。': '. ' };
+  function pdfAscii(s) {
+    return String(s == null ? '' : s).replace(/[^\x20-\x7E]/g, function (c) { return PDF_UNI[c] != null ? PDF_UNI[c] : '?'; })
+      .replace(/\?{2,}/g, '?').replace(/ {2,}/g, ' ');
+  }
+  function pdfEsc(s) { return pdfAscii(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
+  function pdfTrunc(s, n) { s = pdfAscii(s); return s.length > n ? s.slice(0, n - 3) + '...' : s; }
+  function pdfWrap(s, n) {
+    s = pdfAscii(s); var out = [];
+    while (s.length > n) {
+      var cut = s.lastIndexOf(' ', n);
+      if (cut < n * 0.5) cut = n;
+      out.push(s.slice(0, cut)); s = s.slice(cut).replace(/^ +/, '');
+    }
+    if (s) out.push(s);
+    return out;
+  }
+  function PdfPage() { this.ops = []; }
+  PdfPage.prototype.text = function (x, y, size, s, bold) {
+    this.ops.push('BT /F' + (bold ? 2 : 1) + ' ' + size + ' Tf ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' Td (' + pdfEsc(s) + ') Tj ET');
+  };
+  PdfPage.prototype.line = function (x1, y1, x2, y2, w, gray) {
+    this.ops.push((gray != null ? gray : 0.62) + ' G ' + (w || 0.5) + ' w ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' m ' + x2.toFixed(2) + ' ' + y2.toFixed(2) + ' l S');
+  };
+  function pdfBuild(pages) {
+    var N = pages.length, objs = [];
+    objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    var kids = []; for (var i = 0; i < N; i++) kids.push((3 + i) + ' 0 R');
+    objs[2] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + N + ' >>';
+    var fontA = 3 + 2 * N, fontB = 4 + 2 * N;
+    pages.forEach(function (pg, k) {
+      objs[3 + k] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 ' + fontA + ' 0 R /F2 ' + fontB + ' 0 R >> >> /Contents ' + (3 + N + k) + ' 0 R >>';
+      var s = pg.ops.join('\n');
+      objs[3 + N + k] = '<< /Length ' + s.length + ' >>\nstream\n' + s + '\nendstream';
+    });
+    objs[fontA] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+    objs[fontB] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    var out = '%PDF-1.4\n', offs = [];
+    for (var n = 1; n < objs.length; n++) { offs[n] = out.length; out += n + ' 0 obj\n' + objs[n] + '\nendobj\n'; }
+    var xref = out.length;
+    out += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n';
+    for (n = 1; n < objs.length; n++) out += ('0000000000' + offs[n]).slice(-10) + ' 00000 n \n';
+    out += 'trailer\n<< /Size ' + objs.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF';
+    return out;
+  }
+  // EN-only compact text for the PDF (teacher reference)
+  var PDF_T = {
+    planh: { A: 'PLAN A - results as expected', B: 'PLAN B - results better than expected', C: 'PLAN C - results worse than expected' },
+    gradeRow: { A: 'Expected grades', B: 'Best possible grades', C: 'Worst possible grades' }
+  };
+  function pdfGradesLine(p) {
+    var pl = state.plans[p], parts = [];
+    if (pl.chi) parts.push('Chinese ' + pl.chi);
+    if (pl.eng) parts.push('English ' + pl.eng);
+    if (pl.math) parts.push('Mathematics ' + pl.math);
+    parts.push('Citizenship and Social Development: ' + (pl.csd === 'not' ? 'Not attained' : 'Attained'));
+    for (var k = 0; k < 4; k++) {
+      var s = state.electSubjs[k];
+      if (s && pl.e[k]) parts.push(ELECT_LABEL[s] + ' ' + pl.e[k]);
+    }
+    return PDF_T.gradeRow[p] + ': ' + parts.join(' | ');
+  }
+  function pdfRefsText(prog) {
+    var o = prog.scores_2025 || {}, parts = [];
+    if (o.uq != null) parts.push('U' + fmt(+o.uq));
+    if (o.median != null) parts.push('M' + fmt(+o.median));
+    if (o.lq != null) parts.push('L' + fmt(+o.lq));
+    if (o.median == null && o.mean != null) parts.push('Mean ' + fmt(+o.mean));
+    if (o.median == null && o.mean == null && o.expected_score != null) parts.push('Exp ' + fmt(+o.expected_score));
+    return parts.length ? parts.join(' ') : 'no data';
+  }
+  function pdfStatus(prog, ev, i) {
+    if (!ev.eligibility.eligible) return 'INELIGIBLE';
+    var tag = slotTag(prog, ev, i);
+    if (tag.cls === 'p-good') return 'OK';
+    if (tag.cls === 'p-bad') return 'RISK';
+    return tag.note === 'noData' ? 'NO DATA' : 'CAUTION';
+  }
+  // renders one plan block; returns the new y
+  function pdfPlanBlock(pg, p, y) {
+    var M = 44, R = 551;
+    pg.text(M, y, 11.5, PDF_T.planh[p], true); y -= 14;
+    var gl = planReady(p) ? pdfWrap(pdfGradesLine(p), 116) : [PDF_T.gradeRow[p] + ': (not filled in)'];
+    gl.slice(0, 2).forEach(function (ln) { pg.text(M, y, 8.5, ln); y -= 11; });
+    y -= 2;
+    var X = { slot: M, prog: M + 30, score: 306, stat: 368, refs: 424, quota: 524 };
+    pg.text(X.slot, y, 7.5, 'Slot', true); pg.text(X.prog, y, 7.5, 'Programme', true);
+    pg.text(X.score, y, 7.5, 'My score', true); pg.text(X.stat, y, 7.5, 'Status', true);
+    pg.text(X.refs, y, 7.5, '2025 refs', true); pg.text(X.quota, y, 7.5, 'Quota', true);
+    y -= 4; pg.line(M, y, R, y, 0.7, 0.3); y -= 11;
+    SLOTS.forEach(function (lab, i) {
+      var c = state.plans[p].choices[i], prog = c.code && byCode[c.code];
+      pg.text(X.slot, y, 8.5, lab, true);
+      if (!prog) { pg.text(X.prog, y, 8.5, '-'); }
+      else {
+        var star = (prog.non_academic || []).length ? ' *' : '';
+        pg.text(X.prog, y, 8.5, pdfTrunc(prog.jupas_code + ' ' + prog.name_en + ' (' + prog.institution + ')', 54) + star);
+        if (planReady(p)) {
+          var ev = E.evaluateProgramme(prog, buildGrades(p));
+          var med = null;
+          ev.comparisons.forEach(function (cm) { if (cm.key === 'median') med = Math.round(cm.percent); });
+          pg.text(X.score, y, 8.5, fmt(ev.calculation.totalScore) + (med != null ? ' (M' + (med >= 0 ? '+' : '') + med + '%)' : ''));
+          pg.text(X.stat, y, 8.5, pdfStatus(prog, ev, i), true);
+        } else { pg.text(X.score, y, 8.5, '-'); }
+        pg.text(X.refs, y, 8.5, pdfTrunc(pdfRefsText(prog), 22));
+        pg.text(X.quota, y, 8.5, prog.quota != null ? String(prog.quota) : '-');
+      }
+      pg.line(M, y - 3.5, R, y - 3.5, 0.4, 0.82); y -= 13;
+    });
+    return y - 4;
+  }
+  function buildPdfBytes() {
+    var M = 44, R = 551;
+    var p1 = new PdfPage(), p2 = new PdfPage();
+    // ---- page 1: header + Plan A + Plan B ----
+    var y = 800;
+    p1.text(M, y, 15, 'JUPAS Planner - Results-day Action Plan', true); y -= 15;
+    p1.text(M, y, 9, 'Name: ' + (pdfAscii(state.name) || '-') + '    Class: ' + (pdfAscii(state.klass) || '-') +
+      '    Generated: ' + new Date().toLocaleDateString('en-GB') + '    Page 1 of 2'); y -= 7;
+    p1.line(M, y, R, y, 1, 0.2); y -= 18;
+    y = pdfPlanBlock(p1, 'A', y); y -= 10;
+    y = pdfPlanBlock(p1, 'B', y);
+    p1.text(M, 52, 7, '* has an interview / test / portfolio requirement - see the tool or the JUPAS website for details.');
+    p1.text(M, 42, 7, 'Status: A1 vs LQ | A2 vs Median | A3 vs UQ | B4-B6 vs UQ+10%. CAUTION = meets it but quota < 20. Unofficial - verify on www.jupas.edu.hk.');
+    // ---- page 2: Plan C + conditional offers + notes ----
+    y = 800;
+    p2.text(M, y, 9, 'JUPAS Planner - ' + (pdfAscii(state.name) || '-') + ' (' + (pdfAscii(state.klass) || '-') + ')    Page 2 of 2'); y -= 7;
+    p2.line(M, y, R, y, 1, 0.2); y -= 18;
+    y = pdfPlanBlock(p2, 'C', y); y -= 12;
+    p2.text(M, y, 11.5, 'MY CONDITIONAL OFFERS', true); y -= 13;
+    p2.text(M, y, 8.5, 'As of (date): ' + (pdfAscii(state.offersDate) || '____________')); y -= 13;
+    var OX = { n: M, inst: M + 18, prog: 236, req: 420 };
+    p2.text(OX.n, y, 7.5, '#', true); p2.text(OX.inst, y, 7.5, 'Institution (local / non-local)', true);
+    p2.text(OX.prog, y, 7.5, 'Programme', true); p2.text(OX.req, y, 7.5, 'Requirement (if any)', true);
+    y -= 4; p2.line(M, y, R, y, 0.7, 0.3); y -= 11;
+    state.offers.forEach(function (o, i) {
+      p2.text(OX.n, y, 8.5, String(i + 1), true);
+      p2.text(OX.inst, y, 8.5, pdfTrunc(o.inst, 40));
+      p2.text(OX.prog, y, 8.5, pdfTrunc(o.prog, 40));
+      p2.text(OX.req, y, 8.5, pdfTrunc(o.req, 30));
+      p2.line(M, y - 3.5, R, y - 3.5, 0.4, 0.82); y -= 14;
+    });
+    y -= 6;
+    pdfWrap('On results day, bring this plan to school together with: (1) your original JUPAS programme choice list; (2) programme choices and any conditional-offer information; (3) application information for other study / training options - to discuss with your career teachers, class teacher, subject teachers or social worker.', 118)
+      .forEach(function (ln) { p2.text(M, y, 8, ln); y -= 10; });
+    y -= 6;
+    pdfWrap('Unofficial reference tool for PLK No.1 students - not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are not comparable across institutions; programme data and admission references are from past intakes, may be inaccurate and do not guarantee this year\'s results - always verify on www.jupas.edu.hk and each university\'s website. (c) 2026 PLK No.1 W.H. Cheung College | Career Team. Includes a third-party scoring engine and database used under licence.', 128)
+      .forEach(function (ln) { p2.text(M, y, 6.5, ln); y -= 8.5; });
+    return pdfBuild([p1, p2]);
+  }
+  function downloadPdf() {
+    var bytes = buildPdfBytes();
+    var blob = new Blob([bytes], { type: 'application/pdf' });
+    var a = document.createElement('a');
+    var who = pdfAscii(state.name).replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_+|_+$/g, '');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'JUPAS-Planner' + (who ? '-' + who : '') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
 
   // ---------------- static text + language ----------------
@@ -626,9 +785,8 @@
       } catch (e) {}
     });
     $('print-btn').addEventListener('click', function () { buildPrint(); window.print(); });
-    // "Save as PDF" uses the same print document — the browser's print dialog offers
-    // a PDF destination (no third-party PDF library allowed under this site's CSP).
-    $('pdf-btn').addEventListener('click', function () { buildPrint(); window.print(); });
+    // one-click: builds the 2-page A4 PDF in the page and downloads it directly
+    $('pdf-btn').addEventListener('click', downloadPdf);
   }
 
   function init() {
@@ -652,6 +810,7 @@
     rebuild: rebuildAll,
     matches: matches,
     tag: slotTag, effUq: effectiveUq,
+    pdfBytes: buildPdfBytes,
     print: function () { buildPrint(); return $('print-report').innerHTML; }
   };
 })();

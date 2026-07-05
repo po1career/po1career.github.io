@@ -30,5 +30,8 @@ window.SITE_TOOLS = [
     desc: { en: "Search university programmes by subject, school or keyword.", zh: "按學科、院校或關鍵字搜尋大學課程。" } },
   { id: "jupaschoices", href: "jupas-choices.html", group: "jupastools", icon: "📋", gated: true,
     name: { en: "JUPAS Choices", zh: "JUPAS 選科" }, aud: { en: "F.6", zh: "中六" },
-    desc: { en: "Organise and review your 20 JUPAS choices with your teacher.", zh: "整理並與老師檢視你的 20 個 JUPAS 志願。" } }
+    desc: { en: "Organise and review your 20 JUPAS choices with your teacher.", zh: "整理並與老師檢視你的 20 個 JUPAS 志願。" } },
+  { id: "planner", href: "jupas-planner.html", group: "jupastools", icon: "🗺️", gated: true,
+    name: { en: "JUPAS Planner", zh: "放榜行動計劃" }, aud: { en: "F.6", zh: "中六" },
+    desc: { en: "Plan your Band A & B choices for three results-day scenarios — as expected, better, or worse.", zh: "為放榜三種情境（如預期、比預期好、比預期差）規劃 Band A 及 B 志願。" } }
 ];
