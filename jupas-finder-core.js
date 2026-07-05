@@ -77,11 +77,12 @@
     var spread = refs.lq != null ? Math.max(med - +refs.lq, floor) : floor;
     return med + 1.25 * spread;
   }
-  // three mutually-exclusive score categories (ELIGIBLE programmes only). Ranges by construction:
+  // four mutually-exclusive score categories (ELIGIBLE programmes WITH a benchmark). Ranges:
   //   'uq'     : score ≥ effective UQ
   //   'median' : median ≤ score < UQ
   //   'lq'     : LQ ≤ score < median          (needs a published LQ)
-  //   null     : ineligible, below LQ, or no median benchmark to compare against
+  //   'belowlq': score < LQ (or < median when no published LQ) — the "reach" band
+  //   null     : ineligible, or no median/mean/expected benchmark (→ the no-data table)
   function scoreBucket(ev, prog, eligible) {
     if (!eligible) return null;
     var refs = window.JUPASEngine.refScores(prog);
@@ -92,7 +93,28 @@
     if (uq != null && score >= uq - EPS) return 'uq';
     if (score >= med - EPS) return 'median';
     if (lq != null && score >= lq - EPS) return 'lq';
-    return null;
+    return 'belowlq';
+  }
+  // 2025 Band-A offer share: of that year's OFFERS, the fraction that went to applicants who
+  // placed the programme in Band A. Falls back to the most recent offer year, then applications.
+  function bandAShare(prog) {
+    var rows = prog.offer_statistics || [];
+    function pick(type, yr) {
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        if (r.Type === type && String(r.Year) === String(yr) && r.Total) return { a: +r['Band A'], total: +r.Total, year: r.Year, type: type };
+      }
+      return null;
+    }
+    var hit = pick('Offer', 2025);
+    if (!hit) { // most recent year with offer data
+      var best = null;
+      rows.forEach(function (r) { if (r.Type === 'Offer' && r.Total && (!best || +r.Year > +best.Year)) best = r; });
+      if (best) hit = { a: +best['Band A'], total: +best.Total, year: best.Year, type: 'Offer' };
+    }
+    if (!hit) hit = pick('Application', 2025);
+    if (!hit || !hit.total) return null;
+    return { share: hit.a / hit.total, year: hit.year, type: hit.type, bandA: hit.a, total: hit.total };
   }
 
   // true when a programme has NO admission statistics at all (no median/mean/expected, no
@@ -137,8 +159,9 @@
       var eligible = ev.eligibility.eligible;
       return {
         prog: p, eval: ev, tier: fitTier(ev),
-        bucket: scoreBucket(ev, p, eligible),                 // 'uq' | 'median' | 'lq' | null
+        bucket: scoreBucket(ev, p, eligible),                 // 'uq' | 'median' | 'lq' | 'belowlq' | null
         noStats: (ref.median == null && ref.lq == null && ref.uq == null),
+        bandA: bandAShare(p),                                 // {share,year,type,...} | null
         score: ev.calculation.totalScore,
         medScore: med ? med.score : null, medDelta: med ? med.delta : null, medPct: med ? med.percent : null,
         eligible: eligible,
@@ -372,7 +395,7 @@
     CORE: CORE, ELECT_CANON: ELECT_CANON, ELECT_LABEL: ELECT_LABEL, ELECT_LABEL_ZH: ELECT_LABEL_ZH,
     LEVELS: LEVELS, buildGrades: buildGrades, gradedElectiveCount: gradedElectiveCount,
     fitTier: fitTier, TIER_RANK: TIER_RANK, evaluateAll: evaluateAll, filterRank: filterRank,
-    effectiveUq: effectiveUq, scoreBucket: scoreBucket, slotTag: slotTag, hasNoStats: hasNoStats,
+    effectiveUq: effectiveUq, scoreBucket: scoreBucket, slotTag: slotTag, hasNoStats: hasNoStats, bandAShare: bandAShare,
     group: group, closestReaches: closestReaches, categoryCounts: categoryCounts,
     whatIf: whatIf, bestUnlock: bestUnlock, nextLevelUp: nextLevelUp,
     strongestSubjects: strongestSubjects, suggestByStrength: suggestByStrength, roadmapTo: roadmapTo

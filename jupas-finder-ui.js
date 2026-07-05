@@ -47,11 +47,12 @@
       electhint: 'Choose 2–4 elective subjects and your level for each.', find: 'Find programmes', pickSubj: '— subject —', lv: 'Level',
       s3: '2 · Narrow it down', search: 'Search programmes, keywords, or JS code…',
       catlab: 'Subject area', instlab: 'Institution', sortlab: 'Show:',
-      bkUq: 'At or above UQ', bkMedian: 'At or above median', bkLq: 'At or above LQ',
+      bkUq: 'At or above UQ', bkMedian: 'At or above median', bkLq: 'At or above LQ', bkBelowlq: 'Below LQ',
       bkHint: {
         uq: 'Programmes where your score reaches the upper quartile (UQ) of last year\'s intake — the strongest band you clear. UQ is estimated where a university doesn\'t publish one.',
         median: 'Programmes where your score is at or above the median but below the upper quartile.',
-        lq: 'Programmes where your score is at or above the lower quartile but below the median.'
+        lq: 'Programmes where your score is at or above the lower quartile but below the median.',
+        belowlq: 'Programmes you\'re eligible for but where your score is below the lower quartile — a reach. In your list these show red for a top choice.'
       },
       lic: 'Licensed professions only', clear: 'Clear filters',
       s5: 'Programmes you can reach', need2: 'Enter your 3 core grades and at least 2 electives, then press “Find programmes”.',
@@ -65,7 +66,8 @@
       remember: 'Save my grades on this computer', sharednote: 'On a shared or school computer, untick the box — your grades then stay only in this tab.',
       shortlist: '⭐ My JUPAS choice list', pdfBtn: '💾 Save as PDF',
       slHint: 'Your JUPAS choice list (A1–E20). Programmes are added in the order you star them; use ▲▼ to reorder and ✕ to remove. The colour on “My score” follows the Planner: for each slot it checks whether your score clears that choice’s target (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · A4 onward ≥ UQ+10%).',
-      slSlot: 'Choice', slProg: 'Programme', slMy: 'My score', slReq: 'Requirements', slCalc: 'Weighted / calc', slInt: 'Interview', slRefs: '2025 scores',
+      slSlot: 'Choice', slProg: 'Programme', slMy: 'My score', slBand: 'Band', slReq: 'Requirements', slCalc: 'Weighted / calc', slInt: 'Interview', slRefs: '2025 scores',
+      bandATip: 'Of 2025 offers, the share that went to students who placed it in Band A.', noBandData: '—',
       slFull: 'Your list is full (20 choices). Remove one to add another.',
       moveUp: 'Move up', moveDown: 'Move down', removeSl: 'Remove from list',
       bandPos: { 'above-uq': '≥ UQ', 'above-median': '≥ Median', 'above-lq': '≥ LQ', 'below-lq': '< LQ', 'no-score': 'No data' },
@@ -93,11 +95,12 @@
       electhint: '選擇 2 至 4 個選修科及其等級。', find: '搜尋課程', pickSubj: '— 科目 —', lv: '等級',
       s3: '2 · 收窄範圍', search: '搜尋課程、關鍵字或 JS 編號…',
       catlab: '學科範疇', instlab: '院校', sortlab: '顯示：',
-      bkUq: '達到或高於 UQ', bkMedian: '達到或高於中位數', bkLq: '達到或高於下四分位',
+      bkUq: '達到或高於 UQ', bkMedian: '達到或高於中位數', bkLq: '達到或高於下四分位', bkBelowlq: '低於下四分位',
       bkHint: {
         uq: '你的分數達到去年收生上四分位（UQ）的課程——你能達到的最強範圍。院校若沒有公布 UQ，會以估算值比較。',
         median: '你的分數達到或高於中位數、但低於上四分位的課程。',
-        lq: '你的分數達到或高於下四分位、但低於中位數的課程。'
+        lq: '你的分數達到或高於下四分位、但低於中位數的課程。',
+        belowlq: '你符合資格、但分數低於下四分位的課程——屬挑戰之選。放在志願表前列時會顯示紅色。'
       },
       lic: '只顯示專業資格課程', clear: '清除篩選',
       s5: '你有機會入讀的課程', need2: '輸入三科核心成績及至少兩科選修，然後按「搜尋課程」。',
@@ -111,7 +114,8 @@
       remember: '在此電腦儲存我的成績', sharednote: '如使用共用或學校電腦，請取消勾選，成績只會留在此分頁。',
       shortlist: '⭐ 我的聯招志願表', pdfBtn: '💾 儲存為 PDF',
       slHint: '你的聯招志願表（A1–E20）。課程按你加入的次序排列；用 ▲▼ 調整次序，✕ 移除。「我的分數」的顏色與放榜行動計劃一致：按志願位置判斷你的分數是否達到該志願的目標（A1 ≥ 下四分位 · A2 ≥ 中位數 · A3 ≥ 上四分位 · 第 4 志願起 ≥ 上四分位＋10%）。',
-      slSlot: '志願', slProg: '課程', slMy: '我的分數', slReq: '入學要求', slCalc: '計分方法', slInt: '面試', slRefs: '2025 收生分數',
+      slSlot: '志願', slProg: '課程', slMy: '我的分數', slBand: 'Band', slReq: '入學要求', slCalc: '計分方法', slInt: '面試', slRefs: '2025 收生分數',
+      bandATip: '2025 年取錄中，將此課程放於 Band A 的學生所佔比例。', noBandData: '—',
       slFull: '志願表已滿（20 個）。請先移除一個再加入其他課程。',
       moveUp: '上移', moveDown: '下移', removeSl: '從志願表移除',
       bandPos: { 'above-uq': '≥ 上四分位', 'above-median': '≥ 中位數', 'above-lq': '≥ 下四分位', 'below-lq': '< 下四分位', 'no-score': '沒有數據' },
@@ -175,7 +179,7 @@
     $('electives').querySelectorAll('select').forEach(function (s) { s.addEventListener('change', onGradeChange); });
   }
   function readInput() {
-    var inp = { name: $('in-name').value, klass: $('in-class').value, csAttained: $('cs-att').classList.contains('on'), electives: [] };
+    var inp = { name: $('in-name').value, klass: $('in-class').value, cno: $('in-cno').value, csAttained: $('cs-att').classList.contains('on'), electives: [] };
     $('cores').querySelectorAll('select').forEach(function (s) { inp[s.getAttribute('data-core')] = s.value; });
     var seen = {};
     for (var i = 0; i < 4; i++) {
@@ -241,7 +245,7 @@
       .sort(function (a, b) { var pa = a.medPct == null ? -1e9 : a.medPct, pb = b.medPct == null ? -1e9 : b.medPct; return pb - pa; });
   }
   function bucketCounts() {
-    var c = { uq: 0, median: 0, lq: 0 };
+    var c = { uq: 0, median: 0, lq: 0, belowlq: 0 };
     if (results) results.forEach(function (r) { if (r.eligible && r.bucket && matchesFilters(r)) c[r.bucket]++; });
     return c;
   }
@@ -270,6 +274,7 @@
     $('t-bk-uq').textContent = s.bkUq + ' (' + c.uq + ')';
     $('t-bk-median').textContent = s.bkMedian + ' (' + c.median + ')';
     $('t-bk-lq').textContent = s.bkLq + ' (' + c.lq + ')';
+    $('t-bk-belowlq').textContent = s.bkBelowlq + ' (' + c.belowlq + ')';
     $('t-bkhint').textContent = s.bkHint[$('bucket-sort').value] || '';
   }
 
@@ -300,25 +305,23 @@
       '<div class="detail"></div></div>';
   }
 
+  // detail card mirrors the choice-list columns (requirements · weighting · interview · 2025
+  // scores · Band-A share · quota); the old "what would help" grade-raise tips were removed.
   function detailHtml(r) {
     var p = r.prog, s = t(), h = '';
     var fails = r.eval.eligibility.details.filter(function (d) { return !d.pass; });
-    h += '<div class="k">' + esc(s.elig) + '</div>';
-    if (!fails.length) h += '<div style="color:var(--vsafe);font-weight:700">' + esc(s.eligOk) + '</div>';
+    h += '<div class="k">' + esc(s.slReq) + '</div>';
+    if (!fails.length) h += '<div>' + esc(reqText(p)) + '</div>';
     else h += fails.map(function (d) {
       var need = d.label === 'CSD' ? (lang === 'zh' ? '達標' : 'Attained') : ('≥ ' + d.need);
       var what = (d.label.indexOf('Elective') === 0) ? (d.note || (lang === 'zh' ? '指定選修科' : 'required elective')) : d.label;
       return '<div class="fail">✗ ' + esc(what) + ' — ' + (lang === 'zh' ? '需要 ' : 'need ') + esc(need) + '</div>';
     }).join('');
-    var comp = window.JUPASAnalytics.competition(p), dep = window.JUPASAnalytics.bandADependency(p);
-    h += '<div class="k">' + (lang === 'zh' ? '收生數據' : 'Admissions data') + '</div>';
-    h += '<div>' + (p.quota != null ? esc(s.quota) + ': ' + p.quota : '') + (comp ? ' · ' + comp.ratio.toFixed(0) + ' ' + esc(s.applicants) : '') + (dep ? ' · ' + esc(s.bandA) + ' ' + Math.round(dep.share * 100) + '%' : '') + '</div>';
-    var wi = F.whatIf(p, input);
-    var ups = wi.bumps.filter(function (b) { return b.deltaScore > 0; }).slice(0, 5);
-    if (ups.length) {
-      h += '<div class="k">' + esc(s.whatif) + '</div>';
-      h += ups.map(function (b) { return '<div class="wi-row"><span>' + esc(subjKeyLabel(b.key, b.subject)) + ' ' + b.from + '→' + b.to + '</span><span class="wi-up">+' + b.deltaScore + '</span></div>'; }).join('');
-    }
+    h += '<div class="k">' + esc(s.slCalc) + '</div><div>' + esc(formulaText(p)) + '</div>';
+    h += '<div class="k">' + esc(s.slInt) + '</div><div>' + esc(interviewText(p)) + '</div>';
+    h += '<div class="k">' + esc(s.slRefs) + '</div><div>' + esc(scoresText(p)) + '</div>';
+    h += '<div class="k">' + esc(s.slBand) + '</div><div title="' + esc(s.bandATip) + '">' + esc(bandAText(r)) + (r.bandA ? ' <span class="k2">(' + r.bandA.year + ')</span>' : '') + '</div>';
+    h += '<div class="k">' + esc(s.quota) + '</div><div>' + (p.quota != null ? esc(String(p.quota)) : '—') + '</div>';
     if (p.url) h += '<div style="margin-top:8px"><a class="det-btn" href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(s.official) + '</a></div>';
     return h;
   }
@@ -409,6 +412,11 @@
     var lab = t().bandPos[r.eval.band] || r.eval.band;
     return '<span class="qp ' + cls + '">' + esc(lab) + '</span>';
   }
+  // JUPAS banding by 0-based slot index: A 1–3 · B 4–6 · C 7–10 · D 11–15 · E 16–20
+  function bandOfIdx(i) { var n = i + 1; return n <= 3 ? 'a' : n <= 6 ? 'b' : n <= 10 ? 'c' : n <= 15 ? 'd' : 'e'; }
+  var BAND_NAMES = { a: 'Band A · Choices 1–3', b: 'Band B · Choices 4–6', c: 'Band C · Choices 7–10', d: 'Band D · Choices 11–15', e: 'Band E · Choices 16–20' };
+  var BAND_FIRST = { 0: 'a', 3: 'b', 6: 'c', 10: 'd', 15: 'e' };   // slot index that opens each band
+  function bandAText(r) { return r.bandA ? 'A ' + Math.round(r.bandA.share * 100) + '%' : t().noBandData; }
   function slAdd(code) { if (shortlist.indexOf(code) >= 0 || shortlist.length >= SL_CAP) return; shortlist.push(code); }
   function slRemove(code) { var i = shortlist.indexOf(code); if (i >= 0) shortlist.splice(i, 1); }
   function slMove(code, dir) {
@@ -416,31 +424,60 @@
     var j = dir === 'up' ? i - 1 : i + 1; if (j < 0 || j >= shortlist.length) return;
     var tmp = shortlist[i]; shortlist[i] = shortlist[j]; shortlist[j] = tmp;
   }
+  // drag-drop reorder: move `code` to the slot currently occupied by `targetCode` (insert-before)
+  function slReorder(code, targetCode) {
+    var from = shortlist.indexOf(code); if (from < 0) return;
+    shortlist.splice(from, 1);
+    var to = shortlist.indexOf(targetCode);
+    shortlist.splice(to < 0 ? shortlist.length : to, 0, code);
+  }
+  var dragCode = null;
+  function wireDrag() {
+    var rows = $('slist').querySelectorAll('tr.sl-row');
+    rows.forEach(function (tr) {
+      tr.addEventListener('dragstart', function (e) { dragCode = tr.getAttribute('data-code'); tr.classList.add('dragging'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragCode); } catch (x) {} });
+      tr.addEventListener('dragend', function () { tr.classList.remove('dragging'); rows.forEach(function (r) { r.classList.remove('dragover'); }); dragCode = null; });
+      tr.addEventListener('dragover', function (e) { if (dragCode == null) return; e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (x) {} tr.classList.add('dragover'); });
+      tr.addEventListener('dragleave', function () { tr.classList.remove('dragover'); });
+      tr.addEventListener('drop', function (e) {
+        e.preventDefault(); tr.classList.remove('dragover');
+        var to = tr.getAttribute('data-code');
+        if (dragCode && to && dragCode !== to) { slReorder(dragCode, to); saveState(); refreshAll(); }
+      });
+    });
+  }
   function renderShortlist() {
     var s = t();
     if (!shortlist.length) { $('shortlist-panel').style.display = 'none'; return; }
     $('shortlist-panel').style.display = '';
     $('t-slhint').textContent = s.slHint;
-    var head = '<tr><th></th><th>' + esc(s.slSlot) + '</th><th>' + esc(s.slProg) + '</th><th>' + esc(s.slMy) + '</th><th>' + esc(s.slReq) + '</th><th>' + esc(s.slCalc) + '</th><th>' + esc(s.slInt) + '</th><th>' + esc(s.slRefs) + '</th><th>' + esc(s.quota) + '</th></tr>';
-    var body = shortlist.map(function (code, i) {
-      var r = resultFor(code); if (!r) return '';
+    var NCOLS = 10;
+    var head = '<tr><th></th><th>' + esc(s.slSlot) + '</th><th>' + esc(s.slProg) + '</th><th>' + esc(s.slMy) + '</th><th title="' + esc(s.bandATip) + '">' + esc(s.slBand) + '</th><th>' + esc(s.slReq) + '</th><th>' + esc(s.slCalc) + '</th><th>' + esc(s.slInt) + '</th><th>' + esc(s.slRefs) + '</th><th>' + esc(s.quota) + '</th></tr>';
+    var body = '';
+    shortlist.forEach(function (code, i) {
+      var band = bandOfIdx(i);
+      if (BAND_FIRST[i]) body += '<tr class="band-sep band-' + band + '"><td colspan="' + NCOLS + '">' + esc(BAND_NAMES[band]) + '</td></tr>';
+      var r = resultFor(code); if (!r) return;
       var p = r.prog, up = i > 0, down = i < shortlist.length - 1;
-      var ctl = '<button class="mv" data-slmv="up" data-code="' + esc(code) + '"' + (up ? '' : ' disabled') + ' aria-label="' + esc(s.moveUp) + '">▲</button> ' +
+      var ctl = '<span class="drag" title="' + esc(s.moveUp + ' / ' + s.moveDown) + '" aria-hidden="true">⠿</span> ' +
+        '<button class="mv" data-slmv="up" data-code="' + esc(code) + '"' + (up ? '' : ' disabled') + ' aria-label="' + esc(s.moveUp) + '">▲</button> ' +
         '<button class="mv" data-slmv="down" data-code="' + esc(code) + '"' + (down ? '' : ' disabled') + ' aria-label="' + esc(s.moveDown) + '">▼</button> ' +
         '<button class="mv rm" data-slrm="' + esc(code) + '" aria-label="' + esc(s.removeSl) + '">✕</button>';
       var my = r.score + ' ' + qpPill(r, i) + (r.medScore != null ? ' <span class="k2">(' + esc(s.med) + ' ' + medPctText(r) + ')</span>' : '');
-      return '<tr>' +
+      body += '<tr class="sl-row band-' + band + '" draggable="true" data-code="' + esc(code) + '">' +
         '<td class="ctl">' + ctl + '</td>' +
-        '<td class="slot">' + bandLabel(i) + '</td>' +
+        '<td class="slot"><span class="sl-badge">' + bandLabel(i) + '</span></td>' +
         '<td class="prog-cell"><b>' + esc(p.jupas_code) + '</b> ' + esc(pName(p)) + '<br><span class="k2">' + esc(pInst(p)) + '</span></td>' +
         '<td>' + my + '</td>' +
+        '<td title="' + esc(s.bandATip) + '">' + esc(bandAText(r)) + '</td>' +
         '<td>' + esc(reqText(p)) + '</td>' +
         '<td>' + esc(str(formulaText(p), 140)) + '</td>' +
         '<td>' + esc(interviewText(p)) + '</td>' +
         '<td>' + esc(scoresText(p)) + '</td>' +
         '<td>' + (p.quota != null ? esc(String(p.quota)) : '—') + '</td></tr>';
-    }).join('');
+    });
     $('slist').innerHTML = head + body;
+    wireDrag();
     var note = $('sl-note');
     if (shortlist.length >= SL_CAP) { note.style.display = ''; note.textContent = s.slFull; } else { note.style.display = 'none'; }
   }
@@ -496,26 +533,30 @@
     return parts.length ? parts.join(' ') : 'no data';
   }
   var PDF_POS = { 'above-uq': '>=UQ', 'above-median': '>=Med', 'above-lq': '>=LQ', 'below-lq': '<LQ', 'no-score': 'no data' };
+  // PDF is ALWAYS English (Helvetica can't render CJK — a zh name would become "?"), so use name_en.
+  function enName(p) { return String(p.name_en || '').replace(OFFERED_RE, ''); }
+  function pdfBandA(r) { return r.bandA ? 'A ' + Math.round(r.bandA.share * 100) + '%' : '-'; }
   function pdfStatus(r, i) { var c = F.slotTag(r.eval, r.prog, i); return c === 'good' ? 'OK' : c === 'mid' ? 'CAUTION' : 'RISK'; }
+  var PDF_X = { slot: 40, prog: 64, score: 280, stat: 366, band: 406, refs: 442, quota: 536 };
   function pdfChoiceRow(pg, r, i, y) {
-    var M = 40, X = { slot: M, prog: M + 26, score: 300, stat: 400, refs: 452, quota: 548 };
-    var p = r.prog, star = (p.non_academic || []).length ? ' *' : '';
+    var X = PDF_X, p = r.prog, star = (p.non_academic || []).length ? ' *' : '';
     pg.text(X.slot, y, 8.5, bandLabel(i), true);
-    pg.text(X.prog, y, 8.5, pdfTrunc(p.jupas_code + ' ' + pName(p) + ' (' + provider(p) + ')', 52) + star);
+    pg.text(X.prog, y, 8.5, pdfTrunc(p.jupas_code + ' ' + enName(p) + ' (' + provider(p) + ')', 46) + star);
     var med = r.medPct != null ? ' (M' + (r.medDelta >= 0 ? '+' : '') + Math.round(r.medPct) + '%)' : '';
     pg.text(X.score, y, 8.5, r.score + ' ' + (PDF_POS[r.eval.band] || '') + med);
     pg.text(X.stat, y, 8.5, pdfStatus(r, i), true);
-    pg.text(X.refs, y, 8.5, pdfTrunc(pdfRefs(p), 22));
+    pg.text(X.band, y, 8.5, pdfBandA(r));
+    pg.text(X.refs, y, 8.5, pdfTrunc(pdfRefs(p), 16));
     pg.text(X.quota, y, 8.5, p.quota != null ? String(p.quota) : '-');
-    pg.line(M, y - 3.5, 555, y - 3.5, 0.4, 0.82);
+    pg.line(40, y - 3.5, 555, y - 3.5, 0.4, 0.82);
     return y - 13;
   }
   function pdfHeaderRow(pg, y) {
-    var M = 40, X = { slot: M, prog: M + 26, score: 300, stat: 400, refs: 452, quota: 548 };
+    var X = PDF_X;
     pg.text(X.slot, y, 7.5, 'Ch', true); pg.text(X.prog, y, 7.5, 'Programme', true);
     pg.text(X.score, y, 7.5, 'My score', true); pg.text(X.stat, y, 7.5, 'Status', true);
-    pg.text(X.refs, y, 7.5, '2025 refs', true); pg.text(X.quota, y, 7.5, 'Quota', true);
-    pg.line(M, y - 4, 555, y - 4, 0.7, 0.3);
+    pg.text(X.band, y, 7.5, 'Band A', true); pg.text(X.refs, y, 7.5, '2025 refs', true); pg.text(X.quota, y, 7.5, 'Quota', true);
+    pg.line(40, y - 4, 555, y - 4, 0.7, 0.3);
     return y - 15;
   }
   function buildPdfBytes() {
@@ -524,7 +565,7 @@
     // ---- page 1 ----
     var y = 800;
     p1.text(M, y, 15, 'JUPAS Choice List (A1-E20)', true); y -= 15;
-    p1.text(M, y, 9, 'Name: ' + (pdfAscii(input.name) || '-') + '    Class: ' + (pdfAscii(input.klass) || '-') +
+    p1.text(M, y, 9, 'Name: ' + (pdfAscii(input.name) || '-') + '    Class: ' + (pdfAscii(input.klass) || '-') + '    Class no.: ' + (pdfAscii(input.cno) || '-') +
       '    Generated: ' + new Date().toLocaleDateString('en-GB') + '    Page 1 of 2'); y -= 7;
     p1.line(M, y, 555, y, 1, 0.2); y -= 14;
     pdfWrap(pdfGradesLine(), 118).slice(0, 2).forEach(function (ln) { p1.text(M, y, 8.5, ln); y -= 11; });
@@ -548,8 +589,23 @@
     y -= 8;
     pdfWrap('Unofficial reference tool for PLK No.1 students - not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are not comparable across institutions; admission statistics are from past intakes and do not guarantee this year\'s results - always verify on www.jupas.edu.hk and each university\'s website. (c) 2026 PLK No.1 W.H. Cheung College | Career Team. Includes a third-party scoring engine and database used under licence.', 128)
       .forEach(function (ln) { p2.text(M, y, 6.5, ln); y -= 8.5; });
-    return pdfBuild([p1, p2]);
+    // Append the evaluator-readable JCDATA payload (same marker the student Choices page uses):
+    // jupas-evaluator.html scans the raw PDF bytes for /JCDATA:([A-Za-z0-9+/=]+)/ then
+    // JSON.parse(decodeURIComponent(escape(atob(b64)))). It recomputes each choice from code+grades.
+    return pdfBuild([p1, p2]) + '\n%JCDATA:' + jcdataB64() + ':END\n';
   }
+  // payload matching what jupas-evaluator.html reads (name/klass/cno/core/elect/choices).
+  // The elective keys (e.subj) are the engine's ELECT_CANON keys, identical to the evaluator's.
+  function jcdataPayload() {
+    return {
+      name: input.name || '', klass: input.klass || '', cno: input.cno || '',
+      generated: new Date().toISOString().slice(0, 10),
+      core: { chi: input.chi || '', eng: input.eng || '', math: input.math || '', csd: input.csAttained ? 'attained' : 'notattained' },
+      elect: (input.electives || []).map(function (e) { return { s: e.subj, lv: e.lv }; }),
+      choices: shortlist.map(function (code) { return { code: code, intake: '', score: '', cmp: '', remark: '' }; })
+    };
+  }
+  function jcdataB64() { return btoa(unescape(encodeURIComponent(JSON.stringify(jcdataPayload())))); }
   function downloadPdf() {
     if (!shortlist.length) return;
     var blob = new Blob([buildPdfBytes()], { type: 'application/pdf' });
@@ -571,7 +627,7 @@
   }
   function applyInputToUI(inp) {
     if (!inp) return;
-    $('in-name').value = inp.name || ''; $('in-class').value = inp.klass || '';
+    $('in-name').value = inp.name || ''; $('in-class').value = inp.klass || ''; $('in-cno').value = inp.cno || '';
     setCs(inp.csAttained !== false);
     $('cores').querySelectorAll('select').forEach(function (sel) { sel.value = inp[sel.getAttribute('data-core')] || ''; });
     for (var i = 0; i < 4; i++) {
@@ -620,7 +676,7 @@
     var map = { 't-title': s.title, 't-subtitle': s.subtitle, 't-s1': s.s1, 't-cs': s.cs,
       't-electhint': s.electhint, 'find-btn': s.find, 't-s3': s.s3, 't-s5': s.s5,
       't-catlab': s.catlab, 't-instlab': s.instlab, 't-sortlab': s.sortlab,
-      't-bk-uq': s.bkUq, 't-bk-median': s.bkMedian, 't-bk-lq': s.bkLq,
+      't-bk-uq': s.bkUq, 't-bk-median': s.bkMedian, 't-bk-lq': s.bkLq, 't-bk-belowlq': s.bkBelowlq,
       't-lic': s.lic, 'clear-btn': s.clear, 'cs-att': s.att, 'cs-not': s.notatt,
       't-remember': s.remember, 't-sharednote': s.sharednote, 't-shortlist': s.shortlist, 'pdf-btn': s.pdfBtn,
       't-slhint': s.slHint, 't-herodisc': s.heroDisc,
@@ -628,6 +684,7 @@
     Object.keys(map).forEach(function (id) { var el = $(id); if (el) el.textContent = map[id]; });
     var hs = $('hero-steps'); if (hs) hs.innerHTML = (s.steps || []).map(function (x) { return '<li>' + x + '</li>'; }).join('');
     $('search').placeholder = s.search; $('in-name').placeholder = lang === 'zh' ? '姓名（可選）' : 'Name (optional)'; $('in-class').placeholder = lang === 'zh' ? '班別' : 'Class';
+    $('in-cno').placeholder = lang === 'zh' ? '學號' : 'Class no.';
     var pc = $('passcode'); if (pc) { pc.placeholder = s.pcPh; pc.setAttribute('aria-label', s.pcPh); }
     $('search').setAttribute('aria-label', s.search);
     $('bucket-sort').setAttribute('aria-label', s.aria.sort);
@@ -712,6 +769,7 @@
     slRemove: function (code) { slRemove(code); refreshAll(); },
     bucketCounts: function () { return bucketCounts(); },
     provider: provider, qpPill: qpPill, pdfBytes: buildPdfBytes,
+    jcdataPayload: jcdataPayload, slReorder: function (a, b) { slReorder(a, b); refreshAll(); },
     get results() { return results; }
   };
 })();
