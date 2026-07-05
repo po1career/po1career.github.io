@@ -1,0 +1,118 @@
+name: PR check
+
+# Safety net for changes from any agent (Codex, Claude) or human. Runs on PRs (gating,
+# so nothing merges red) and on branch pushes (informational). Does NOT touch the built-in
+# GitHub Pages deployment. See AGENTS.md for the conventions these checks enforce.
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: JS syntax (node --check)
+        run: |
+          set -e
+          fail=0
+          for f in $(git ls-files '*.js'); do
+            node --check "$f" || { echo "::error file=$f::JavaScript syntax error"; fail=1; }
+          done
+          [ "$fail" = 0 ] || exit 1
+          echo "all JS files parse"
+
+      - name: Engine smoke test
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          global.window = {};
+          (0, eval)(fs.readFileSync('jupas-engine.js', 'utf8'));
+          const E = global.window.JUPASEngine;
+          if (!E) throw new Error('window.JUPASEngine was not exported');
+          for (const fn of ['gradesFromPdfPayload', 'evaluateProgramme', 'evaluateAll', 'refScores', 'bandOf']) {
+            if (typeof E[fn] !== 'function') throw new Error('engine missing function: ' + fn);
+          }
+          const g = E.gradesFromPdfPayload({ core: { chi: '5', csd: 'attained' }, elect: [{ s: 'bio', lv: '4' }] });
+          if (g['Chinese Language'] !== '5') throw new Error('gradesFromPdfPayload core wrong: ' + JSON.stringify(g));
+          if (g['Biology'] !== '4') throw new Error('gradesFromPdfPayload elective wrong: ' + JSON.stringify(g));
+          const band = E.bandOf(30, { scores_2025: { lq: '25', median: '28', uq: '32' } });
+          if (band !== 'above-median') throw new Error('bandOf expected above-median, got ' + band);
+          console.log('engine smoke test OK');
+          EOF
+
+      - name: No secrets / plaintext data committed
+        env:
+          FORBIDDEN_STRINGS: ${{ secrets.FORBIDDEN_STRINGS }}
+        run: |
+          bad=$(git ls-files | grep -iE 'programmes\.csv$|Unified_Data.*\.json$|-db\.json$' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::plaintext database / CSV must never be committed (only *.enc.json is deployable):"
+            echo "$bad"; exit 1
+          fi
+          # Optional passcode-leak guard: set a repo secret FORBIDDEN_STRINGS (newline-separated
+          # passcodes) and this fails the build if any appears in a tracked file.
+          if [ -n "$FORBIDDEN_STRINGS" ]; then
+            printf '%s\n' "$FORBIDDEN_STRINGS" | while IFS= read -r s; do
+              [ -z "$s" ] && continue
+              if git grep -qF -- "$s" -- ':!AGENTS.md' ':!.github/**'; then
+                echo "::error::a forbidden string (passcode) was found in a tracked file"; exit 1
+              fi
+            done
+          fi
+          echo "no forbidden files/strings"
+
+      - name: Referenced assets exist
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const cp = require('child_process');
+          const htmls = cp.execSync("git ls-files '*.html'").toString().trim().split('\n').filter(Boolean);
+          const re = /(?:src|href)\s*=\s*"([^"]+)"/g;
+          const missing = [];
+          for (const h of htmls) {
+            const dir = h.includes('/') ? h.slice(0, h.lastIndexOf('/')) : '.';
+            const txt = fs.readFileSync(h, 'utf8');
+            let m;
+            while ((m = re.exec(txt))) {
+              const u = m[1].split('#')[0].split('?')[0];
+              if (!u || /^(https?:|data:|mailto:|tel:|\/\/)/i.test(u)) continue;
+              if (!/\.(js|css|png|jpe?g|svg|ico|webmanifest|json|woff2?|txt)$/i.test(u)) continue;
+              const p = u.startsWith('/') ? u.slice(1) : (dir === '.' ? u : dir + '/' + u);
+              if (!fs.existsSync(p)) missing.push(h + '  ->  ' + m[1]);
+            }
+          }
+          if (missing.length) {
+            console.log('::error::HTML references files that do not exist (renamed/deleted?):');
+            missing.forEach((x) => console.log('  ' + x));
+            process.exit(1);
+          }
+          console.log('all referenced assets exist');
+          EOF
+
+      - name: Cache-buster (?v=) bump reminder — warning only
+        if: github.event_name == 'pull_request'
+        run: |
+          base="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=1 >/dev/null 2>&1 || true
+          changed=$(git diff --name-only "$base"...HEAD -- '*.js' '*.css' 2>/dev/null || true)
+          html_diff=$(git diff "$base"...HEAD -- '*.html' 2>/dev/null || true)
+          for f in $changed; do
+            bn=$(basename "$f")
+            [ "$bn" = "sw.js" ] && continue   # sw.js uses a CACHE constant, not ?v=
+            if ! printf '%s' "$html_diff" | grep -qE "^\+.*${bn}\?v="; then
+              echo "::warning file=$f::$bn was edited but no HTML '?v=' bump was detected — remember to bump the cache-buster in every page that loads it."
+            fi
+          done
+          echo "cache-buster check done (warnings above, if any)"
