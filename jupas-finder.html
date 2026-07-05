@@ -98,7 +98,10 @@
   .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
   .d-strong{background:var(--vsafe);} .d-reach{background:var(--mod);} .d-stretch{background:var(--risky);} .d-nodata{background:var(--unk);}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
-  .prog{border:1px solid var(--border);border-radius:12px;padding:11px 13px;background:#fff;display:flex;flex-direction:column;gap:5px;}
+  .prog{border:1px solid var(--border);border-radius:12px;padding:11px 13px;background:#fff;display:flex;flex-direction:column;gap:5px;
+    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;}
+  .prog:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 12px 26px rgba(91,58,36,0.14);border-color:var(--accent);}
+  @media (hover:none){ .prog:hover{transform:none;box-shadow:none;} }
   .prog.inelig{background:#fffafa;}
   .code-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .code{font-weight:800;color:var(--link);}
@@ -122,11 +125,15 @@
   .empty{color:var(--muted);padding:14px;text-align:center;}
   .count{font-weight:800;color:var(--accent-dark);margin:8px 0;}
   .showmore{margin:8px 0;text-align:center;}
-  /* card action buttons (star / target) */
+  /* card action buttons (star) */
   .card-acts{display:flex;gap:6px;margin-left:auto;}
-  .iconbtn{border:1px solid var(--border);background:#fffdf7;border-radius:8px;cursor:pointer;font-size:0.82rem;padding:2px 7px;font-family:inherit;line-height:1.3;}
-  .iconbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark);font-weight:800;}
+  .iconbtn{position:relative;border:1px solid var(--border);background:#fffdf7;border-radius:8px;cursor:pointer;font-size:0.95rem;padding:2px 8px;font-family:inherit;line-height:1.3;color:#cdbd92;transition:color .12s,background .12s,border-color .12s;}
+  .iconbtn:hover{border-color:var(--accent);color:var(--accent-dark);}
+  .iconbtn.on{background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-color:var(--accent-dark);color:#fff;font-weight:800;box-shadow:0 2px 8px rgba(169,132,47,.35);}
   .iconbtn:disabled{opacity:.4;cursor:not-allowed;}
+  /* hover tooltip on the star (data-tip localized) */
+  .iconbtn[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);right:0;background:var(--ink);color:#fff;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;z-index:40;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.18);}
+  .iconbtn[data-tip]:hover::before{content:"";position:absolute;bottom:100%;right:9px;border:5px solid transparent;border-top-color:var(--ink);z-index:40;pointer-events:none;}
   .estim{font-size:0.66rem;background:#fdf3da;color:var(--mod);border-radius:6px;padding:1px 6px;font-weight:800;}
   .trend-up{color:var(--risky);font-weight:800;} .trend-dn{color:var(--vsafe);font-weight:800;}
   .notyet{color:var(--mod);font-weight:700;font-size:0.82rem;}
@@ -147,6 +154,20 @@
   .sl .mv.rm{color:var(--risky);border-color:#e9c9c6;}
   .sl-empty{color:var(--muted);padding:12px 2px;font-size:0.84rem;}
   .sl-note{color:var(--mod);font-weight:700;font-size:0.8rem;margin-top:6px;}
+  /* quartile-position pill in the choice list's My-score column (Planner-synced colours) */
+  .qp{display:inline-block;font-size:0.7rem;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:5px;white-space:nowrap;}
+  .qp.good{background:var(--vsafe-bg);color:var(--vsafe);}
+  .qp.mid{background:var(--mod-bg);color:var(--mod);}
+  .qp.bad{background:var(--risky-bg);color:var(--risky);}
+  /* hero how-to steps */
+  .hero-steps{position:relative;z-index:1;margin:10px 0 0;padding-left:1.15em;color:var(--ink);font-size:0.82rem;line-height:1.55;max-width:70ch;}
+  .hero-steps li{margin:1px 0;}
+  .hero-steps b{color:var(--link);}
+  /* no-data collapsible panel */
+  .nodata-panel > summary{cursor:pointer;font-weight:800;font-size:1.02rem;list-style:none;display:flex;align-items:center;gap:8px;}
+  .nodata-panel > summary::-webkit-details-marker{display:none;}
+  .nodata-panel > summary::before{content:"▸";color:var(--accent-dark);font-weight:800;transition:transform .15s;}
+  .nodata-panel[open] > summary::before{transform:rotate(90deg);}
   /* roadmap */
   .road{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;}
   .road .rh{font-weight:800;}
@@ -236,7 +257,8 @@
           JUPAS
         </span>
         <h1 id="t-title">JUPAS Programme Finder+</h1>
-        <p class="subtitle" id="t-subtitle">Enter your grades, then discover the programmes that fit you — and how close you are to the ones you're aiming for.</p>
+        <p class="subtitle" id="t-subtitle"></p>
+        <ol class="hero-steps" id="hero-steps"></ol>
         <div class="hero-disc">
           <span class="dw" aria-hidden="true">⚠️</span>
           <p id="t-herodisc"></p>
@@ -298,11 +320,18 @@
       <div id="results"></div>
     </div>
 
+    <!-- programmes with no admission statistics (collapsible) -->
+    <details class="panel nodata-panel" id="nodata-panel" style="display:none">
+      <summary id="nodata-sum"></summary>
+      <p class="hint" id="t-nodata-hint" style="margin:8px 0 2px"></p>
+      <div class="grid" id="nodata-list" style="margin-top:8px"></div>
+    </details>
+
     <!-- shortlist: 20-slot A1–E20 table -->
     <div class="panel" id="shortlist-panel" style="display:none">
       <div class="filt-row no-print" style="justify-content:space-between">
-        <h2 id="t-shortlist" style="margin:0">⭐ My shortlist</h2>
-        <button class="btn btn-ghost" id="print-btn" type="button" style="padding:8px 14px">🖨 Print my shortlist</button>
+        <h2 id="t-shortlist" style="margin:0">⭐ My JUPAS choice list</h2>
+        <button class="btn btn-ghost" id="pdf-btn" type="button" style="padding:8px 14px">💾 Save as PDF</button>
       </div>
       <p class="hint" id="t-slhint" style="margin:2px 0 8px"></p>
       <div class="sl-wrap"><table class="sl" id="slist"></table></div>
@@ -317,8 +346,8 @@
 
 <script src="jupas-engine.js?v=1"></script>
 <script src="jupas-finder-analytics.js?v=2"></script>
-<script src="jupas-finder-core.js?v=3"></script>
-<script src="jupas-finder-ui.js?v=8"></script>
+<script src="jupas-finder-core.js?v=4"></script>
+<script src="jupas-finder-ui.js?v=10"></script>
 <div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
 </body>
 </html>

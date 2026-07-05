@@ -95,6 +95,38 @@
     return null;
   }
 
+  // true when a programme has NO admission statistics at all (no median/mean/expected, no
+  // published LQ/UQ) — e.g. new or newly-restructured programmes. Admission is unpredictable.
+  function hasNoStats(prog) {
+    var r = window.JUPASEngine.refScores(prog);
+    return r.median == null && r.lq == null && r.uq == null;
+  }
+
+  // Slot-differential tag for the 20-slot choice list — MIRRORS the Planner's conservative-max
+  // approach (kept in sync 2026-07-05; this is a parallel copy of the Planner's slotTag logic,
+  // like analytics.js — patch both together). Each factor scores a severity (0 good / 1 mid /
+  // 2 bad) and the WORST wins. Slot thresholds: A1(idx0) ≥ LQ · A2(idx1) ≥ Median · A3(idx2) ≥ UQ
+  // · idx ≥ 3 (B4–E20) ≥ UQ+10% — bands C–E use the SAME rule as band B. Quartile position
+  // outranks the small-quota caution; a below-threshold score is red even at quota < 20.
+  // FINDER-SPECIFIC: a programme with no admission statistics is ALWAYS 'bad' (red).
+  function slotTag(ev, prog, slotIdx) {
+    var sev = [];                                            // severities: 0 good · 1 mid · 2 bad
+    if (!ev.eligibility.eligible) sev.push(2);
+    if (hasNoStats(prog)) sev.push(2);                       // no stats → always red (unpredictable)
+    else {
+      var refs = window.JUPASEngine.refScores(prog), thr = null, EPS = 1e-9;
+      if (slotIdx === 0) thr = refs.lq != null ? +refs.lq : refs.median != null ? +refs.median : null;
+      else if (slotIdx === 1) thr = refs.median != null ? +refs.median : null;
+      else { var uq = effectiveUq(refs); thr = uq != null ? uq * (slotIdx === 2 ? 1 : 1.10) : null; }
+      if (thr == null) sev.push(1);                          // can't judge this slot → amber
+      else if (ev.calculation.totalScore < thr - EPS) sev.push(2);
+      var quota = parseInt(prog.quota, 10);
+      if (!isNaN(quota) && quota < 20) sev.push(1);          // few places → amber (only downgrades)
+    }
+    var worst = sev.reduce(function (a, b) { return b > a ? b : a; }, 0);
+    return worst === 2 ? 'bad' : worst === 1 ? 'mid' : 'good';
+  }
+
   // evaluate every programme for these grades; attach quartile bucket + gap-to-median
   function evaluateAll(programmes, grades, csAttained) {
     return programmes.map(function (p) {
@@ -106,6 +138,7 @@
       return {
         prog: p, eval: ev, tier: fitTier(ev),
         bucket: scoreBucket(ev, p, eligible),                 // 'uq' | 'median' | 'lq' | null
+        noStats: (ref.median == null && ref.lq == null && ref.uq == null),
         score: ev.calculation.totalScore,
         medScore: med ? med.score : null, medDelta: med ? med.delta : null, medPct: med ? med.percent : null,
         eligible: eligible,
@@ -339,7 +372,7 @@
     CORE: CORE, ELECT_CANON: ELECT_CANON, ELECT_LABEL: ELECT_LABEL, ELECT_LABEL_ZH: ELECT_LABEL_ZH,
     LEVELS: LEVELS, buildGrades: buildGrades, gradedElectiveCount: gradedElectiveCount,
     fitTier: fitTier, TIER_RANK: TIER_RANK, evaluateAll: evaluateAll, filterRank: filterRank,
-    effectiveUq: effectiveUq, scoreBucket: scoreBucket,
+    effectiveUq: effectiveUq, scoreBucket: scoreBucket, slotTag: slotTag, hasNoStats: hasNoStats,
     group: group, closestReaches: closestReaches, categoryCounts: categoryCounts,
     whatIf: whatIf, bestUnlock: bestUnlock, nextLevelUp: nextLevelUp,
     strongestSubjects: strongestSubjects, suggestByStrength: suggestByStrength, roadmapTo: roadmapTo
