@@ -106,7 +106,6 @@ function applyStaticText() {
   document.documentElement.lang = (lang === 'zh') ? 'zh-HK' : 'en';
   document.getElementById('lang-en').classList.toggle('active', lang === 'en');
   document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
-  document.querySelectorAll('.home-link').forEach(a => { a.textContent = s.home; });
   { const xl = document.getElementById('t-xlink'); if (xl) xl.textContent = s.xlink; }
   document.getElementById('t-title').textContent = s.title;
   document.getElementById('t-subtitle').textContent = s.subtitle;

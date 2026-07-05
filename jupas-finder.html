@@ -131,9 +131,22 @@
   .trend-up{color:var(--risky);font-weight:800;} .trend-dn{color:var(--vsafe);font-weight:800;}
   .notyet{color:var(--mod);font-weight:700;font-size:0.82rem;}
   .numbers{color:var(--muted);font-size:0.78rem;}
-  /* compare table */
-  #compare th,#compare td{border-bottom:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top;}
-  #compare th{font-size:0.72rem;text-transform:uppercase;color:var(--muted);}
+  /* filter group labels */
+  .chips-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:800;margin:8px 0 2px;}
+  /* 20-slot shortlist table (A1–E20) */
+  .sl-wrap{overflow-x:auto;}
+  table.sl{border-collapse:collapse;width:100%;min-width:900px;font-size:0.8rem;}
+  .sl th,.sl td{border-bottom:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top;}
+  .sl th{font-size:0.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);white-space:nowrap;}
+  .sl td.slot{white-space:nowrap;font-weight:800;color:var(--link);}
+  .sl td.ctl{white-space:nowrap;}
+  .sl .prog-cell b{color:var(--link);}
+  .sl .k2{color:var(--muted);font-size:0.74rem;}
+  .sl .mv{border:1px solid var(--border);background:#fffdf7;border-radius:6px;cursor:pointer;font-size:0.82rem;padding:1px 6px;font-family:inherit;line-height:1.2;}
+  .sl .mv:disabled{opacity:.3;cursor:not-allowed;}
+  .sl .mv.rm{color:var(--risky);border-color:#e9c9c6;}
+  .sl-empty{color:var(--muted);padding:12px 2px;font-size:0.84rem;}
+  .sl-note{color:var(--mod);font-weight:700;font-size:0.8rem;margin-top:6px;}
   /* roadmap */
   .road{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;}
   .road .rh{font-weight:800;}
@@ -207,12 +220,10 @@
     <input type="password" id="passcode" autocomplete="off" placeholder="Passcode">
     <button id="unlock-btn" type="button">Unlock</button>
     <div id="lock-err" class="lock-err"></div>
-    <a href="index.html" class="home-link" id="t-lockhome" style="display:inline-block;margin-top:14px">← Back to home</a>
   </div>
 </div>
 
 <div id="app" class="wrap" style="display:none">
-  <a href="index.html" class="home-link" id="t-home" style="margin-bottom:6px">← Back to home</a>
   <div class="hero">
     <img class="hero-sprig" src="images/sprig.svg" alt="" aria-hidden="true">
     <div class="top">
@@ -258,45 +269,26 @@
   </div>
 
   <div id="results-area" style="display:none">
-    <!-- 2. filters (category filter first) -->
+    <!-- 2. filters -->
     <div class="panel no-print">
       <h2 id="t-s3">2 · Narrow it down</h2>
-      <input type="text" id="search" style="width:100%;margin-bottom:8px" placeholder="Search programmes, keywords, or JS code…">
+      <input type="text" id="search" style="width:100%;margin-bottom:4px" placeholder="Search programmes, keywords, or JS code…">
+      <div class="chips-label" id="t-catlab">Subject area</div>
       <div class="chips" id="chips"></div>
-      <div class="filt-row">
-        <select id="inst"></select>
-        <select id="sort">
-          <option value="fit" id="t-sort-fit">Sort: Best fit</option>
-          <option value="selective" id="t-sort-sel">Sort: Most selective I qualify for</option>
-          <option value="attainable" id="t-sort-att">Sort: Closest to / above median</option>
-        </select>
+      <div class="chips-label" id="t-instlab">Institution</div>
+      <div class="chips" id="inst-chips"></div>
+      <div class="filt-row" style="margin-top:10px">
+        <label class="check" style="font-weight:700"><span id="t-sortlab">Show:</span>
+          <select id="bucket-sort" style="margin-left:4px">
+            <option value="uq" id="t-bk-uq">At or above UQ</option>
+            <option value="median" id="t-bk-median">At or above median</option>
+            <option value="lq" id="t-bk-lq">At or above LQ</option>
+          </select>
+        </label>
         <label class="check"><input type="checkbox" id="lic"> <span id="t-lic">Licensed professions only</span></label>
-        <label class="check"><input type="checkbox" id="incIn"> <span id="t-incin">Include ones I'm not eligible for yet</span></label>
         <button class="btn-ghost btn" id="clear-btn" type="button" style="padding:8px 14px">Clear filters</button>
       </div>
-    </div>
-
-    <!-- 3. progress / motivation -->
-    <div class="panel">
-      <h2 id="t-s2">3 · Where you stand</h2>
-      <div class="progress" id="progress"></div>
-      <div class="chips" id="cat-counts" style="margin-top:10px"></div>
-    </div>
-
-    <!-- targets / roadmap -->
-    <div class="panel" id="targets-panel" style="display:none">
-      <h2 id="t-targets">🎯 My targets</h2>
-      <p class="hint" id="t-targets-hint">Your dream programmes and exactly what it would take to reach them.</p>
-      <div id="targets"></div>
-    </div>
-
-    <!-- shortlist / compare -->
-    <div class="panel" id="shortlist-panel" style="display:none">
-      <div class="filt-row no-print" style="justify-content:space-between">
-        <h2 id="t-shortlist" style="margin:0">⭐ My shortlist</h2>
-        <button class="btn btn-ghost" id="print-btn" type="button" style="padding:8px 14px">🖨 Print my shortlist</button>
-      </div>
-      <div style="overflow-x:auto"><table id="compare" style="border-collapse:collapse;width:100%;min-width:560px;font-size:0.84rem"></table></div>
+      <p class="hint" id="t-bkhint" style="margin:8px 0 0"></p>
     </div>
 
     <!-- results -->
@@ -306,11 +298,15 @@
       <div id="results"></div>
     </div>
 
-    <!-- closest reaches (motivation) -->
-    <div class="panel" id="close-panel" style="display:none">
-      <h2 id="t-s4">✨ You're nearly there</h2>
-      <p class="hint" id="t-s4hint">Eligible programmes just below the line — a little push could get you in.</p>
-      <div class="grid" id="closest"></div>
+    <!-- shortlist: 20-slot A1–E20 table -->
+    <div class="panel" id="shortlist-panel" style="display:none">
+      <div class="filt-row no-print" style="justify-content:space-between">
+        <h2 id="t-shortlist" style="margin:0">⭐ My shortlist</h2>
+        <button class="btn btn-ghost" id="print-btn" type="button" style="padding:8px 14px">🖨 Print my shortlist</button>
+      </div>
+      <p class="hint" id="t-slhint" style="margin:2px 0 8px"></p>
+      <div class="sl-wrap"><table class="sl" id="slist"></table></div>
+      <p class="sl-note" id="sl-note" style="display:none"></p>
     </div>
   </div>
 
@@ -321,8 +317,8 @@
 
 <script src="jupas-engine.js?v=1"></script>
 <script src="jupas-finder-analytics.js?v=2"></script>
-<script src="jupas-finder-core.js?v=2"></script>
-<script src="jupas-finder-ui.js?v=6"></script>
+<script src="jupas-finder-core.js?v=3"></script>
+<script src="jupas-finder-ui.js?v=8"></script>
 <div class="po1credit">© 2026 PLK No.1 W.H. Cheung College · Career Team</div>
 </body>
 </html>

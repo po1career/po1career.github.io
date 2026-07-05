@@ -707,7 +707,7 @@
   // ---------------- static text + language ----------------
   function applyStatic() {
     var s = t();
-    var map = { 't-home': s.home, 't-lockhome': s.lockHome, 't-lock': s.lock, 't-locksub': s.locksub,
+    var map = { 't-lock': s.lock, 't-locksub': s.locksub,
       't-title': s.title, 't-subtitle': s.subtitle, 't-herodisc': s.heroDisc,
       't-s1': s.s1, 't-ghint': s.ghint, 't-remember': s.remember, 't-sharednote': s.sharednote,
       't-pdfhint': s.pdfHint,

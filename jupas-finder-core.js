@@ -67,23 +67,50 @@
     return ev;
   }
 
-  // evaluate every programme for these grades; attach tier, chance, gap-to-median
+  // effective upper quartile: the published UQ when usable, else synthesized exactly as
+  // the Planner estimates it (median + 1.25 × upper spread, floored at 5% of median) so the
+  // three score buckets are meaningful for every institution, not just the few that publish a UQ.
+  function effectiveUq(refs) {
+    if (refs.uq != null && +refs.uq > +refs.median) return +refs.uq;
+    if (refs.median == null) return null;
+    var med = +refs.median, floor = 0.05 * med;
+    var spread = refs.lq != null ? Math.max(med - +refs.lq, floor) : floor;
+    return med + 1.25 * spread;
+  }
+  // three mutually-exclusive score categories (ELIGIBLE programmes only). Ranges by construction:
+  //   'uq'     : score ≥ effective UQ
+  //   'median' : median ≤ score < UQ
+  //   'lq'     : LQ ≤ score < median          (needs a published LQ)
+  //   null     : ineligible, below LQ, or no median benchmark to compare against
+  function scoreBucket(ev, prog, eligible) {
+    if (!eligible) return null;
+    var refs = window.JUPASEngine.refScores(prog);
+    if (refs.median == null) return null;
+    var score = ev.calculation.totalScore;
+    if (score == null || isNaN(score)) return null;
+    var EPS = 1e-9, uq = effectiveUq(refs), med = +refs.median, lq = refs.lq != null ? +refs.lq : null;
+    if (uq != null && score >= uq - EPS) return 'uq';
+    if (score >= med - EPS) return 'median';
+    if (lq != null && score >= lq - EPS) return 'lq';
+    return null;
+  }
+
+  // evaluate every programme for these grades; attach quartile bucket + gap-to-median
   function evaluateAll(programmes, grades, csAttained) {
     return programmes.map(function (p) {
       var ev = evalOne(p, grades, csAttained);
       var med = ev.comparisons.find(function (x) { return x.key === 'median'; })
         || ev.comparisons.find(function (x) { return x.key === 'mean' || x.key === 'expected_score'; });
-      // "chance if you make it a top (Band A) choice" — the optimistic, motivating framing
-      var chance = window.JUPASAnalytics.chanceForChoice(ev, 1);
       var ref = window.JUPASEngine.refScores(p);
+      var eligible = ev.eligibility.eligible;
       return {
-        prog: p, eval: ev, tier: fitTier(ev), chance: chance,
+        prog: p, eval: ev, tier: fitTier(ev),
+        bucket: scoreBucket(ev, p, eligible),                 // 'uq' | 'median' | 'lq' | null
         score: ev.calculation.totalScore,
         medScore: med ? med.score : null, medDelta: med ? med.delta : null, medPct: med ? med.percent : null,
-        eligible: ev.eligibility.eligible,
+        eligible: eligible,
         source: ref.source,                                   // 'actual' | 'mean' | 'expected' | 'none'
-        estimated: ref.source !== 'actual' || ((p.scores_2025 || {}).score_type === 'estimated'),
-        trend: window.JUPASAnalytics.applicationTrend(p)        // {pct, from, to} | null
+        estimated: ref.source !== 'actual' || ((p.scores_2025 || {}).score_type === 'estimated')
       };
     });
   }
@@ -312,6 +339,7 @@
     CORE: CORE, ELECT_CANON: ELECT_CANON, ELECT_LABEL: ELECT_LABEL, ELECT_LABEL_ZH: ELECT_LABEL_ZH,
     LEVELS: LEVELS, buildGrades: buildGrades, gradedElectiveCount: gradedElectiveCount,
     fitTier: fitTier, TIER_RANK: TIER_RANK, evaluateAll: evaluateAll, filterRank: filterRank,
+    effectiveUq: effectiveUq, scoreBucket: scoreBucket,
     group: group, closestReaches: closestReaches, categoryCounts: categoryCounts,
     whatIf: whatIf, bestUnlock: bestUnlock, nextLevelUp: nextLevelUp,
     strongestSubjects: strongestSubjects, suggestByStrength: suggestByStrength, roadmapTo: roadmapTo
