@@ -38,9 +38,9 @@
     en: {
       title: 'JUPAS Programme Finder+', subtitle: 'Discover the JUPAS programmes you can reach and build your own A1–E20 choice list.',
       steps: [
-        'Enter your HKDSE grades — 3 cores, Citizenship &amp; Social Development, and your electives.',
+        'Enter your HKDSE grades — 4 cores and your electives.',
         'Pick a score band (≥ UQ / ≥ Median / ≥ LQ) and narrow down by subject area or institution.',
-        'Tap ★ to add a programme to your list, then use ▲▼ to arrange your A1–E20 order.',
+        'Tap ★ to add a programme to your list, then use ▲▼ or drag to arrange your A1–E20 order.',
         'Save your list as a 2-page PDF to bring to your teacher.'
       ],
       s1: '1 · Your details & HKDSE grades', cs: 'Citizenship & Social Development', att: 'Attained', notatt: 'Not attained',
@@ -65,7 +65,7 @@
       noneFit: 'No programmes in this band match your filters. Try another band above, clearing a filter, or adding electives.',
       remember: 'Save my grades on this computer', sharednote: 'On a shared or school computer, untick the box — your grades then stay only in this tab.',
       shortlist: '⭐ My JUPAS choice list', pdfBtn: '💾 Save as PDF',
-      slHint: 'Your JUPAS choice list (A1–E20). Programmes are added in the order you star them; use ▲▼ to reorder and ✕ to remove. The colour on “My score” follows the Planner: for each slot it checks whether your score clears that choice’s target (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · A4 onward ≥ UQ+10%).',
+      slHint: 'Your JUPAS choice list (A1–E20). Programmes are added in the order you star them; use ▲▼ or drag to reorder and ✕ to remove. The colour on “My score” follows the Planner: for each slot it checks whether your score clears that choice’s target (A1 ≥ LQ · A2 ≥ Median · A3 ≥ UQ · A4 onward ≥ UQ+10%).',
       slSlot: 'Choice', slProg: 'Programme', slMy: 'My score', slBand: 'Band', slReq: 'Requirements', slCalc: 'Weighted / calc', slInt: 'Interview', slRefs: '2025 scores',
       bandATip: 'Of 2025 offers, the share that went to students who placed it in Band A.', noBandData: '—',
       slFull: 'Your list is full (20 choices). Remove one to add another.',
@@ -86,9 +86,9 @@
     zh: {
       title: 'JUPAS 課程搜尋器＋', subtitle: '找出你有機會入讀的聯招課程，並編排你的 A1–E20 志願表。',
       steps: [
-        '輸入文憑試成績——三科核心、公民與社會發展科，以及你的選修科。',
+        '輸入文憑試成績——四科核心及你的選修科。',
         '選擇分數範圍（≥ 上四分位／≥ 中位數／≥ 下四分位），再按學科範疇或院校收窄。',
-        '按 ★ 把課程加入志願表，再用 ▲▼ 排成你的 A1–E20 次序。',
+        '按 ★ 把課程加入志願表，再用 ▲▼ 或拖曳排成你的 A1–E20 次序。',
         '把志願表儲存為兩頁 PDF，帶給老師參考。'
       ],
       s1: '1 · 你的資料及文憑試成績', cs: '公民與社會發展科', att: '達標', notatt: '未達標',
@@ -113,7 +113,7 @@
       noneFit: '此範圍沒有符合篩選的課程。可試試上一個範圍、清除篩選，或加選修科。',
       remember: '在此電腦儲存我的成績', sharednote: '如使用共用或學校電腦，請取消勾選，成績只會留在此分頁。',
       shortlist: '⭐ 我的聯招志願表', pdfBtn: '💾 儲存為 PDF',
-      slHint: '你的聯招志願表（A1–E20）。課程按你加入的次序排列；用 ▲▼ 調整次序，✕ 移除。「我的分數」的顏色與放榜行動計劃一致：按志願位置判斷你的分數是否達到該志願的目標（A1 ≥ 下四分位 · A2 ≥ 中位數 · A3 ≥ 上四分位 · 第 4 志願起 ≥ 上四分位＋10%）。',
+      slHint: '你的聯招志願表（A1–E20）。課程按你加入的次序排列；用 ▲▼ 或拖曳調整次序，✕ 移除。「我的分數」的顏色與放榜行動計劃一致：按志願位置判斷你的分數是否達到該志願的目標（A1 ≥ 下四分位 · A2 ≥ 中位數 · A3 ≥ 上四分位 · 第 4 志願起 ≥ 上四分位＋10%）。',
       slSlot: '志願', slProg: '課程', slMy: '我的分數', slBand: 'Band', slReq: '入學要求', slCalc: '計分方法', slInt: '面試', slRefs: '2025 收生分數',
       bandATip: '2025 年取錄中，將此課程放於 Band A 的學生所佔比例。', noBandData: '—',
       slFull: '志願表已滿（20 個）。請先移除一個再加入其他課程。',
@@ -432,11 +432,17 @@
     shortlist.splice(to < 0 ? shortlist.length : to, 0, code);
   }
   var dragCode = null;
+  var touchDragCode = null, touchDropCode = null;
+  function clearDragMarks(rows) { rows.forEach(function (r) { r.classList.remove('dragging'); r.classList.remove('dragover'); }); }
+  function rowFromTouch(touch) {
+    var el = document.elementFromPoint(touch.clientX, touch.clientY);
+    return el && el.closest ? el.closest('tr.sl-row') : null;
+  }
   function wireDrag() {
     var rows = $('slist').querySelectorAll('tr.sl-row');
     rows.forEach(function (tr) {
       tr.addEventListener('dragstart', function (e) { dragCode = tr.getAttribute('data-code'); tr.classList.add('dragging'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragCode); } catch (x) {} });
-      tr.addEventListener('dragend', function () { tr.classList.remove('dragging'); rows.forEach(function (r) { r.classList.remove('dragover'); }); dragCode = null; });
+      tr.addEventListener('dragend', function () { clearDragMarks(rows); dragCode = null; });
       tr.addEventListener('dragover', function (e) { if (dragCode == null) return; e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (x) {} tr.classList.add('dragover'); });
       tr.addEventListener('dragleave', function () { tr.classList.remove('dragover'); });
       tr.addEventListener('drop', function (e) {
@@ -444,6 +450,27 @@
         var to = tr.getAttribute('data-code');
         if (dragCode && to && dragCode !== to) { slReorder(dragCode, to); saveState(); refreshAll(); }
       });
+      var handle = tr.querySelector('.drag');
+      if (!handle) return;
+      handle.addEventListener('touchstart', function (e) {
+        if (!e.touches || e.touches.length !== 1) return;
+        touchDragCode = tr.getAttribute('data-code'); touchDropCode = touchDragCode;
+        tr.classList.add('dragging');
+      }, { passive: true });
+      handle.addEventListener('touchmove', function (e) {
+        if (!touchDragCode || !e.touches || e.touches.length !== 1) return;
+        e.preventDefault();
+        clearDragMarks(rows); tr.classList.add('dragging');
+        var over = rowFromTouch(e.touches[0]);
+        if (!over) return;
+        touchDropCode = over.getAttribute('data-code');
+        if (touchDropCode && touchDropCode !== touchDragCode) over.classList.add('dragover');
+      }, { passive: false });
+      handle.addEventListener('touchend', function () {
+        if (touchDragCode && touchDropCode && touchDragCode !== touchDropCode) { slReorder(touchDragCode, touchDropCode); saveState(); refreshAll(); }
+        clearDragMarks(rows); touchDragCode = null; touchDropCode = null;
+      });
+      handle.addEventListener('touchcancel', function () { clearDragMarks(rows); touchDragCode = null; touchDropCode = null; });
     });
   }
   function renderShortlist() {
