@@ -31,8 +31,8 @@
                  zh: "獲認可的學士學位，銜接專業資格或研究生課程。" },
       applyVia: { en: "JUPAS (jupas.edu.hk).", zh: "大學聯招辦法（JUPAS）。" },
       link: { href: "https://www.jupas.edu.hk", label: { en: "Visit JUPAS", zh: "前往 JUPAS" } },
-      next: { en: "Browse programmes with the <a href=\"jupas-tool.html\">JUPAS Finder</a> on this site.",
-              zh: "可用本站的 <a href=\"jupas-tool.html\">JUPAS 搜尋器</a>瀏覽課程。" } },
+      next: { en: "Browse programmes with the <a href=\"jupas-finder.html\">JUPAS Finder</a> on this site.",
+              zh: "可用本站的 <a href=\"jupas-finder.html\">JUPAS 搜尋器</a>瀏覽課程。" } },
 
     { id: "sssdp", icon: "💡", c: "#1f8a7a", c2: "#4fb9a3",
       tags: { results: ["degree", "mid"], mode: ["academic", "vocational"], place: ["hk"] },
