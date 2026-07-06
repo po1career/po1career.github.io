@@ -25,7 +25,7 @@ window.SITE_TOOLS = [
   { id: "streaming", href: "streaming-tool.html", group: "studytools", icon: "🧭", gated: true,
     name: { en: "Subject Streaming", zh: "選科工具" }, aud: { en: "F.3", zh: "中三" },
     desc: { en: "Rank your F.4 electives into a full priority order.", zh: "為中四選修科排出完整志願次序。" } },
-  { id: "jupas", href: "jupas-tool.html", group: "jupastools", icon: "🔍", gated: true,
+  { id: "jupas", href: "jupas-finder.html", group: "jupastools", icon: "🔍", gated: true,
     name: { en: "JUPAS Finder", zh: "JUPAS 搜尋器" }, aud: { en: "F.5–F.6", zh: "中五至中六" },
     desc: { en: "Search university programmes by subject, school or keyword.", zh: "按學科、院校或關鍵字搜尋大學課程。" } },
   { id: "jupaschoices", href: "jupas-choices.html", group: "jupastools", icon: "📋", gated: true,
