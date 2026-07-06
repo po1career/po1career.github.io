@@ -9,8 +9,6 @@
   var MAIN = [
     { href: "index.html", name: { en: "Home", zh: "主頁" },
       desc: { en: "The Career Team homepage.", zh: "升學輔導及生涯規劃組主頁。" } },
-    { href: "index.html#news", name: { en: "Latest News", zh: "最新消息" },
-      desc: { en: "Updates on local, mainland and overseas universities and career activities.", zh: "本地、內地及海外大學與職業活動的最新消息。" } },
     { href: "useful-links.html", name: { en: "Useful Links", zh: "實用連結" },
       desc: { en: "University JUPAS score calculators and the EDB Life Planning Portfolio.", zh: "各大學 JUPAS 分數計算工具及教育局生涯規劃歷程檔案。" } },
     { href: "faq.html", name: { en: "FAQ & Glossary", zh: "常見問題與詞彙" },
