@@ -143,7 +143,7 @@
     if (!host) return;
     var tx = T[state.lang];
     host.innerHTML = "";
-    ["studytools", "jupastools"].forEach(function (groupKey) {
+    ["jupastools", "studytools"].forEach(function (groupKey) {
       var items = (window.SITE_TOOLS || []).filter(function (td) { return td.group === groupKey; });
       if (!items.length) return;
       var h = document.createElement("h3");
