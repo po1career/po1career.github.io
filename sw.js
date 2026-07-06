@@ -6,7 +6,7 @@
    once the site has been opened (or installed) online.
    Bump CACHE to invalidate everything.
    ============================================================ */
-var CACHE = 'clp-cache-v12';
+var CACHE = 'clp-cache-v13';
 
 /* Core app shell precached on install so the key pages work
    offline on first launch after "Add to Home Screen". */
@@ -69,7 +69,9 @@ self.addEventListener('fetch', function (e) {
   var url;
   try { url = new URL(req.url); } catch (err) { return; }
   if (url.origin !== self.location.origin) return;          // same-origin only
-  if (url.pathname.indexOf('programmes.enc.json') !== -1) return; // let gated data go straight to network
+  // gated encrypted DBs go straight to network (never cache — large + rebuilt on data fixes, so a
+  // cached copy would serve stale programme data to returning visitors)
+  if (/(programmes|jupas-finder-db|jupas-evaluator-db)\.enc\.json/.test(url.pathname)) return;
 
   e.respondWith(
     caches.match(req).then(function (hit) {
