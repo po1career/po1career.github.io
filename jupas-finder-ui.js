@@ -452,17 +452,19 @@
     $('shortlist-panel').style.display = '';
     $('t-slhint').textContent = s.slHint;
     var NCOLS = 10;
-    var head = '<tr><th></th><th>' + esc(s.slSlot) + '</th><th>' + esc(s.slProg) + '</th><th>' + esc(s.slMy) + '</th><th title="' + esc(s.bandATip) + '">' + esc(s.slBand) + '</th><th>' + esc(s.slReq) + '</th><th>' + esc(s.slCalc) + '</th><th>' + esc(s.slInt) + '</th><th>' + esc(s.slRefs) + '</th><th>' + esc(s.quota) + '</th></tr>';
+    var head = '<tr><th class="ctl-head"></th><th>' + esc(s.slSlot) + '</th><th>' + esc(s.slProg) + '</th><th>' + esc(s.slMy) + '</th><th title="' + esc(s.bandATip) + '">' + esc(s.slBand) + '</th><th>' + esc(s.slReq) + '</th><th>' + esc(s.slCalc) + '</th><th>' + esc(s.slInt) + '</th><th>' + esc(s.slRefs) + '</th><th>' + esc(s.quota) + '</th></tr>';
     var body = '';
     shortlist.forEach(function (code, i) {
       var band = bandOfIdx(i);
       if (BAND_FIRST[i]) body += '<tr class="band-sep band-' + band + '"><td colspan="' + NCOLS + '">' + esc(BAND_NAMES[band]) + '</td></tr>';
       var r = resultFor(code); if (!r) return;
       var p = r.prog, up = i > 0, down = i < shortlist.length - 1;
-      var ctl = '<span class="drag" title="' + esc(s.moveUp + ' / ' + s.moveDown) + '" aria-hidden="true">⠿</span> ' +
-        '<button class="mv" data-slmv="up" data-code="' + esc(code) + '"' + (up ? '' : ' disabled') + ' aria-label="' + esc(s.moveUp) + '">▲</button> ' +
-        '<button class="mv" data-slmv="down" data-code="' + esc(code) + '"' + (down ? '' : ' disabled') + ' aria-label="' + esc(s.moveDown) + '">▼</button> ' +
-        '<button class="mv rm" data-slrm="' + esc(code) + '" aria-label="' + esc(s.removeSl) + '">✕</button>';
+      var ctl = '<div class="sl-ctl-stack">' +
+        '<button class="mv" data-slmv="up" data-code="' + esc(code) + '"' + (up ? '' : ' disabled') + ' aria-label="' + esc(s.moveUp) + '">▲</button>' +
+        '<button class="mv" data-slmv="down" data-code="' + esc(code) + '"' + (down ? '' : ' disabled') + ' aria-label="' + esc(s.moveDown) + '">▼</button>' +
+        '<span class="drag" title="' + esc(s.moveUp + ' / ' + s.moveDown) + '" aria-hidden="true">⠿</span>' +
+        '<button class="mv rm" data-slrm="' + esc(code) + '" aria-label="' + esc(s.removeSl) + '">✕</button>' +
+        '</div>';
       var my = r.score + ' ' + qpPill(r, i) + (r.medScore != null ? ' <span class="k2">(' + esc(s.med) + ' ' + medPctText(r) + ')</span>' : '');
       body += '<tr class="sl-row band-' + band + '" draggable="true" data-code="' + esc(code) + '">' +
         '<td class="ctl">' + ctl + '</td>' +
