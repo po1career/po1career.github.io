@@ -15,7 +15,7 @@
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
       nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary",
-      nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
+      nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro",
       nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool",
       nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_planner: "JUPAS Planner", lang: "中文", menu: "Menu"
@@ -23,7 +23,7 @@
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
       nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題",
-      nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
+      nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘",
       nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具",
       nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_planner: "放榜行動計劃", lang: "EN", menu: "選單"
@@ -49,26 +49,25 @@
         '<label for="nav-toggle" class="nav-burger" id="nav-burger">☰</label>' +
         '<div class="nav-links">' +
           '<a href="' + newsHref + '" id="nav-news"></a>' +
-          '<div class="navgroup">' +
+          '<div class="navgroup navgroup-info">' +
             '<button type="button" class="navgroup-btn" id="nav-info"></button>' +
             '<div class="navgroup-menu">' +
               '<a href="useful-links.html" id="nav-res"></a>' +
               '<a href="faq.html" id="nav-faq"></a>' +
-              '<a href="parents.html" id="nav-parents"></a>' +
+              '<a href="pathways.html" id="nav-pathways"></a>' +
             '</div>' +
           '</div>' +
-          '<div class="navgroup">' +
+          '<div class="navgroup navgroup-studytools">' +
             '<button type="button" class="navgroup-btn" id="nav-studytools"></button>' +
             '<div class="navgroup-menu">' +
               '<a href="career-quiz.html" id="nav-quiz"></a>' +
-              '<a href="pathways.html" id="nav-pathways"></a>' +
               '<a href="pomodoro.html" id="nav-pomodoro"></a>' +
               '<a href="study-plan.html" id="nav-studyplan"></a>' +
               '<a href="dse-portfolio.html" id="nav-dse"></a>' +
               '<a href="streaming-tool.html" id="nav-streaming"></a>' +
             '</div>' +
           '</div>' +
-          '<div class="navgroup">' +
+          '<div class="navgroup navgroup-jupastools">' +
             '<button type="button" class="navgroup-btn" id="nav-jupastools"></button>' +
             '<div class="navgroup-menu">' +
               '<a href="jupas-finder.html" id="nav-jupas"></a>' +
@@ -95,7 +94,7 @@
     var t = L[curLang()];
     setText("brand-school", t.school); setText("brand-dept", t.dept); setText("brand-motto", t.motto);
     setText("nav-news", t.nav_news); setText("nav-info", t.nav_info); setText("nav-res", t.nav_res);
-    setText("nav-faq", t.nav_faq); setText("nav-parents", t.nav_parents);
+    setText("nav-faq", t.nav_faq);
     setText("nav-studytools", t.nav_studytools); setText("nav-jupastools", t.nav_jupastools);
     setText("nav-quiz", t.nav_quiz); setText("nav-pathways", t.nav_pathways);
     setText("nav-pomodoro", t.nav_pomodoro); setText("nav-studyplan", t.nav_studyplan);

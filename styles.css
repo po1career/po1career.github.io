@@ -16,6 +16,7 @@
   --font-display:"Nunito","Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,"Segoe UI",sans-serif;
   --font-body:"Nunito","Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,"Segoe UI",sans-serif;
 }
+
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
@@ -137,8 +138,12 @@ nav.main a:hover{background:var(--beige);text-decoration:none}
   }
   .nav-toggle:checked ~ .nav-links{display:flex}
   .nav-links > a{padding:10px 12px;border-radius:8px}
-  /* language toggle first in the mobile menu list */
-  .nav-links .langbtn{order:-1;align-self:flex-start;margin:0 0 8px}
+  /* mobile menu order: language, JUPAS tools, Info, Study tools, Latest News */
+  .nav-links .langbtn{order:1;align-self:flex-start;margin:0 0 8px}
+  .nav-links .navgroup-jupastools{order:2}
+  .nav-links .navgroup-info{order:3}
+  .nav-links .navgroup-studytools{order:4}
+  .nav-links #nav-news{order:5}
   /* groups become static sections (label + always-visible children), no hover needed */
   .nav-links .navgroup{position:static}
   .nav-links .navgroup-btn{width:100%;justify-content:flex-start;cursor:default;color:var(--gold-dark);
@@ -416,4 +421,3 @@ footer.site a{color:var(--gold)}
   .card:hover,.card:focus-visible,.tool-card:hover,.member:hover,
   .footlink:hover svg,.card:hover .thumb img{ transform:none !important }
 }
-
