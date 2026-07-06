@@ -1,7 +1,7 @@
 /* ============================================================
    Shared site header — SINGLE SOURCE for the nav across all
    shell pages. Injects the header markup into <div id="site-header">,
-   sets the current-page active state + the "Latest News" href, and
+   sets the current-page active state, and
    keeps brand/nav labels in sync with the language (clp_lang +
    <html lang> observer — same pattern as footer-tools.js).
 
@@ -14,7 +14,7 @@
   var L = {
     en: {
       school: "PLK No.1 W.H. Cheung College", dept: "Career Team", motto: "Dream high and fly high",
-      nav_news: "Latest News", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary",
+      nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary",
       nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro",
       nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool",
@@ -22,7 +22,7 @@
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
-      nav_news: "最新消息", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題",
+      nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題",
       nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘",
       nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具",
@@ -31,8 +31,6 @@
   };
 
   var file = (location.pathname.split("/").pop() || "index.html") || "index.html";
-  var isIndex = (file === "index.html" || file === "");
-  var newsHref = isIndex ? "#news" : "index.html#news";
 
   var html =
     '<header class="site"><div class="bar">' +
@@ -48,7 +46,6 @@
         '<input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">' +
         '<label for="nav-toggle" class="nav-burger" id="nav-burger">☰</label>' +
         '<div class="nav-links">' +
-          '<a href="' + newsHref + '" id="nav-news"></a>' +
           '<div class="navgroup navgroup-info">' +
             '<button type="button" class="navgroup-btn" id="nav-info"></button>' +
             '<div class="navgroup-menu">' +
@@ -93,7 +90,7 @@
   function applyLabels() {
     var t = L[curLang()];
     setText("brand-school", t.school); setText("brand-dept", t.dept); setText("brand-motto", t.motto);
-    setText("nav-news", t.nav_news); setText("nav-info", t.nav_info); setText("nav-res", t.nav_res);
+    setText("nav-info", t.nav_info); setText("nav-res", t.nav_res);
     setText("nav-faq", t.nav_faq);
     setText("nav-studytools", t.nav_studytools); setText("nav-jupastools", t.nav_jupastools);
     setText("nav-quiz", t.nav_quiz); setText("nav-pathways", t.nav_pathways);
