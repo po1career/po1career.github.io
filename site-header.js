@@ -71,7 +71,7 @@
           '<div class="navgroup">' +
             '<button type="button" class="navgroup-btn" id="nav-jupastools"></button>' +
             '<div class="navgroup-menu">' +
-              '<a href="jupas-tool.html" id="nav-jupas"></a>' +
+              '<a href="jupas-finder.html" id="nav-jupas"></a>' +
               '<a href="jupas-choices.html" id="nav-jupaschoices"></a>' +
               '<a href="jupas-planner.html" id="nav-planner"></a>' +
             '</div>' +
