@@ -6,8 +6,8 @@ keep the two consistent — if you change a convention, update it **here**.
 
 ## What this is
 The PLK No.1 W.H. Cheung College Career Team website — a static, no-build, vanilla HTML/CSS/JS site
-served by **GitHub Pages from `main`**. News feed + study/JUPAS tools. Some tools are passcode-gated
-and decrypt an encrypted database in the browser.
+served by **GitHub Pages from `main`** and available at **https://po1career.net**. News feed +
+study/JUPAS tools. Some tools are passcode-gated and decrypt an encrypted database in the browser.
 
 ## Golden workflow (prevents two agents clobbering each other)
 - **`main` is the single source of truth.** Pull it before you start.
