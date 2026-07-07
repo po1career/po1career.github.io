@@ -101,12 +101,12 @@
            zh: "出路不止一條。你可能仍符合部分學位或 SSSDP 課程的要求，也可考慮日後可銜接學位的副學位、職業專才教育（VTC）、應用教育文憑，或到內地及海外升學。可在<a href=\"pathways.html\">升學出路探索</a>了解，並及早與升學輔導老師商討——選擇往往比想像中多。" } },
     { cat: "after",
       q: { en: "Can I change my JUPAS choices after applying?", zh: "報名後還可以更改聯招志願嗎？" },
-      a: { en: "Yes — you can freely add, drop and reorder your choices throughout the application period (around December to late May). Then, after the DSE results come out in mid-July, a final short window of a few days lets you amend your choices in light of your actual grades. Watch the official dates and check your choices with your Career teacher before each deadline.",
-           zh: "可以——在整個申請期內（約十二月至五月底）你可隨時新增、刪除及重新排序志願。文憑試於七月中放榜後，系統會再開放數天的重要修改時段，讓你按實際成績調整志願。請留意官方日期，並在每個限期前與升學輔導老師檢視你的志願。" } },
+      a: { en: "Yes — you can update your choices during the application period (around December to late May). After the DSE results come out in mid-July, JUPAS allocates each applicant a 48-hour time slot for one final modification: you may add and / or replace up to 5 programmes, rearrange choices and / or delete choices. Watch the official dates and your own allocated time slot, and check your choices with your Career teacher before each deadline.",
+           zh: "可以——在整個申請期內（約十二月至五月底）你可修改志願。文憑試於七月中放榜後，聯招會為每位申請人編配一個 48 小時修改時段；你只可在該時段內提交一次最後修改，可新增及／或更換最多 5 個課程、重新排序及／或刪除志願。請留意官方日期及你的個人編配時段，並在每個限期前與升學輔導老師檢視你的志願。" } },
     { cat: "general",
       q: { en: "Where can I get personal advice?", zh: "我可以向誰尋求個別意見？" },
-      a: { en: "Your Career teacher is the best first stop for advice tailored to you. This site's tools and the official websites are starting points for your own research — final decisions should be made together with your teacher and family. Parents can also see the <a href=\"parents.html\">For Parents</a> page.",
-           zh: "升學輔導老師是尋求個人化意見的最佳起點。本站的工具及官方網站可作自行研究的起點——最終決定宜與老師及家人一同作出。家長亦可參閱<a href=\"parents.html\">家長園地</a>。" } }
+      a: { en: "Your Career teacher is the best first stop for advice tailored to you. This site's tools and the official websites are starting points for your own research — final decisions should be made together with your teacher and family.",
+           zh: "升學輔導老師是尋求個人化意見的最佳起點。本站的工具及官方網站可作自行研究的起點——最終決定宜與老師及家人一同作出。" } }
   ];
 
   var CATS = {
