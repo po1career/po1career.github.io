@@ -54,7 +54,7 @@
         lq: 'Programmes where your score is at or above the lower quartile but below the median.',
         belowlq: 'Programmes you\'re eligible for but where your score is below the lower quartile — a reach. In your list these show red for a top choice.'
       },
-      lic: 'Licensed professions only', clear: 'Clear filters',
+      clear: 'Clear filters',
       s5: 'Programmes you can reach', need2: 'Enter your 3 core grades and at least 2 electives, then press “Find programmes”.',
       heroDisc: 'For reference only. Always verify with the official JUPAS website (www.jupas.edu.hk) and each university’s own website. This tool bears no responsibility for any admission decision.',
       lock: 'Enter passcode', locksub: 'For PLK No.1 students only',
@@ -102,7 +102,7 @@
         lq: '你的分數達到或高於下四分位、但低於中位數的課程。',
         belowlq: '你符合資格、但分數低於下四分位的課程——屬挑戰之選。放在志願表前列時會顯示紅色。'
       },
-      lic: '只顯示專業資格課程', clear: '清除篩選',
+      clear: '清除篩選',
       s5: '你有機會入讀的課程', need2: '輸入三科核心成績及至少兩科選修，然後按「搜尋課程」。',
       heroDisc: '僅供參考。報讀前請以 JUPAS 官方網站（www.jupas.edu.hk）及各大學網站為準。本工具概不就任何收生決定承擔責任。',
       lock: '請輸入通行碼', locksub: '只供保良局第一張永慶中學學生使用',
@@ -235,7 +235,6 @@
     var p = r.prog;
     if (activeCats.size) { var pc = p.categories || [], ok = false; activeCats.forEach(function (c) { if (pc.indexOf(c) >= 0) ok = true; }); if (!ok) return false; }
     if (activeInsts.size && !activeInsts.has(provider(p))) return false;
-    if ($('lic').checked && !p.licensed) return false;
     var q = ($('search').value || '').trim().toLowerCase();
     if (q) { var hay = [p.jupas_code, p.name_en, p.name_zh, provider(p), p.institution_zh, p.tags].join(' ').toLowerCase(); if (hay.indexOf(q) < 0) return false; }
     return true;
@@ -288,7 +287,6 @@
   function card(r) {
     var p = r.prog, s = t(), code = esc(p.jupas_code);
     var tags = (p.categories || []).map(function (c) { return '<span class="tag">' + esc(catLabel(c)) + '</span>'; }).join('');
-    var lic = p.licensed ? '<span class="lic">' + (lang === 'zh' ? '專業資格' : 'Licensed') + '</span>' : '';
     var estim = (r.estimated && r.medScore != null) ? ' <span class="estim">' + (lang === 'zh' ? '估算' : 'est.') + '</span>' : '';
     var scoreLine = '<div class="scoreline">' + esc(s.yourScore) + ' <b>' + r.score + '</b>' +
       (r.medScore != null ? ' · ' + esc(s.med) + ' ' + r.medScore + estim + gapHtml(r) : '') + '</div>';
@@ -298,7 +296,7 @@
     var star = '<button class="iconbtn' + (starOn ? ' on' : '') + '" data-star="' + code + '"' + (starDisabled ? ' disabled' : '') +
       ' data-tip="' + esc(tip) + '" title="' + esc(tip) + '" aria-label="' + esc(starOn ? s.aria.starOn : s.aria.star) + '" aria-pressed="' + starOn + '">★</button>';
     return '<div class="prog" data-code="' + code + '">' +
-      '<div class="code-row"><span class="code">' + code + '</span>' + lic + '<span class="card-acts">' + star + '</span></div>' +
+      '<div class="code-row"><span class="code">' + code + '</span><span class="card-acts">' + star + '</span></div>' +
       '<div class="pname">' + esc(pName(p)) + '</div><div class="inst">' + esc(pInst(p)) + '</div>' +
       scoreLine + '<div class="tags">' + tags + '</div>' +
       '<button class="det-btn" data-det="' + code + '" aria-expanded="false" aria-label="' + esc(s.aria.details) + code + '">' + esc(s.details) + ' ▾</button>' +
@@ -706,7 +704,7 @@
       't-electhint': s.electhint, 'find-btn': s.find, 't-s3': s.s3, 't-s5': s.s5,
       't-catlab': s.catlab, 't-instlab': s.instlab, 't-sortlab': s.sortlab,
       't-bk-uq': s.bkUq, 't-bk-median': s.bkMedian, 't-bk-lq': s.bkLq, 't-bk-belowlq': s.bkBelowlq,
-      't-lic': s.lic, 'clear-btn': s.clear, 'cs-att': s.att, 'cs-not': s.notatt,
+      'clear-btn': s.clear, 'cs-att': s.att, 'cs-not': s.notatt,
       't-remember': s.remember, 't-sharednote': s.sharednote, 't-shortlist': s.shortlist, 'pdf-btn': s.pdfBtn,
       't-slhint': s.slHint, 't-herodisc': s.heroDisc,
       't-lock': s.lock, 't-locksub': s.locksub, 'unlock-btn': s.unlockBtn };
@@ -735,12 +733,12 @@
     $('cs-att').addEventListener('click', function () { setCs(true); onGradeChange(); });
     $('cs-not').addEventListener('click', function () { setCs(false); onGradeChange(); });
     $('find-btn').addEventListener('click', compute);
-    ['search', 'bucket-sort', 'lic'].forEach(function (id) {
+    ['search', 'bucket-sort'].forEach(function (id) {
       $(id).addEventListener('input', function () { if (results) render(); });
       $(id).addEventListener('change', function () { if (results) render(); });
     });
     $('clear-btn').addEventListener('click', function () {
-      activeCats.clear(); activeInsts.clear(); $('search').value = ''; $('lic').checked = false; $('bucket-sort').value = 'uq';
+      activeCats.clear(); activeInsts.clear(); $('search').value = ''; $('bucket-sort').value = 'uq';
       if (results) { renderCatChips(); renderInstChips(); render(); }
     });
     document.addEventListener('click', onAppClick);
