@@ -10,11 +10,20 @@ served by **GitHub Pages from `main`** and available at **https://po1career.net*
 study/JUPAS tools. Some tools are passcode-gated and decrypt an encrypted database in the browser.
 
 ## Golden workflow (prevents two agents clobbering each other)
-- **`main` is the single source of truth.** Pull it before you start.
-- **Agents do NOT push to `main` directly.** Work on a branch and open a **pull request**; a human
-  reviews and merges. (The CI check in `.github/workflows/pr-check.yml` must be green first.)
+- **`main` is the single source of truth.** Fetch/pull it before you start; never edit a stale tree.
+- **NOBODY pushes to `main` directly — Codex AND Claude/local alike (since 2026-07-10).** Work on a
+  branch (`codex/<topic>` or `local/<topic>`) and open a **pull request**; the owner squash-merges.
+  (The CI check in `.github/workflows/pr-check.yml` must be green first.)
+- **One open PR at a time.** Merge or close it before starting the next piece of work, and only start
+  a new task when the previous work is pushed.
 - **One agent editing at a time.** Never leave uncommitted work in one tool when switching to another.
 - Keep commits small and focused so the other agent always starts from a clean, current `main`.
+
+## Gated-page QA gate (CI cannot check behind the lock)
+Any PR that touches `jupas-*.html/.js`, `streaming-tool.html`, `dse-portfolio.*`, `sw.js`, or any
+`*.enc.json` **must get a local (Claude/owner) preview-QA behind the passcode BEFORE merging** —
+unlock the page, click through the changed flow, check the console. Codex: state in the PR body that
+gated QA is still pending so the owner doesn't merge early.
 
 ## HARD RULES — these are the real footguns
 
