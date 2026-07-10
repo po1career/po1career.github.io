@@ -13,8 +13,17 @@
       nav_news: "Latest News", nav_team: "Our Team", nav_info: "Info", nav_res: "Useful Links", nav_faq: "FAQ & Glossary", nav_parents: "For Parents", nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools", nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro", nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_admin: "Add Post",
       hero_h: "Welcome to the CLP Corner!",
       hero_p: "Your Career Team hub — university and career news, helpful resources, and study & planning tools, all in one place.",
+      start_title: "Start with what you need today",
+      start_sub: "Choose a starting point by your year level or goal. You can explore the public tools first, then use school-access tools when they apply.",
+      start_pathways_eyebrow: "F.3–F.4", start_pathways_title: "Choosing F.4 subjects",
+      start_pathways_desc: "Explore the routes after the HKDSE and use them to guide your subject choices.", start_pathways_link: "Explore pathways",
+      start_study_eyebrow: "All forms", start_study_title: "Planning my study",
+      start_study_desc: "Turn your exam dates into a practical revision timetable.", start_study_link: "Build a study plan",
+      start_jupas_eyebrow: "F.5–F.6", start_jupas_title: "Preparing for JUPAS",
+      start_jupas_desc: "Compare degree programmes by subject, school, or keyword. School access is required.", start_jupas_link: "Open JUPAS Finder",
       title_tools: "Our Tools", students_only: "students only",
       sub_tools: "Study and planning tools to help you revise and map out your path. Some are for students only and need a passcode.",
+      tool_access: "School passcode required — ask the Career Team",
       news: "Latest News", team: "Our Team", res: "Resources / Downloads",
       all: "All", local: "Local Universities", mainland: "Mainland Universities", foreign: "Foreign Universities", career: "Career Experience Activities",
       readmore: "Read more →", pinned: "📌 Pinned", none: "No posts in this category yet.",
@@ -26,8 +35,17 @@
       nav_news: "最新消息", nav_team: "團隊成員", nav_info: "資訊", nav_res: "實用連結", nav_faq: "常見問題", nav_parents: "家長園地", nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具", nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘", nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_admin: "新增貼文",
       hero_h: "歡迎來到生涯規劃專區！",
       hero_p: "升學輔導及生涯規劃組的資訊平台——大學及職業資訊、實用資源，以及溫習與規劃工具，一站式集合。",
+      start_title: "從今天需要的事情開始",
+      start_sub: "按你的年級或目標選擇起點。你可先探索公開工具，再按需要使用校內通行碼工具。",
+      start_pathways_eyebrow: "中三至中四", start_pathways_title: "選擇中四選修科",
+      start_pathways_desc: "探索文憑試後的出路，為選科作好準備。", start_pathways_link: "探索升學出路",
+      start_study_eyebrow: "各級適用", start_study_title: "規劃我的溫習",
+      start_study_desc: "按考試日期建立實用的溫習時間表。", start_study_link: "建立溫習計劃",
+      start_jupas_eyebrow: "中五至中六", start_jupas_title: "準備 JUPAS 申請",
+      start_jupas_desc: "按學科、院校或關鍵字比較大學課程。需要校內通行碼。", start_jupas_link: "開啟 JUPAS 搜尋器",
       title_tools: "學習與規劃工具", students_only: "只限學生",
       sub_tools: "助你溫習及規劃升學路向的工具。部分只供學生使用，需輸入通行碼。",
+      tool_access: "需要校內通行碼 — 請向升學輔導及生涯規劃組查詢",
       news: "最新消息", team: "團隊成員", res: "資源 / 下載",
       all: "全部", local: "本地大學", mainland: "內地大學", foreign: "海外大學", career: "職業體驗活動",
       readmore: "閱讀更多 →", pinned: "📌 置頂", none: "此分類暫無貼文。",
@@ -81,6 +99,7 @@
     // header / static labels
     setText("hero-h", tx.hero_h);
     setText("hero-p", tx.hero_p);
+    renderStartHub(tx);
     setText("title-news", tx.news);
     setText("title-tools", tx.title_tools);
     setText("sub-tools", tx.sub_tools);
@@ -143,7 +162,7 @@
     if (!host) return;
     var tx = T[state.lang];
     host.innerHTML = "";
-    ["jupastools", "studytools"].forEach(function (groupKey) {
+    ["studytools", "jupastools"].forEach(function (groupKey) {
       var items = (window.SITE_TOOLS || []).filter(function (td) { return td.group === groupKey; });
       if (!items.length) return;
       var h = document.createElement("h3");
@@ -156,6 +175,7 @@
         var a = document.createElement("a");
         a.className = "tool-card";
         a.href = td.href;
+        a.dataset.gated = td.gated ? "true" : "false";
         a.innerHTML =
           '<span class="tool-ic" aria-hidden="true">' + td.icon + "</span>" +
           '<span class="tool-body">' +
@@ -165,6 +185,7 @@
               '<span class="tool-aud">' + esc(toolField(td, "aud")) + "</span>" +
               (td.gated ? '<span class="tool-lock">🔒 ' + esc(tx.students_only) + "</span>" : "") +
             "</span>" +
+            (td.gated ? '<span class="tool-access">' + esc(tx.tool_access) + "</span>" : "") +
           "</span>";
         grid.appendChild(a);
       });
@@ -217,6 +238,17 @@
   function setText(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
   function esc(s) { return (s || "").replace(/[&<>"']/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  function renderStartHub(tx) {
+    [
+      "start-title", "start-sub",
+      "start-pathways-eyebrow", "start-pathways-title", "start-pathways-desc", "start-pathways-link",
+      "start-study-eyebrow", "start-study-title", "start-study-desc", "start-study-link",
+      "start-jupas-eyebrow", "start-jupas-title", "start-jupas-desc", "start-jupas-link"
+    ].forEach(function (id) {
+      setText(id, tx[id.replace(/-/g, "_")]);
+    });
+  }
 
   // ---- init ----
   document.addEventListener("DOMContentLoaded", function () {

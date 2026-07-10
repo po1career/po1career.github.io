@@ -26,12 +26,13 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
   <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="public-ux.css?v=1">
   <style>
     .pw-wrap{max-width:1020px;margin:0 auto;padding:8px 0 44px}
 
     /* hero */
     .pw-hero{position:relative;overflow:hidden;border-radius:22px;margin:14px 0 8px;
-      background:linear-gradient(135deg,#6a4a8f 0%,#3a6ea5 48%,#2f8f7a 100%);
+      background:linear-gradient(135deg,#4f7359 0%,#55796b 48%,#477d82 100%);
       box-shadow:0 16px 36px rgba(58,46,80,.28);color:#fff;
       display:flex;align-items:center;gap:18px;padding:30px 30px}
     .pw-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 88% 12%,rgba(255,255,255,.22),transparent 60%);pointer-events:none}
@@ -42,6 +43,11 @@
     @media(max-width:680px){ .pw-hero{padding:24px 22px} .pw-hero-art{display:none} .pw-hero-text h1{font-size:1.7rem} }
 
     .pw-disc{display:flex;gap:10px;align-items:flex-start;background:#fbeee2;border:1px solid #e8c9a8;border-left:5px solid var(--gold-dark);border-radius:12px;padding:12px 16px;margin:16px 0 22px;color:#7a3517;font-size:.88rem;line-height:1.6;font-weight:600}
+    .pw-disc-copy{min-width:0}
+    .pw-disc-short{margin:0}
+    .pw-disc details{margin-top:6px}
+    .pw-disc summary{cursor:pointer;color:#63351d;font-weight:800}
+    .pw-disc details p{margin:7px 0 0}
 
     /* filter */
     .pw-filter{background:#fffdf8;border:1px solid #ece0c4;border-radius:18px;box-shadow:var(--shadow);padding:20px 22px 18px;margin-bottom:8px}
@@ -91,6 +97,12 @@
     .pw-link{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;font-weight:800;font-size:.9rem;padding:10px 18px;border-radius:11px;text-decoration:none;box-shadow:0 5px 14px rgba(0,0,0,.16)}
     .pw-link:hover{filter:brightness(1.07);text-decoration:none}
     .pw-next{margin-top:13px;background:#f6ecd2;border-left:4px solid var(--gold);border-radius:8px;padding:11px 14px;color:var(--brown);font-size:.86rem;line-height:1.6}
+    .pw-checklist{margin-top:22px;background:#edf3ea;border:1px solid #c5d6bf;border-left:5px solid var(--sage-dark);border-radius:14px;padding:16px 18px;color:#35503a}
+    .pw-checklist h2{font-family:var(--font-display);font-size:1.1rem;margin:0 0 4px;color:#315137}
+    .pw-checklist p{margin:0;color:#466149;font-size:.9rem;line-height:1.6}
+    .pw-print{margin-top:12px;border:1.5px solid var(--sage-dark);background:#fff;color:#315137;border-radius:10px;padding:9px 14px;font:inherit;font-size:.88rem;font-weight:800;cursor:pointer}
+    .pw-print:hover{background:#e2eedc}
+    @media print{header.site,footer.site,#to-top,.pw-hero-art,.pw-tools,.pw-disc details,.pw-print{display:none!important}.pw-wrap{max-width:none}.pw-card.hidden{display:none!important}.pw-checklist{break-inside:avoid}.pw-card{break-inside:avoid}}
 
     nav.main a.active{background:var(--beige)}
     a.brand{text-decoration:none}
@@ -101,6 +113,7 @@
 
   <div id="site-header"></div>
   <script src="site-header.js?v=5"></script>
+  <script src="public-nav-a11y.js?v=1"></script>
 
   <main id="main">
     <div class="pw-wrap">
@@ -113,7 +126,7 @@
         <svg class="pw-hero-art" viewBox="0 0 210 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <!-- starting point -->
           <circle cx="30" cy="120" r="9" fill="#fff"/>
-          <circle cx="30" cy="120" r="4.5" fill="#6a4a8f"/>
+          <circle cx="30" cy="120" r="4.5" fill="#4f7359"/>
           <!-- diverging dotted paths -->
           <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 7" opacity=".92">
             <path d="M30 120 C 70 110, 90 40, 178 30"/>
@@ -137,10 +150,16 @@
         </svg>
       </section>
 
-      <div class="pw-disc">
+      <aside class="pw-disc" aria-labelledby="disc-short">
         <span aria-hidden="true">⚠️</span>
-        <span id="disc-text"></span>
-      </div>
+        <div class="pw-disc-copy">
+          <p class="pw-disc-short" id="disc-short"></p>
+          <details>
+            <summary id="disc-more"></summary>
+            <p id="disc-text"></p>
+          </details>
+        </div>
+      </aside>
 
       <section class="pw-filter">
         <h2 class="pw-filter-h" id="filter-h">🧭 Find pathways that fit you</h2>
@@ -154,6 +173,12 @@
       </section>
 
       <section class="pw-grid" id="pw-grid"></section>
+
+      <aside class="pw-checklist" aria-labelledby="checklist-title">
+        <h2 id="checklist-title"></h2>
+        <p id="checklist-copy"></p>
+        <button type="button" class="pw-print" id="print-btn"></button>
+      </aside>
 
     </div>
   </main>
@@ -184,7 +209,7 @@
     <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
-  <script src="pathways.js?v=7"></script>
+  <script src="pathways.js?v=8"></script>
   <script src="tools-data.js?v=6"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>

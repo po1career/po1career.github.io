@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
   <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="public-ux.css?v=1">
   <style>
     .cq-wrap{max-width:760px;margin:0 auto;padding:8px 0 40px}
     .cq-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
@@ -33,6 +34,7 @@
     .cq-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:18px;box-shadow:var(--shadow);padding:24px 22px}
     .cq-disc{display:flex;gap:10px;align-items:flex-start;background:#fbeee2;border:1px solid #e8c9a8;border-left:5px solid var(--gold-dark);border-radius:12px;padding:12px 16px;margin:16px 0;color:#7a3517;font-size:.88rem;line-height:1.6;font-weight:600}
     .cq-how{color:#5c4a3a;line-height:1.75;margin:0 0 4px}
+    .cq-meta{color:var(--gold-dark);font-size:.86rem;font-weight:800;margin:10px 0 0;text-align:center}
     .cq-types6{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;justify-content:center}
     .cq-chip{font-size:.78rem;font-weight:800;padding:4px 12px;border-radius:999px;color:#fff}
     .cq-start{display:block;width:100%;max-width:340px;margin:20px auto 0;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;font-weight:800;font-size:1.05rem;cursor:pointer;box-shadow:0 6px 16px rgba(169,132,47,.3)}
@@ -48,9 +50,11 @@
     .cq-opt:hover{background:var(--beige);border-color:var(--gold)}
     .cq-opt.sel{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-color:var(--gold-dark)}
     .cq-opt .em{font-size:1.3rem;line-height:1}
-    .cq-nav{display:flex;justify-content:center;margin-top:22px}
+    .cq-nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px}
     .cq-back{border:1.5px solid var(--gold);background:#fff;color:var(--brown);border-radius:10px;font-weight:700;padding:9px 20px;cursor:pointer}
     .cq-back:disabled{opacity:.4;cursor:not-allowed}
+    .cq-restart{border:none;background:transparent;color:var(--gold-dark);font:inherit;font-size:.9rem;font-weight:800;padding:9px 12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+    .cq-privacy{color:var(--brown-soft);font-size:.83rem;font-weight:700;margin:14px auto 0;max-width:42ch;text-align:center}
 
     .cq-rcode{text-align:center;color:var(--brown-soft);font-weight:700;margin:0 0 4px}
     .cq-rcode b{color:var(--gold-dark);font-size:1.1rem;letter-spacing:.08em}
@@ -82,6 +86,7 @@
 
   <div id="site-header"></div>
   <script src="site-header.js?v=5"></script>
+  <script src="public-nav-a11y.js?v=1"></script>
 
   <main id="main">
     <div class="cq-wrap">
@@ -91,6 +96,8 @@
       <!-- INTRO -->
       <div class="cq-card" id="cq-intro">
         <p class="cq-how" id="how-text"></p>
+        <p class="cq-meta" id="time-text"></p>
+        <p class="cq-privacy" id="privacy-text"></p>
         <div class="cq-types6" id="types6"></div>
         <div class="cq-disc">
           <span aria-hidden="true">⚠️</span>
@@ -101,13 +108,14 @@
 
       <!-- QUIZ -->
       <div class="cq-card" id="cq-run" style="display:none">
-        <div class="cq-prog"><span id="prog-bar"></span></div>
-        <p class="cq-count" id="prog-count"></p>
+        <div class="cq-prog" id="prog" role="progressbar" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" aria-labelledby="prog-count"><span id="prog-bar"></span></div>
+        <p class="cq-count" id="prog-count" aria-live="polite"></p>
         <p class="cq-qlead" id="q-lead"></p>
         <p class="cq-q" id="q-text"></p>
         <div class="cq-ans" id="q-ans"></div>
         <div class="cq-nav">
           <button class="cq-back" id="back-btn"></button>
+          <button class="cq-restart" id="restart-btn"></button>
         </div>
       </div>
 
@@ -158,7 +166,7 @@
     <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
-  <script src="career-quiz.js?v=7"></script>
+  <script src="career-quiz.js?v=8"></script>
   <script src="tools-data.js?v=6"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>

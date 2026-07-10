@@ -110,10 +110,13 @@
       pg_title: "Career Interest Quiz",
       pg_sub: "Discover your interest types and the study and career directions that may suit you.",
       how: "This short quiz is based on the RIASEC model (Holland Codes). You'll rate 30 everyday activities — there are no right or wrong answers. At the end you'll see your top interest types, with example careers and subjects to explore.",
+      time: "About 4–6 minutes · 30 questions",
+      privacy: "Your answers stay in this browser and are not sent to the school.",
       disc: "Your interests can change as you grow and try new things. This quiz is just a starting point for reflection — not a fixed label or a prediction of your future. Use it as one reference, and talk it over with your Career teacher and family.",
       start: "Start the quiz",
       qlead: "How interested are you in this?",
       back: "← Back",
+      restart: "Start over",
       count: "Question {n} of {total}",
       res_head: "Your interest profile",
       res_code: "Your Holland code: ",
@@ -132,10 +135,13 @@
       pg_title: "職業興趣測驗",
       pg_sub: "了解你的興趣類型，找出可能適合你的升學及職業方向。",
       how: "本測驗以 RIASEC 模型（霍蘭德職業興趣理論）為基礎。你將為 30 項日常活動評分——答案沒有對錯。完成後會顯示你最突出的興趣類型，以及可探索的職業和科目例子。",
+      time: "約 4 至 6 分鐘 · 共 30 題",
+      privacy: "你的答案只會留在此瀏覽器，不會傳送到學校。",
       disc: "你的興趣會隨着成長和嘗試而改變。本測驗只是自我反思的起點，並非為你定型，也不能預測你的未來。請只作參考，並與升學輔導老師及家人商討。",
       start: "開始測驗",
       qlead: "你對這項活動有多大興趣？",
       back: "← 上一題",
+      restart: "重新開始",
       count: "第 {n} 題，共 {total} 題",
       res_head: "你的興趣概覽",
       res_code: "你的霍蘭德代碼：",
@@ -175,6 +181,8 @@
 
   function renderIntro() {
     setText("how-text", t("how"));
+    setText("time-text", t("time"));
+    setText("privacy-text", t("privacy"));
     setText("disc-text", t("disc"));
     setText("disc-text2", t("disc"));
     setText("start-btn", t("start"));
@@ -190,7 +198,11 @@
   function renderQuestion() {
     var n = state.i, total = Q.length;
     $("prog-bar").style.width = Math.round((n) / total * 100) + "%";
-    setText("prog-count", t("count").replace("{n}", n + 1).replace("{total}", total));
+    var count = t("count").replace("{n}", n + 1).replace("{total}", total);
+    setText("prog-count", count);
+    var progress = $("prog");
+    progress.setAttribute("aria-valuenow", String(n + 1));
+    progress.setAttribute("aria-valuetext", count);
     setText("q-lead", t("qlead"));
     setText("q-text", Q[n][lang]);
     var ans = $("q-ans"); ans.innerHTML = "";
@@ -205,6 +217,7 @@
     var back = $("back-btn");
     back.textContent = t("back");
     back.disabled = n === 0;
+    setText("restart-btn", t("restart"));
   }
 
   function answer(v) {
@@ -267,17 +280,28 @@
     else if (state.screen === "results") showResults();
   }
 
+  function resetQuiz() {
+    state.answers = Q.map(function () { return null; });
+    state.i = 0;
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelector(".langbtn").onclick = function () {
       lang = lang === "en" ? "zh" : "en";
       localStorage.setItem("clp_lang", lang);
       rerender();
     };
-    $("start-btn").onclick = function () { state.i = 0; show("run"); renderQuestion(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    $("start-btn").onclick = function () { resetQuiz(); show("run"); renderQuestion(); window.scrollTo({ top: 0, behavior: "smooth" }); };
     $("back-btn").onclick = function () { if (state.i > 0) { state.i--; renderQuestion(); } };
-    $("retake-btn").onclick = function () {
-      state.answers = Q.map(function () { return null; }); state.i = 0; show("intro");
+    $("restart-btn").onclick = function () {
+      resetQuiz(); show("intro");
       window.scrollTo({ top: 0, behavior: "smooth" });
+      $("start-btn").focus();
+    };
+    $("retake-btn").onclick = function () {
+      resetQuiz(); show("intro");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      $("start-btn").focus();
     };
     var logo = $("logo-img");
     if (logo) logo.onerror = function () { var fb = document.createElement("div"); fb.className = "logo-fallback"; fb.textContent = "PLK①"; logo.replaceWith(fb); };
