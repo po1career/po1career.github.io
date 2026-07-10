@@ -26,12 +26,14 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
   <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="public-ux.css?v=1">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content 跳至內容</a>
 
   <div id="site-header"></div>
   <script src="site-header.js?v=5"></script>
+  <script src="public-nav-a11y.js?v=1"></script>
 
   <div class="hero">
     <img class="hero-sprig tr" src="images/sprig.svg" alt="" aria-hidden="true">
@@ -44,6 +46,31 @@
   </div>
 
   <main id="main">
+    <section class="start-hub" aria-labelledby="start-title">
+      <h2 class="section-title" id="start-title"></h2>
+      <p class="section-sub" id="start-sub"></p>
+      <div class="start-grid">
+        <a class="start-card" href="pathways.html">
+          <span class="start-card-eyebrow" id="start-pathways-eyebrow"></span>
+          <span class="start-card-title" id="start-pathways-title"></span>
+          <span class="start-card-desc" id="start-pathways-desc"></span>
+          <span class="start-card-link" id="start-pathways-link"></span>
+        </a>
+        <a class="start-card" href="study-plan.html">
+          <span class="start-card-eyebrow" id="start-study-eyebrow"></span>
+          <span class="start-card-title" id="start-study-title"></span>
+          <span class="start-card-desc" id="start-study-desc"></span>
+          <span class="start-card-link" id="start-study-link"></span>
+        </a>
+        <a class="start-card is-gated" href="jupas-finder.html">
+          <span class="start-card-eyebrow" id="start-jupas-eyebrow"></span>
+          <span class="start-card-title" id="start-jupas-title"></span>
+          <span class="start-card-desc" id="start-jupas-desc"></span>
+          <span class="start-card-link" id="start-jupas-link"></span>
+        </a>
+      </div>
+    </section>
+
     <!-- TOOLS -->
     <section id="tools-sec">
       <h2 class="section-title" id="title-tools">Our Tools</h2>
@@ -111,7 +138,7 @@
 
   <script src="posts.js?v=7"></script>
   <script src="tools-data.js?v=6"></script>
-  <script src="app.js?v=24"></script>
+  <script src="app.js?v=25"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>
   <script src="site-nav.js?v=1"></script>

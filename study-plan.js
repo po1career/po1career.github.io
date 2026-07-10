@@ -26,7 +26,12 @@
       add_subject: "＋ Add subject",
       perday_a: "Study", perday_b: "subject(s) per day.",
       lead_a: "Start studying", lead_b: "day(s) before the first exam.",
-      generate: "Generate study plan", clear: "Clear",
+      generate: "Generate study plan", clear: "Clear saved plan",
+      privacy_heading: "Private on this device. Your subjects and exam dates are not sent to the school or stored online.",
+      remember_label: "Remember this plan on this device",
+      privacy_off: "Not saved after you close or refresh this page.",
+      privacy_on: "Saved only in this browser. Clear removes it from this device.",
+      cleared: "Saved plan cleared from this device.",
       plan_heading: "📅 Your suggested study plan",
       note: "Strategy: you begin with the subjects whose exams are furthest away (primacy), and revise each subject right before its own exam (recency) — based on the serial-position effect, which says we remember what we study first and most recently the best.",
       legend_study: "Study (first pass)", legend_revision: "Final revision", legend_exam: "Exam",
@@ -48,7 +53,12 @@
       add_subject: "＋ 新增科目",
       perday_a: "每天溫習", perday_b: "科。",
       lead_a: "在第一科考試前", lead_b: "天開始溫習。",
-      generate: "產生溫習計劃", clear: "清除",
+      generate: "產生溫習計劃", clear: "清除已儲存計劃",
+      privacy_heading: "只在此裝置保存。你的科目及考試日期不會傳送到學校或儲存於網上。",
+      remember_label: "在此裝置記住這個計劃",
+      privacy_off: "關閉或重新整理此頁後，不會保留資料。",
+      privacy_on: "只儲存於此瀏覽器；按「清除已儲存計劃」即可移除。",
+      cleared: "已從此裝置清除已儲存計劃。",
       plan_heading: "📅 建議溫習計劃",
       note: "策略：先溫習考試日期較遲的科目（首因效應），並在每科考試前作最後重溫（近因效應）——這運用了「序列位置效應」：我們對最先及最近溫習的內容記得最牢。",
       legend_study: "溫習（第一遍）", legend_revision: "最後重溫", legend_exam: "考試",
@@ -71,6 +81,8 @@
   ];
 
   var lang = localStorage.getItem("clp_lang") || "en";
+  var PLAN_KEY = "studyplan_input";
+  var REMEMBER_KEY = "studyplan_remember";
   function t(k) { return T[lang][k]; }
   function $(id) { return document.getElementById(id); }
   function setText(id, v) { var e = $(id); if (e) e.textContent = v; }
@@ -225,15 +237,32 @@
   }
 
   // ---- persistence ----
+  function storageGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function storageSet(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
+  }
+  function clearStoredPlan() {
+    try { localStorage.removeItem(PLAN_KEY); localStorage.removeItem(REMEMBER_KEY); } catch (e) {}
+  }
+  function rememberEnabled() {
+    return !!($("rememberPlan") && $("rememberPlan").checked);
+  }
+  function updatePrivacyStatus(message) {
+    setText("privacy-status", message || (rememberEnabled() ? t("privacy_on") : t("privacy_off")));
+  }
   function save() {
+    if (!rememberEnabled()) return;
     var data = { subjects: [], lead: $("leadDays").value, perDay: $("perDay").value };
     [].forEach.call(document.querySelectorAll(".subj-row"), function (row) {
       data.subjects.push({ name: row.querySelector(".s-name").value, date: row.querySelector(".s-date").value });
     });
-    localStorage.setItem("studyplan_input", JSON.stringify(data));
+    storageSet(REMEMBER_KEY, "1");
+    storageSet(PLAN_KEY, JSON.stringify(data));
   }
   function load() {
-    try { return JSON.parse(localStorage.getItem("studyplan_input")); } catch (e) { return null; }
+    try { return JSON.parse(storageGet(PLAN_KEY)); } catch (e) { return null; }
   }
 
   // ---- i18n apply ----
@@ -241,11 +270,13 @@
     document.documentElement.lang = lang === "zh" ? "zh-HK" : "en";
     setText("pg-title", t("title")); setText("pg-sub", t("sub"));
     setText("subjects-heading", t("subjects_heading")); setText("subjects-hint", t("subjects_hint"));
+    setText("privacy-heading", t("privacy_heading")); setText("remember-label", t("remember_label"));
     $("addSubjectBtn").textContent = t("add_subject");
     setText("perday-a", t("perday_a")); setText("perday-b", t("perday_b"));
     setText("lead-a", t("lead_a")); setText("lead-b", t("lead_b"));
     $("generateBtn").textContent = t("generate"); $("clearBtn").textContent = t("clear");
     setText("footer-about", t("footer_about"));
+    updatePrivacyStatus();
     // update existing placeholders
     [].forEach.call(document.querySelectorAll(".s-name"), function (i) { i.placeholder = t("subject_ph"); });
   }
@@ -255,7 +286,10 @@
     var logo = $("logo-img");
     if (logo) logo.onerror = function () { var fb = document.createElement("div"); fb.className = "logo-fallback"; fb.textContent = "PLK①"; logo.replaceWith(fb); };
 
-    var saved = load();
+    var remember = $("rememberPlan");
+    var hasLegacyPlan = storageGet(PLAN_KEY) !== null;
+    remember.checked = storageGet(REMEMBER_KEY) === "1" || (storageGet(REMEMBER_KEY) === null && hasLegacyPlan);
+    var saved = remember.checked ? load() : null;
     if (saved && saved.subjects && saved.subjects.length) {
       saved.subjects.forEach(function (s) { addRow(s.name, s.date); });
       if (saved.lead != null) $("leadDays").value = saved.lead;
@@ -265,6 +299,15 @@
     }
 
     $("addSubjectBtn").onclick = function () { addRow("", ""); };
+    remember.onchange = function () {
+      if (remember.checked) {
+        storageSet(REMEMBER_KEY, "1");
+        save();
+      } else {
+        clearStoredPlan();
+      }
+      updatePrivacyStatus();
+    };
     $("generateBtn").onclick = function () {
       save();
       var subs = readSubjects();
@@ -275,7 +318,9 @@
     $("clearBtn").onclick = function () {
       $("subject-list").innerHTML = ""; addRow("", ""); addRow("", "");
       $("leadDays").value = 7; $("perDay").value = 1; $("result").innerHTML = "";
-      localStorage.removeItem("studyplan_input");
+      remember.checked = false;
+      clearStoredPlan();
+      updatePrivacyStatus(t("cleared"));
     };
 
     document.querySelector(".langbtn").onclick = function () {

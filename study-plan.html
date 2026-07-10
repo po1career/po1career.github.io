@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="fonts/notosanstc.css">
   <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="public-ux.css?v=1">
   <style>
     .sp-wrap{max-width:820px;margin:0 auto;padding:8px 0 30px}
     .sp-title{font-family:var(--font-display);font-weight:800;color:var(--brown);font-size:2.1rem;margin:14px 0 6px;text-align:center}
@@ -33,6 +34,11 @@
     .sp-card{background:#fffdf8;border:1px solid #ece0c4;border-radius:20px;box-shadow:var(--shadow);padding:22px 22px 26px;margin-bottom:24px}
     .sp-card h2{font-family:var(--font-display);font-weight:700;color:var(--brown);font-size:1.25rem;margin:0 0 4px;display:flex;align-items:center;gap:8px}
     .sp-card .hint{color:var(--brown-soft);font-size:.88rem;margin:0 0 16px}
+    .sp-privacy{background:#eef4ea;border:1px solid #bfd1b6;border-left:5px solid var(--sage-dark);border-radius:12px;padding:13px 15px;margin:0 0 18px;color:#36523a;font-size:.88rem;line-height:1.6}
+    .sp-privacy p{margin:0 0 9px}
+    .sp-privacy label{display:flex;align-items:flex-start;gap:9px;font-weight:800;cursor:pointer}
+    .sp-privacy input{width:18px;height:18px;margin-top:3px;accent-color:var(--sage-dark);flex:none}
+    .sp-privacy-status{display:block;margin-top:8px;font-size:.82rem;font-weight:700;color:#4c6547}
     .subj-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
     .subj-row .dot{width:14px;height:14px;border-radius:50%;flex:none}
     .subj-row input[type=text]{flex:2;min-width:120px}
@@ -76,6 +82,7 @@
 
   <div id="site-header"></div>
   <script src="site-header.js?v=5"></script>
+  <script src="public-nav-a11y.js?v=1"></script>
 
   <main id="main">
     <div class="sp-wrap">
@@ -85,6 +92,11 @@
       <div class="sp-card input-card">
         <h2 id="subjects-heading">📚 Your subjects &amp; exam dates</h2>
         <p class="hint" id="subjects-hint">Add each subject and the date of its exam.</p>
+        <aside class="sp-privacy" aria-labelledby="privacy-heading">
+          <p id="privacy-heading"></p>
+          <label for="rememberPlan"><input type="checkbox" id="rememberPlan"><span id="remember-label"></span></label>
+          <span class="sp-privacy-status" id="privacy-status" aria-live="polite"></span>
+        </aside>
         <div id="subject-list"></div>
         <button type="button" class="add-btn" id="addSubjectBtn">＋ Add subject</button>
 
@@ -139,7 +151,7 @@
     <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
-  <script src="study-plan.js?v=13"></script>
+  <script src="study-plan.js?v=14"></script>
   <script src="tools-data.js?v=6"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>

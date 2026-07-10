@@ -164,7 +164,9 @@
       nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool", nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices",
       pg_title: "Multiple Pathways Explorer",
       pg_sub: "There is more than one route after the HKDSE. Answer three quick questions to highlight the pathways that may fit you — then explore them all.",
-      disc: "Entry requirements and schemes change every year, and this page is a simplified overview — not official advice. Always check the latest details on each official website, and talk your options through with your Career teacher and family before deciding.",
+      disc_short: "Check the latest official entry requirements before you decide.",
+      disc_more: "Read important guidance",
+      disc: "Requirements and schemes change every year, and this page is a simplified overview — not official advice. Talk your options through with your Career teacher and family before deciding.",
       filter_h: "🧭 Find pathways that fit you",
       filter_sub: "Optional — pick what's true for you, or leave any question as it is. Matching pathways move to the top with a badge.",
       matches_only: "Show matching pathways only",
@@ -173,6 +175,11 @@
       count_none: "Showing all <b>{total}</b> pathways — answer above to see your matches",
       badge: "Matches you",
       k_forwho: "For who", k_entry: "Typical entry", k_leads: "Leads to", k_apply: "Apply via",
+      checklist_title: "Bring this shortlist to your Career teacher",
+      checklist_none: "Answer the three questions above, then use the highlighted pathways as a starting point for a conversation with your Career teacher and family.",
+      checklist_zero: "No full matches are highlighted yet. Try a different answer, then discuss the routes that still interest you with your Career teacher.",
+      checklist_matches: "You have {match} highlighted pathway(s). Discuss their entry requirements, application routes, and your next step with your Career teacher.",
+      print: "Print my discussion checklist",
       lang: "中文"
     },
     zh: {
@@ -182,7 +189,9 @@
       nav_dse: "DSE 試卷組合", nav_streaming: "選科工具", nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科",
       pg_title: "升學出路探索",
       pg_sub: "中學文憑試後，出路不止一條。回答三條簡單問題，找出可能適合你的途徑，再逐一探索。",
-      disc: "入學要求及計劃每年均有變動，本頁只屬簡化概覽，並非官方指引。決定前請務必瀏覽各官方網站查證最新資料，並與升學輔導老師及家人商討。",
+      disc_short: "作決定前，請先查證最新的官方入學要求。",
+      disc_more: "閱讀重要提示",
+      disc: "入學要求及計劃每年均有變動，本頁只屬簡化概覽，並非官方指引。決定前請與升學輔導老師及家人商討你的選擇。",
       filter_h: "🧭 找出適合你的出路",
       filter_sub: "可選填——選出符合你情況的選項，或保持不變。配對的出路會置頂並顯示標記。",
       matches_only: "只顯示配對的出路",
@@ -191,6 +200,11 @@
       count_none: "顯示全部 <b>{total}</b> 條出路——在上方作答即可看到配對結果",
       badge: "與你配對",
       k_forwho: "適合對象", k_entry: "一般入學", k_leads: "出路銜接", k_apply: "申請途徑",
+      checklist_title: "帶着這份清單與升學輔導老師討論",
+      checklist_none: "先回答上方三條問題，再把配對的出路當作與升學輔導老師及家人討論的起點。",
+      checklist_zero: "暫時未有完全配對的出路。可嘗試更改答案，再與升學輔導老師討論你仍感興趣的途徑。",
+      checklist_matches: "你有 {match} 條配對出路。可與升學輔導老師討論入學要求、申請途徑及下一步。",
+      print: "列印討論清單",
       lang: "EN"
     }
   };
@@ -214,9 +228,10 @@
     document.title = t("pg_title") + " — PLK No.1 Career Team";
     setText("footer-about", FOOTER_ABOUT[lang]);
     setText("pg-title", t("pg_title")); setText("pg-sub", t("pg_sub"));
-    setText("disc-text", t("disc"));
+    setText("disc-short", t("disc_short")); setText("disc-more", t("disc_more")); setText("disc-text", t("disc"));
     setText("filter-h", t("filter_h")); setText("filter-sub", t("filter_sub"));
     setText("matches-only-lbl", t("matches_only")); setText("reset-btn", t("reset"));
+    setText("checklist-title", t("checklist_title")); setText("print-btn", t("print"));
   }
 
   function renderFilters() {
@@ -314,6 +329,8 @@
     var tpl = anyAsked ? t("count_one") : t("count_none");
     $("pw-count").innerHTML = tpl
       .replace("{shown}", shown).replace("{total}", PATHWAYS.length).replace("{match}", matched);
+    var checklist = !anyAsked ? t("checklist_none") : (matched ? t("checklist_matches").replace("{match}", matched) : t("checklist_zero"));
+    setText("checklist-copy", checklist);
   }
 
   function rerender() {
@@ -335,9 +352,11 @@
       $("matches-only").checked = false;
       renderFilters(); applyFilter();
     };
+    $("print-btn").onclick = function () { window.print(); };
     var logo = $("logo-img");
     if (logo) logo.onerror = function () { var fb = document.createElement("div"); fb.className = "logo-fallback"; fb.textContent = "PLK①"; logo.replaceWith(fb); };
 
     applyChrome(); renderFilters(); buildCards(); applyFilter();
+    if (window.matchMedia("(min-width: 681px)").matches) document.querySelector(".pw-disc details").open = true;
   });
 })();
