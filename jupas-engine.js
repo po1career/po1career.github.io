@@ -9,6 +9,11 @@
    Adapted from JUPASCal — https://github.com/JUPASCal/JUPASCal.github.io
    Licensed under the MIT License. Copyright (c) 2026 JUPASCal.
    See the bundled LICENSE file; this notice must be retained in redistributions.
+   SYNCED to upstream v1.0.0 (2026-07-10): HKUST sequential graded-pool formula
+   (scoreHkustSteps — per-slot weights d0907f3 + optimal slot assignment f100ab3)
+   and the M1/M2-not-an-elective rule on half-replacement programmes. Upstream's
+   Cat-B (ApL) / Cat-C-language / Combined-Science handling is intentionally NOT
+   ported: our input surface (11 electives + cores) can never contain them.
 
    Exposes:  window.JUPASEngine = {
      gradesFromPdfPayload(payload) -> { canonicalSubject: grade }   // reads CSD attained/not
@@ -90,6 +95,87 @@
   function catCPoints() { return 0; }
   function catCExclusionOk(prog, subj /*, grade, pool */) { return !isCatC(subj); }
 
+  // Collapse a formula-step subject name OR a student-grade key to one canonical
+  // form so they compare equal (long M1/M2 module names, "Compulsory Part" core).
+  // == jupascal hkNorm() = canonicalSubject(normalizeSubjectKey(name)).
+  function hkNorm(name) { return applyAlias(normSubject(name)); }
+
+  /* HKUST's engineering/science formula is a SEQUENCE of weighted slots, not a
+     plain weighted Best-N: after the required cores, each "best from pool" slot
+     picks one still-unused subject and applies THAT slot's per-subject weight.
+     Ported from jupascal calculator.ts scoreHkustSteps() (2026-07-10 sync;
+     upstream d0907f3 per-slot pool weights + f100ab3 OPTIMAL slot assignment —
+     the slots are assigned by exhaustive search maximising slot scores + the
+     6th-subject bonus, never per-slot greedy). Category-B (ApL) branches are
+     omitted: our input surface (11 electives + cores) can never hold one. */
+  function scoreHkustSteps(steps, cands, selected, prog, addScore) {
+    function catOk(step, cand) {
+      var cats = step.eligible_categories;
+      if (!cats || !cats.length) return true;
+      if (isCatC(cand.subject)) return cats.indexOf("Category C") >= 0;
+      return true; // Core / Category A
+    }
+    function stepWeight(step, cand) {
+      var groups = step.weights || [];
+      for (var g = 0; g < groups.length; g++) {
+        var subs = groups[g].subjects || [];
+        for (var s = 0; s < subs.length; s++)
+          if (hkNorm(subs[s]) === hkNorm(cand.subject)) return groups[g].weight;
+      }
+      return 1; // "other subjects" default
+    }
+    function take(cand, weight, compulsory) {
+      cand.used = true; cand.isCompulsory = compulsory;
+      cand.multiplier = weight; cand.weightedScore = cand.basePoints * weight;
+      selected.push(cand); addScore(cand.weightedScore);
+    }
+    // Phase 1 — the required cores (English, Math) are fixed.
+    steps.forEach(function (step) {
+      if (step.type === "required" && step.subject) {
+        var cand = cands.find(function (c) { return !c.used && hkNorm(c.subject) === hkNorm(step.subject); });
+        if (cand) take(cand, Number(step.weight != null ? step.weight : 1), true);
+      }
+    });
+    // Phase 2 — assign the (≤3) best_from_pool slots by exhaustive search over
+    // unused candidates, maximising total slot score + the 6th-subject bonus.
+    var poolSteps = steps.filter(function (s) { return s.type === "best_from_pool"; });
+    if (!poolSteps.length) return;
+    var avail = cands.filter(function (c) { return !c.used; });
+    var ust = (prog.calculation_constraints || []).find(function (c) { return c.type === "hkust_weighted_best"; });
+    var bonusRate = ust ? Number(ust.max_attainable_weighting || 5) * (Number(ust.bonus_percentage || 5) / 100) : 0;
+    function slotEligible(step, cand) {
+      if (!catOk(step, cand)) return false;
+      var filter = step.subject_filter || [];
+      if (!filter.length) return true;
+      return filter.some(function (s) { return hkNorm(s) === hkNorm(cand.subject); });
+    }
+    var bestTotal = -Infinity, bestPicks = [], chosen = [], inPool = new Set();
+    function search(i, slotSum) {
+      if (i === poolSteps.length) {
+        // 6th-subject bonus = rate × best base among the still-unused (mirrors
+        // the hkust_weighted_best block below, best-base of the unused).
+        var bonusBase = 0;
+        if (bonusRate > 0) avail.forEach(function (c) { if (!inPool.has(c) && c.basePoints > bonusBase) bonusBase = c.basePoints; });
+        var total = slotSum + bonusRate * bonusBase;
+        if (total > bestTotal) { bestTotal = total; bestPicks = chosen.slice(); }
+        return;
+      }
+      var step = poolSteps[i], anyEligible = false;
+      for (var k = 0; k < avail.length; k++) {
+        var cand = avail[k];
+        if (inPool.has(cand) || !slotEligible(step, cand)) continue;
+        anyEligible = true;
+        var weight = stepWeight(step, cand);
+        inPool.add(cand); chosen.push({ cand: cand, weight: weight });
+        search(i + 1, slotSum + cand.basePoints * weight);
+        chosen.pop(); inPool.delete(cand);
+      }
+      if (!anyEligible) search(i + 1, slotSum); // slot unfillable (student lacks a pool subject)
+    }
+    search(0, 0);
+    bestPicks.forEach(function (p) { take(p.cand, p.weight, false); });
+  }
+
   // ---- core scoring: computeScore(grades, prog, year) == jupascal te() ----
   function computeScore(grades, prog, year) {
     year = year || "2025";
@@ -150,6 +236,19 @@
 
     var selected = [], total = 0, N = subjectsToCount(prog, year, constraints);
 
+    // HKUST sequential formula (graded per-slot pools) — walk the recipe directly
+    // instead of the generic weighted Best-N. better-of programmes keep the generic
+    // path (their pool is a two-option "take the higher" the recipe encodes
+    // separately). == jupascal usingHkustSteps gate.
+    var hkustSteps = prog.hkust_formula_steps;
+    var usingHkustSteps = Array.isArray(hkustSteps) &&
+      hkustSteps.some(function (s) { return s.type === "best_from_pool"; }) &&
+      !hkustSteps.some(function (s) { return s.type === "better_of"; });
+
+    if (usingHkustSteps) {
+      scoreHkustSteps(hkustSteps, cands, selected, prog, function (pts) { total += pts; });
+    } else {
+
     cands.filter(function (c) { return c.isCompulsory; }).forEach(function (c) {
       c.used = true; selected.push(c); total += c.weightedScore;
     });
@@ -161,13 +260,24 @@
       }
     });
 
+    // When a programme uses the M1/M2 half-replacement rule (CUHK medicine, Note 4),
+    // M1/M2 is NOT an elective — it must NOT be picked into the Best-N here, so it
+    // stays unused for the half-replacement step below (where it can only upgrade
+    // the worst subject by half its value). == jupascal m1m2NotElective.
+    var m1m2NotElective = constraints.some(function (n) { return n.type === "m1m2_half_replacement"; });
+    function isExtendedMath(subj) {
+      return subj.indexOf("Module 1") >= 0 || subj.indexOf("Module 2") >= 0 || subj === "Mathematics Extended Part (Module 1 or 2)";
+    }
     var rest = cands.filter(function (c) { return !c.used; }).sort(function (a, b) { return b.weightedScore - a.weightedScore; });
     var m1m2One = constraints.find(function (n) { return n.type === "maths_m1m2_as_one"; });
     rest.forEach(function (c) {
       if (selected.length >= N) return;
+      if (m1m2NotElective && isExtendedMath(c.subject)) return;
       if (m1m2One && c.subject.indexOf("Mathematics") >= 0 && selected.some(function (u) { return u.subject.indexOf("Mathematics") >= 0; })) return;
       c.used = true; selected.push(c); total += c.weightedScore;
     });
+
+    } // end generic (non-HKUST-steps) selection
 
     var leftover = cands.filter(function (c) { return !c.used; }).sort(function (a, b) { return b.weightedScore - a.weightedScore; });
 
