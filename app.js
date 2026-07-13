@@ -23,10 +23,10 @@
       start_jupas_desc: "Compare degree programmes by subject, school, or keyword. School access is required.", start_jupas_link: "Open JUPAS Finder",
       title_tools: "Our Tools", students_only: "students only",
       sub_tools: "Study and planning tools to help you revise and map out your path. Some are for students only and need a passcode.",
-      tool_access: "School passcode required — ask the Career Team",
+      tool_access: "School passcode required — ask the Career Team", tool_open: "Open tool",
       news: "Latest News", team: "Our Team", res: "Resources / Downloads",
       all: "All", local: "Local Universities", mainland: "Mainland Universities", foreign: "Foreign Universities", career: "Career Experience Activities",
-      readmore: "Read more →", pinned: "📌 Pinned", none: "No posts in this category yet.",
+      readmore: "Read more", pinned: "Pinned", none: "No posts in this category yet.",
       footer_about: "We help students explore their interests, plan their academic pathways, and prepare for university and future careers through guidance, workshops, and information sharing.",
       lang: "中文"
     },
@@ -45,10 +45,10 @@
       start_jupas_desc: "按學科、院校或關鍵字比較大學課程。需要校內通行碼。", start_jupas_link: "開啟 JUPAS 搜尋器",
       title_tools: "學習與規劃工具", students_only: "只限學生",
       sub_tools: "助你溫習及規劃升學路向的工具。部分只供學生使用，需輸入通行碼。",
-      tool_access: "需要校內通行碼 — 請向升學輔導及生涯規劃組查詢",
+      tool_access: "需要校內通行碼 — 請向升學輔導及生涯規劃組查詢", tool_open: "開啟工具",
       news: "最新消息", team: "團隊成員", res: "資源 / 下載",
       all: "全部", local: "本地大學", mainland: "內地大學", foreign: "海外大學", career: "職業體驗活動",
-      readmore: "閱讀更多 →", pinned: "📌 置頂", none: "此分類暫無貼文。",
+      readmore: "閱讀更多", pinned: "置頂", none: "此分類暫無貼文。",
       footer_about: "我們透過輔導、工作坊及資訊分享，協助學生探索興趣、規劃學業路徑，為升學及未來事業作好準備。",
       lang: "EN"
     }
@@ -78,6 +78,17 @@
   function L(p, field) { return p[field + "_" + state.lang] || p[field + "_en"] || ""; }
   function t(k) { return T[state.lang][k]; }
   var ICON = { all: "✨", local: "🎓", mainland: "🏛️", foreign: "🌍", career: "💼" };
+  var TOOL_ICON_SVG = {
+    quiz: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="4"/><path d="M16 3v3M16 26v3M3 16h3M26 16h3"/></svg>',
+    pathways: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 28V5M8 8h11l4 4-4 4H8M8 16h8l4 4-4 4H8"/><circle cx="8" cy="28" r="2"/></svg>',
+    pomodoro: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="18" r="10"/><path d="M12 4h8M16 8V4M16 18l5-4M7 9l-2 2M25 9l2 2"/></svg>',
+    studyplan: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="24" height="21" rx="3"/><path d="M10 4v6M22 4v6M4 13h24M9 21l3 3 7-7"/></svg>',
+    dse: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h13l5 5v21H7zM20 3v6h5"/><path d="M11 24v-5M16 24v-9M21 24v-12"/></svg>',
+    streaming: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="16" r="3"/><circle cx="25" cy="8" r="3"/><circle cx="25" cy="24" r="3"/><path d="M10 16h6M16 16V8h6M16 16v8h6"/></svg>',
+    jupas: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="13" r="8"/><path d="m19 19 9 9M7 11l6-3 6 3-6 3zM9 13v4c2 2 6 2 8 0v-4"/></svg>',
+    jupaschoices: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="20" height="24" rx="3"/><path d="M12 5V3h8v2M10 13l2 2 4-4M18 14h4M10 21l2 2 4-4M18 22h4"/></svg>',
+    planner: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 8-3 8 3 8-3v21l-8 3-8-3-8 3zM12 4v21M20 7v21"/><path d="M7 21c3-5 7-3 10-7s6-3 8-6" stroke-dasharray="1 4"/></svg>'
+  };
 
   function excerpt(s, n) {
     s = (s || "").replace(/\n+/g, " ");
@@ -127,24 +138,28 @@
     posts.forEach(function (p) {
       var card = document.createElement("article");
       card.className = "card";
+      card.dataset.category = p.category || "all";
+      var postTitle = L(p, "title");
+      var safeTitle = esc(postTitle);
       var thumb = p.image
-        ? '<div class="thumb"><img src="' + esc(p.image) + '" alt="" loading="lazy" decoding="async"></div>'
+        ? '<div class="thumb"><img src="' + esc(p.image) + '" alt="' + safeTitle + '" loading="lazy" decoding="async"></div>'
         : '<div class="thumb empty">' + (ICON[p.category] || "📰") + "</div>";
       card.innerHTML =
         thumb +
         '<div class="pad">' +
-          '<span class="tag ' + p.category + '">' + (ICON[p.category] || "") + " " + tx[p.category] + "</span>" +
-          (p.pinned ? '<span class="pin">' + tx.pinned + "</span>" : "") +
-          "<h3>" + esc(L(p, "title")) + "</h3>" +
+          '<div class="card-flags">' +
+            '<span class="tag ' + p.category + '">' + (ICON[p.category] || "") + " " + tx[p.category] + "</span>" +
+            (p.pinned ? '<span class="pin">' + tx.pinned + "</span>" : "") +
+          "</div>" +
+          "<h3>" + safeTitle + "</h3>" +
           '<div class="meta">' + fmtDate(p.date) + "</div>" +
           '<div class="excerpt">' + esc(excerpt(L(p, "body"), 120)) + "</div>" +
           '<span class="readmore">' + tx.readmore + "</span>" +
         "</div>";
       // Whole card is clickable (with keyboard support for accessibility)
-      card.style.cursor = "pointer";
       card.setAttribute("role", "button");
       card.setAttribute("tabindex", "0");
-      card.setAttribute("aria-label", L(p, "title"));
+      card.setAttribute("aria-label", postTitle);
       card.onclick = function () { openPost(p); };
       card.onkeydown = function (e) {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPost(p); }
@@ -175,17 +190,24 @@
         var a = document.createElement("a");
         a.className = "tool-card";
         a.href = td.href;
+        a.dataset.tool = td.id;
+        a.dataset.group = groupKey;
         a.dataset.gated = td.gated ? "true" : "false";
         a.innerHTML =
-          '<span class="tool-ic" aria-hidden="true">' + td.icon + "</span>" +
-          '<span class="tool-body">' +
-            '<span class="tool-name">' + esc(toolField(td, "name")) + "</span>" +
-            '<span class="tool-desc">' + esc(toolField(td, "desc")) + "</span>" +
+          '<span class="tool-card-top">' +
+            '<span class="tool-ic" aria-hidden="true">' + (TOOL_ICON_SVG[td.id] || td.icon) + "</span>" +
             '<span class="tool-tags">' +
               '<span class="tool-aud">' + esc(toolField(td, "aud")) + "</span>" +
               (td.gated ? '<span class="tool-lock">🔒 ' + esc(tx.students_only) + "</span>" : "") +
             "</span>" +
-            (td.gated ? '<span class="tool-access">' + esc(tx.tool_access) + "</span>" : "") +
+          "</span>" +
+          '<span class="tool-body">' +
+            '<span class="tool-name">' + esc(toolField(td, "name")) + "</span>" +
+            '<span class="tool-desc">' + esc(toolField(td, "desc")) + "</span>" +
+          "</span>" +
+          '<span class="tool-card-foot">' +
+            '<span class="tool-action' + (td.gated ? " is-gated" : "") + '">' + esc(td.gated ? tx.tool_access : tx.tool_open) + "</span>" +
+            '<span class="tool-arrow" aria-hidden="true">→</span>' +
           "</span>";
         grid.appendChild(a);
       });
