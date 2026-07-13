@@ -9,6 +9,8 @@
   --home-card-radius: 14px;
   --home-card-shadow: 0 8px 18px rgba(91, 58, 36, 0.1);
   --home-card-shadow-hover: 0 15px 28px rgba(91, 58, 36, 0.17);
+  --home-card-hover-border: #8a5e18;
+  --home-card-ease: cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
@@ -74,22 +76,6 @@
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.start-card:hover {
-  border-color: var(--card-accent);
-  box-shadow: var(--home-card-shadow-hover);
-  text-decoration: none;
-  transform: translateY(-4px);
-}
-
-.start-card:active {
-  transform: translateY(-1px);
-}
-
-.start-card:focus-visible {
-  border-color: var(--card-accent);
-  box-shadow: var(--home-card-shadow-hover);
-}
-
 .start-card-visual {
   position: relative;
   display: grid;
@@ -145,10 +131,6 @@
   height: 116px;
   filter: drop-shadow(0 5px 6px rgba(91, 58, 36, 0.12));
   transition: transform 220ms ease;
-}
-
-.start-card:hover .start-card-art {
-  transform: translateY(-2px) scale(1.025);
 }
 
 .start-card-copy {
@@ -207,10 +189,6 @@
   transition: transform 180ms ease;
 }
 
-.start-card:hover .start-card-link::after {
-  transform: translateX(3px);
-}
-
 .start-card.is-gated {
   background: #fffaf2;
 }
@@ -255,22 +233,6 @@
 
 #tools .tool-card::before {
   display: none;
-}
-
-#tools .tool-card:hover {
-  border-color: var(--tool-accent);
-  box-shadow: var(--home-card-shadow-hover);
-  text-decoration: none;
-  transform: translateY(-4px);
-}
-
-#tools .tool-card:active {
-  transform: translateY(-1px);
-}
-
-#tools .tool-card:focus-visible {
-  border-color: var(--tool-accent);
-  box-shadow: var(--home-card-shadow-hover);
 }
 
 #tools .tool-card[data-gated="true"] {
@@ -342,10 +304,6 @@
   height: 116px;
   filter: drop-shadow(0 5px 6px rgba(91, 58, 36, 0.12));
   transition: transform 220ms ease;
-}
-
-#tools .tool-card:hover .tool-ic svg {
-  transform: translateY(-2px) scale(1.025);
 }
 
 #tools .tool-tags {
@@ -439,10 +397,6 @@
   transition: transform 180ms ease;
 }
 
-#tools .tool-card:hover .tool-arrow {
-  transform: translateX(3px);
-}
-
 /* Homepage news cards, ready for the currently hidden news section. */
 #news .grid {
   gap: 14px;
@@ -478,14 +432,6 @@
 
 #news .card::after {
   display: none;
-}
-
-#news .card:hover,
-#news .card:focus-visible {
-  z-index: 1;
-  border-color: var(--news-accent);
-  box-shadow: var(--home-card-shadow-hover);
-  transform: translateY(-4px);
 }
 
 #news .card:focus-visible {
@@ -568,14 +514,68 @@
   transition: transform 180ms ease;
 }
 
-#news .card:hover .readmore::after {
-  transform: translateX(3px);
-}
-
 #news .empty-state {
   border: 1px dashed var(--home-card-border);
   border-radius: var(--home-card-radius);
   background: rgba(255, 253, 248, 0.72);
+}
+
+/* One interaction contract for every homepage card family. */
+.start-card,
+#tools .tool-card,
+#news .card {
+  transition:
+    transform 200ms var(--home-card-ease),
+    box-shadow 200ms var(--home-card-ease),
+    border-color 200ms var(--home-card-ease);
+}
+
+.start-card:hover,
+#tools .tool-card:hover,
+#news .card:hover {
+  z-index: 1;
+  border-color: var(--home-card-hover-border);
+  box-shadow: var(--home-card-shadow-hover);
+  text-decoration: none;
+  transform: translateY(-4px);
+}
+
+.start-card:active,
+#tools .tool-card:active,
+#news .card:active {
+  transform: translateY(-1px);
+}
+
+.start-card:focus-visible,
+#tools .tool-card:focus-visible,
+#news .card:focus-visible {
+  border-color: var(--home-card-hover-border);
+  box-shadow: var(--home-card-shadow-hover);
+  transform: none;
+}
+
+.start-card-art,
+#tools .tool-ic svg,
+#news .card .thumb img {
+  transition: transform 220ms var(--home-card-ease);
+}
+
+.start-card:hover .start-card-art,
+#tools .tool-card:hover .tool-ic svg,
+#news .card:hover .thumb img {
+  transform: translateY(-2px) scale(1.025);
+}
+
+.start-card-link::after,
+#tools .tool-arrow,
+#news .card .readmore::after {
+  transition: transform 200ms var(--home-card-ease);
+}
+
+.start-card:hover .start-card-link::after,
+#tools .tool-card:hover .tool-arrow,
+#news .card:hover .readmore::after {
+  transform: translateX(3px);
 }
 
 @media (max-width: 920px) {
@@ -637,7 +637,11 @@
   }
 
   .start-card:hover,
-  .start-card:active {
+  .start-card:active,
+  #tools .tool-card:hover,
+  #tools .tool-card:active,
+  #news .card:hover,
+  #news .card:active {
     transform: none;
   }
 
