@@ -1,11 +1,18 @@
-/* JUPAS Choice Evaluator (STUDENT page) — jupas-choices.js (v3)
+/* JUPAS Choice Evaluator (STUDENT page) — jupas-choices.js (v10)
    Self-contained page script (do NOT load app.js here).
-   - Gate: same scheme as jupas-tool.js — validates passcode by decrypting
-     programmes.enc.json (PBKDF2-SHA256 150k + AES-GCM); shares localStorage "jupas_pass".
-     Decrypted CSV powers the per-row programme autocomplete.
+   - Gate (2026-07-13): validates passcode by decrypting jupas-finder-db.enc.json — the SAME
+     unified 422-programme DB the Finder+/Planner use (PBKDF2-SHA256 150k + AES-GCM); shares
+     localStorage "jupas_pass". Replaced the legacy programmes.enc.json CSV so this page can
+     never drift stale. Decrypted JSON powers the per-row autocomplete + intake auto-fill.
    - ALL-MANUAL by design: students compute their weighted score with the institutions' own
      online calculators and pick the position vs UQ/Median/LQ themselves, then hand the PDF
-     to the Career Team. NO stats database on this page (teacher page holds it, encrypted).
+     to the Career Team. NO stats shown on this page. Two DATA-ONLY conveniences (2026-07-13):
+     (a) "First-year intake" auto-fills from the DB's quota when a programme is picked
+     (still editable — it's a fact, not a judgment); (b) a gentle per-row note appears when
+     the entered grades may miss the programme's published minimum entry requirements
+     (shared jupas-engine.js checkEligibility via evaluateProgramme; NO score is ever shown —
+     students still verify on jupas.edu.hk). Requires jupas-engine.js loaded first (page
+     degrades gracefully to no notes if absent).
    - NO evaluative wording (teacher evaluates): summary shows factual counts only.
    - Bands per JUPAS official: A=1-3, B=4-6, C=7-10, D=11-15, E=16-20.
    - Exports: hand-built PDF embedding state as base64 in /Keywords + trailing
@@ -98,6 +105,7 @@ var STRINGS = {
     progPh: 'JS code / keyword…',
     notFound: 'Not in our list — double-check the code on jupas.edu.hk',
     official: 'Official page ↗',
+    eligNote: 'Heads-up: with the grades entered above, this programme’s published minimum entry requirements may not be met — please verify on jupas.edu.hk.',
     cmpPick: '— select —',
     cmpFull: {
       aboveUQ: 'At or above Upper Quartile (UQ)',
@@ -153,6 +161,7 @@ var STRINGS = {
     progPh: 'JS 編號／關鍵字…',
     notFound: '不在清單內——請於 jupas.edu.hk 核對編號',
     official: '官方網頁 ↗',
+    eligNote: '提示：以上方輸入的成績，未必符合此課程公布的最低入學要求——請於 jupas.edu.hk 核實。',
     cmpPick: '— 請選擇 —',
     cmpFull: {
       aboveUQ: '達到或高於上四分位數 (UQ)',
@@ -299,10 +308,19 @@ function resultEntries() {
   return ac.slice(0, nCore).concat([csd], ac.slice(nCore));
 }
 
-// ---------- programme lookup ----------
+// ---------- programme lookup (finder DB: jupas_code / name_en / name_zh / institution / institution_zh) ----------
+// SSSDP programmes carry an "Offered by X:" name prefix (X = the REAL provider) — same
+// convention as jupas-finder-ui.js provider()/pName(): show the provider, strip the prefix.
+var OFFERED_RE = /^\s*(?:Offered by [^:]+:|由[^：]+開辦：)\s*/;
+function provider(p) {
+  if (p.institution !== 'SSSDP') return p.institution;
+  var m = /Offered by ([^:]+):/.exec(p.name_en || '');
+  return m ? m[1].trim() : 'SSSDP';
+}
+
 function findProg(code) {
   var q = code.trim().toUpperCase();
-  return programmes.filter(function (p) { return (p.code || '').toUpperCase() === q; })[0] || null;
+  return programmes.filter(function (p) { return (p.jupas_code || '').toUpperCase() === q; })[0] || null;
 }
 
 function searchProg(q) {
@@ -311,9 +329,9 @@ function searchProg(q) {
   var starts = [], contains = [];
   for (var i = 0; i < programmes.length; i++) {
     var p = programmes[i];
-    if ((p.code || '').toLowerCase().indexOf(q) === 0) { starts.push(p); }
+    if ((p.jupas_code || '').toLowerCase().indexOf(q) === 0) { starts.push(p); }
     else {
-      var hay = [p.code, p.name_en, p.name_zh, p.institution_en, p.institution_zh, p.tags].join(' ').toLowerCase();
+      var hay = [p.jupas_code, p.name_en, p.name_zh, provider(p), p.institution_zh, p.tags].join(' ').toLowerCase();
       if (hay.indexOf(q) >= 0) contains.push(p);
     }
     if (starts.length >= 8) break;
@@ -321,8 +339,33 @@ function searchProg(q) {
   return starts.concat(contains).slice(0, 8);
 }
 
-function progName(p) { return lang === 'zh' ? (p.name_zh || p.name_en) : p.name_en; }
-function progInst(p) { return lang === 'zh' ? (p.institution_zh || p.institution_en) : p.institution_en; }
+function progName(p) {
+  var n = lang === 'zh' ? (p.name_zh || p.name_en) : p.name_en;
+  return String(n || '').replace(OFFERED_RE, '');
+}
+function progInst(p) { return lang === 'zh' ? (p.institution_zh || provider(p)) : provider(p); }
+function progNameEn(p) { return String(p.name_en || '').replace(OFFERED_RE, ''); }
+
+// ---------- gentle eligibility note (shared jupas-engine.js; eligibility ONLY, no scores) ----------
+// Only meaningful once the student has entered a realistic grade set: all 3 academic cores
+// plus at least one complete elective. Missing CSD is treated as Attained by the engine
+// (benefit of the doubt) — a selected "Not attained" is checked for real.
+function gradesReady() {
+  if (!(state.core.chi && state.core.eng && state.core.math)) return false;
+  return state.elect.some(function (e) { return e.s && e.lv; });
+}
+function engineGrades() {
+  return window.JUPASEngine.gradesFromPdfPayload({ core: state.core, elect: state.elect });
+}
+function eligWarn(p) {
+  if (!window.JUPASEngine || !gradesReady()) return false;
+  try {
+    return !window.JUPASEngine.evaluateProgramme(p, engineGrades()).eligibility.eligible;
+  } catch (e) { return false; }   // engine hiccup → stay silent, never block the form
+}
+// buildTable registers each row's info-refresher here; grade changes re-run them all.
+var INFO_UPDATERS = [];
+function refreshEligAll() { INFO_UPDATERS.forEach(function (f) { f(); }); }
 
 function rowPosition(i) {
   var ch = state.choices[i];
@@ -363,7 +406,7 @@ function buildScores() {
     var sel = document.createElement('select');
     sel.className = 'lv';
     fillSelect(sel, levelOptions(), state.core[c.key], t().pickLv);
-    sel.addEventListener('change', function () { state.core[c.key] = sel.value; save(); updateBest5(); });
+    sel.addEventListener('change', function () { state.core[c.key] = sel.value; save(); updateBest5(); refreshEligAll(); });
     row.appendChild(nm); row.appendChild(sel);
     box.appendChild(row);
   });
@@ -376,7 +419,7 @@ function buildScores() {
   var csel = document.createElement('select');
   csel.className = 'lv';
   fillSelect(csel, csdOptions(), state.core.csd, t().csdPick);
-  csel.addEventListener('change', function () { state.core.csd = csel.value; save(); });
+  csel.addEventListener('change', function () { state.core.csd = csel.value; save(); refreshEligAll(); });
   crow.appendChild(cnm); crow.appendChild(csel);
   box.appendChild(crow);
   state.elect.forEach(function (e, i) {
@@ -386,11 +429,11 @@ function buildScores() {
     subj.className = 'subj';
     fillSelect(subj, ELECT_SUBJ.map(function (s) { return { value: s.key, label: s[lang] }; }),
       e.s, t().pickSubj + ' ' + t().electLabel(i + 1));
-    subj.addEventListener('change', function () { e.s = subj.value; save(); updateBest5(); });
+    subj.addEventListener('change', function () { e.s = subj.value; save(); updateBest5(); refreshEligAll(); });
     var lv = document.createElement('select');
     lv.className = 'lv';
     fillSelect(lv, levelOptions(), e.lv, t().pickLv);
-    lv.addEventListener('change', function () { e.lv = lv.value; save(); updateBest5(); });
+    lv.addEventListener('change', function () { e.lv = lv.value; save(); updateBest5(); refreshEligAll(); });
     row.appendChild(subj); row.appendChild(lv);
     box.appendChild(row);
   });
@@ -399,6 +442,7 @@ function buildScores() {
 function buildTable() {
   var tbody = $('choice-rows');
   tbody.innerHTML = '';
+  INFO_UPDATERS = [];
   state.choices.forEach(function (ch, i) {
     var band = bandOf(i);
     var bandCls = 'band-' + band.name.toLowerCase();
@@ -434,7 +478,19 @@ function buildTable() {
       var p = findProg(code);
       if (!p) { info.innerHTML = '<span class="warn">' + esc(t().notFound) + '</span>'; return; }
       var link = p.url ? ' <a href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">' + esc(t().official) + '</a>' : '';
-      info.innerHTML = esc(progName(p)) + '<br>' + esc(progInst(p)) + link;
+      var note = eligWarn(p) ? '<br><span class="elig">⚠ ' + esc(t().eligNote) + '</span>' : '';
+      info.innerHTML = esc(progName(p)) + '<br>' + esc(progInst(p)) + link + note;
+    }
+    INFO_UPDATERS.push(updateInfo);
+
+    // intake is a FACT from the DB — fill it in for the student (still editable).
+    // force=true on an explicit dropdown pick; typed exact matches only fill an empty box.
+    function autofillIntake(p, force) {
+      if (p.quota == null) return;
+      if (!force && ch.intake.trim()) return;
+      ch.intake = String(p.quota);
+      ik.value = ch.intake;
+      save();
     }
 
     inp.addEventListener('input', function () {
@@ -445,17 +501,20 @@ function buildTable() {
         hits.forEach(function (p) {
           var b = document.createElement('button');
           b.type = 'button';
-          b.innerHTML = '<span class="ppc">' + esc(p.code) + '</span>' + esc(progName(p)) + ' · ' + esc(progInst(p));
+          b.innerHTML = '<span class="ppc">' + esc(p.jupas_code) + '</span>' + esc(progName(p)) + ' · ' + esc(progInst(p));
           b.addEventListener('mousedown', function (ev) {
             ev.preventDefault();
-            ch.code = p.code; inp.value = p.code; save();
+            ch.code = p.jupas_code; inp.value = p.jupas_code; save();
             drop.style.display = 'none';
+            autofillIntake(p, true);
             updateInfo(); updateSummary();
           });
           drop.appendChild(b);
         });
         drop.style.display = 'block';
       } else { drop.style.display = 'none'; }
+      var exact = findProg(inp.value);
+      if (exact) autofillIntake(exact, false);
       updateInfo(); updateSummary();
     });
     inp.addEventListener('blur', function () { setTimeout(function () { drop.style.display = 'none'; }, 150); });
@@ -656,7 +715,7 @@ function pdfLines() {
   state.choices.forEach(function (c, i) {
     if (!c.code.trim()) return;
     var p = findProg(c.code);
-    var nm = p ? (p.name_en + ' (' + p.institution_en + ')') : '';
+    var nm = p ? (progNameEn(p) + ' (' + provider(p) + ')') : '';
     L.push({ t: choiceLabel(i) + '  ' + c.code.trim().toUpperCase() + '  ' + nm.slice(0, 90), size: 10, bold: true, gap: 4 });
     var detail = [];
     if (c.intake.trim()) detail.push(en.thIntake + ': ' + c.intake.trim());
@@ -680,8 +739,9 @@ function exportPdf() {
     choices: state.choices.map(function (c) {
       var p = c.code.trim() ? findProg(c.code) : null;
       return { code: c.code, intake: c.intake, score: c.score, cmp: c.cmp, remark: c.remark,
-               name_en: p ? p.name_en : '', inst_en: p ? p.institution_en : '',
-               name_zh: p ? p.name_zh : '', inst_zh: p ? p.institution_zh : '' };
+               name_en: p ? progNameEn(p) : '', inst_en: p ? provider(p) : '',
+               name_zh: p ? String(p.name_zh || '').replace(OFFERED_RE, '') : '',
+               inst_zh: p ? (p.institution_zh || provider(p)) : '' };
     }),
     generated: new Date().toISOString().slice(0, 10)
   };
@@ -848,7 +908,7 @@ function wireEvents() {
   });
 }
 
-// ---------- encryption gate (same contract as jupas-tool.js) ----------
+// ---------- encryption gate (same contract as jupas-finder/planner: finder DB, LS jupas_pass) ----------
 var PBKDF2_ITER = 150000, GATE_LS = 'jupas_pass', encBlob = null;
 
 function b64ToBytes(b64) { return Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }); }
@@ -861,42 +921,17 @@ function deriveKey(passcode, salt) {
     });
 }
 
-function decryptCSV(passcode) {
+function decryptDb(passcode) {
   return deriveKey(passcode, b64ToBytes(encBlob.salt)).then(function (key) {
     return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(encBlob.iv) }, key, b64ToBytes(encBlob.data));
   }).then(function (plain) { return new TextDecoder().decode(plain); });
 }
 
-// minimal CSV parser (same as jupas-tool.js — handles quoted fields with commas)
-function parseCSV(text) {
-  var rows = [], row = [], field = '', inQuotes = false;
-  for (var i = 0; i < text.length; i++) {
-    var c = text[i];
-    if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') { inQuotes = false; }
-      else { field += c; }
-    } else {
-      if (c === '"') { inQuotes = true; }
-      else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
-      else if (c === '\r') { /* ignore */ }
-      else { field += c; }
-    }
-  }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
-  var headers = rows.shift().map(function (h) { return h.trim(); });
-  return rows.filter(function (r) { return r.length > 1 && r.some(function (x) { return x.trim() !== ''; }); })
-    .map(function (r) {
-      var o = {};
-      headers.forEach(function (h, i2) { o[h] = (r[i2] || '').trim(); });
-      return o;
-    });
-}
-
 function tryUnlock(passcode, remember) {
-  return decryptCSV(passcode).then(function (csv) {
-    programmes = parseCSV(csv);
+  return decryptDb(passcode).then(function (json) {
+    var db = JSON.parse(json);
+    programmes = Array.isArray(db) ? db : (db.programmes || []);
+    if (!programmes.length) throw new Error('empty db');
     if (remember) { try { localStorage.setItem(GATE_LS, passcode); } catch (e) {} }
     $('lock').style.display = 'none';
     $('app').style.display = '';
@@ -935,7 +970,7 @@ function init() {
   load();
   wireLock();
   wireEvents();
-  fetch('programmes.enc.json', { cache: 'no-store' })
+  fetch('jupas-finder-db.enc.json', { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       encBlob = j;
