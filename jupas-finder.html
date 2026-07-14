@@ -338,8 +338,11 @@
       <div id="results"></div>
     </div>
 
-    <!-- programmes with no admission statistics (collapsible) -->
-    <details class="panel nodata-panel" id="nodata-panel" style="display:none">
+    <!-- programmes with no admission statistics (collapsible; open by default — admission
+         here is the least predictable, so it must not read as a footnote. `open` lives in the
+         markup, NOT in renderNoData(), so a student who collapses it isn't re-opened on every
+         filter/band change) -->
+    <details class="panel nodata-panel" id="nodata-panel" style="display:none" open>
       <summary id="nodata-sum"></summary>
       <p class="hint" id="t-nodata-hint" style="margin:8px 0 2px"></p>
       <div class="grid" id="nodata-list" style="margin-top:8px"></div>
