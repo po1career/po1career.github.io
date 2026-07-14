@@ -36,10 +36,10 @@
 
   var S = {
     en: {
-      title: 'JUPAS Programme Finder+', subtitle: 'Discover the JUPAS programmes you can reach and build your own A1–E20 choice list.',
+      title: 'JUPAS Programme Finder+', subtitle: 'See where you stand against last year’s intake for every JUPAS programme, and build your own A1–E20 choice list.',
       steps: [
         'Enter your HKDSE grades — 4 cores and your electives.',
-        'Pick a score band (≥ UQ / ≥ Median / ≥ LQ) and narrow down by subject area or institution.',
+        'Pick a score band (≥ UQ / ≥ Median / ≥ LQ / below LQ) and narrow down by subject area or institution.',
         'Tap ★ to add a programme to your list, then use ▲▼ or drag to arrange your A1–E20 order.',
         'Save your list as a 2-page PDF to bring to your teacher.'
       ],
@@ -52,10 +52,19 @@
         uq: 'Programmes where your score reaches the upper quartile (UQ) of last year\'s intake — the strongest band you clear. UQ is estimated where a university doesn\'t publish one.',
         median: 'Programmes where your score is at or above the median but below the upper quartile.',
         lq: 'Programmes where your score is at or above the lower quartile but below the median.',
-        belowlq: 'Programmes you\'re eligible for but where your score is below the lower quartile — a reach. In your list these show red for a top choice.'
+        belowlq: 'Programmes you\'re eligible for but where your score is below the lower quartile — a long shot. In your list these show red for a top choice.'
       },
       clear: 'Clear filters',
-      s5: 'Programmes you can reach', need2: 'Enter your 3 core grades and at least 2 electives, then press “Find programmes”.',
+      // Heading tracks the "Show:" band so it can never contradict the list under it —
+      // a Below-LQ student must not be told these are programmes they "can reach".
+      s5By: {
+        uq: 'Your score clears last year’s upper quartile',
+        median: 'Your score clears last year’s median',
+        lq: 'Your score clears last year’s lower quartile',
+        belowlq: 'Your score is below last year’s lower quartile — a long shot'
+      },
+      s5Note: 'All programmes shown meet the published minimum entry requirements. The bands compare you with LAST year’s intake — they are references, not predictions.',
+      need2: 'Enter your 3 core grades and at least 2 electives, then press “Find programmes”.',
       heroDisc: 'For reference only. Always verify with the official JUPAS website (www.jupas.edu.hk) and each university’s own website. This tool bears no responsibility for any admission decision.',
       lock: 'Enter passcode', locksub: 'For PLK No.1 students only',
       unlockBtn: 'Unlock', pcPh: 'Passcode', lockErr: 'Incorrect passcode', loadErr: 'Could not load data file.',
@@ -84,10 +93,10 @@
       footer: 'Unofficial reference tool for PLK No.1 students — not affiliated with JUPAS. Scores are computed per each programme\'s own formula and are not comparable across institutions; admission statistics are from past intakes and do not guarantee this year\'s results. © 2026 PLK No.1 W.H. Cheung College · Career Team. Includes a third-party scoring engine and database used under licence.'
     },
     zh: {
-      title: 'JUPAS 課程搜尋器＋', subtitle: '找出你有機會入讀的聯招課程，並編排你的 A1–E20 志願表。',
+      title: 'JUPAS 課程搜尋器＋', subtitle: '看清你的分數在各聯招課程去年收生數據中的位置，並編排你的 A1–E20 志願表。',
       steps: [
         '輸入文憑試成績——四科核心及你的選修科。',
-        '選擇分數範圍（≥ 上四分位／≥ 中位數／≥ 下四分位），再按學科範疇或院校收窄。',
+        '選擇分數範圍（≥ 上四分位／≥ 中位數／≥ 下四分位／低於下四分位），再按學科範疇或院校收窄。',
         '按 ★ 把課程加入志願表，再用 ▲▼ 或拖曳排成你的 A1–E20 次序。',
         '把志願表儲存為兩頁 PDF，帶給老師參考。'
       ],
@@ -100,10 +109,17 @@
         uq: '你的分數達到去年收生上四分位（UQ）的課程——你能達到的最強範圍。院校若沒有公布 UQ，會以估算值比較。',
         median: '你的分數達到或高於中位數、但低於上四分位的課程。',
         lq: '你的分數達到或高於下四分位、但低於中位數的課程。',
-        belowlq: '你符合資格、但分數低於下四分位的課程——屬挑戰之選。放在志願表前列時會顯示紅色。'
+        belowlq: '你符合資格、但分數低於下四分位的課程——機會較微。放在志願表前列時會顯示紅色。'
       },
       clear: '清除篩選',
-      s5: '你有機會入讀的課程', need2: '輸入三科核心成績及至少兩科選修，然後按「搜尋課程」。',
+      s5By: {
+        uq: '你的分數達到或高於去年上四分位',
+        median: '你的分數達到或高於去年中位數',
+        lq: '你的分數達到或高於去年下四分位',
+        belowlq: '你的分數低於去年下四分位——機會較微'
+      },
+      s5Note: '以下課程你都符合公布的最低入學要求。分數範圍是與「去年」收生數據比較，只供參考，並非預測。',
+      need2: '輸入三科核心成績及至少兩科選修，然後按「搜尋課程」。',
       heroDisc: '僅供參考。報讀前請以 JUPAS 官方網站（www.jupas.edu.hk）及各大學網站為準。本工具概不就任何收生決定承擔責任。',
       lock: '請輸入通行碼', locksub: '只供保良局第一張永慶中學學生使用',
       unlockBtn: '解鎖', pcPh: '通行碼', lockErr: '通行碼錯誤', loadErr: '無法載入資料檔。',
@@ -268,13 +284,21 @@
       b.addEventListener('click', function () { var k = b.getAttribute('data-inst'); activeInsts.has(k) ? activeInsts.delete(k) : activeInsts.add(k); renderInstChips(); render(); });
     });
   }
+  // results heading + band hint follow the selected band (no counts needed, so this is
+  // also safe to call before "Find programmes" has produced any results)
+  function updateBandText() {
+    var s = t(), bk = $('bucket-sort').value;
+    $('t-s5').textContent = s.s5By[bk] || s.s5By.uq;
+    $('t-s5note').textContent = s.s5Note;
+    $('t-bkhint').textContent = s.bkHint[bk] || '';
+  }
   function updateBucketOptions() {
     var c = bucketCounts(), s = t();
     $('t-bk-uq').textContent = s.bkUq + ' (' + c.uq + ')';
     $('t-bk-median').textContent = s.bkMedian + ' (' + c.median + ')';
     $('t-bk-lq').textContent = s.bkLq + ' (' + c.lq + ')';
     $('t-bk-belowlq').textContent = s.bkBelowlq + ' (' + c.belowlq + ')';
-    $('t-bkhint').textContent = s.bkHint[$('bucket-sort').value] || '';
+    updateBandText();
   }
 
   function gapHtml(r) {
@@ -701,7 +725,7 @@
     $('lang-en').classList.toggle('active', lang === 'en'); $('lang-zh').classList.toggle('active', lang === 'zh');
     $('lang-en').setAttribute('aria-pressed', String(lang === 'en')); $('lang-zh').setAttribute('aria-pressed', String(lang === 'zh'));
     var map = { 't-title': s.title, 't-subtitle': s.subtitle, 't-s1': s.s1, 't-cs': s.cs,
-      't-electhint': s.electhint, 'find-btn': s.find, 't-s3': s.s3, 't-s5': s.s5,
+      't-electhint': s.electhint, 'find-btn': s.find, 't-s3': s.s3,
       't-catlab': s.catlab, 't-instlab': s.instlab, 't-sortlab': s.sortlab,
       't-bk-uq': s.bkUq, 't-bk-median': s.bkMedian, 't-bk-lq': s.bkLq, 't-bk-belowlq': s.bkBelowlq,
       'clear-btn': s.clear, 'cs-att': s.att, 'cs-not': s.notatt,
@@ -715,7 +739,7 @@
     var pc = $('passcode'); if (pc) { pc.placeholder = s.pcPh; pc.setAttribute('aria-label', s.pcPh); }
     $('search').setAttribute('aria-label', s.search);
     $('bucket-sort').setAttribute('aria-label', s.aria.sort);
-    if (results) updateBucketOptions(); else $('t-bkhint').textContent = s.bkHint[$('bucket-sort').value] || '';
+    if (results) updateBucketOptions(); else updateBandText();
     var ft = $('t-footer'); if (ft) ft.textContent = s.footer;
     document.title = s.title;
   }
