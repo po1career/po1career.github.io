@@ -14,6 +14,14 @@
    and the M1/M2-not-an-elective rule on half-replacement programmes. Upstream's
    Cat-B (ApL) / Cat-C-language / Combined-Science handling is intentionally NOT
    ported: our input surface (11 electives + cores) can never contain them.
+   SYNCED to upstream v1.0.2 (2026-07-16), four fixes: (1) b6d5daf best_of pools
+   are positional/consuming with `slot` tags (CityU JS1050-53); (2) 3c3ea08
+   `alternatives` OR-pattern eligibility (JS1202/JS4238); (3) 069bc8a `reserve`
+   flag on compulsory_subject_pool holds unfilled M1/M2 slots at 0
+   (JS4361/JS6688/JS6729/JS6884); (4) 94f583d half-replacement worst-subject is
+   chosen from ALL counted subjects incl. compulsory core (JS4501/JS4502).
+   Upstream's Cat-C fixes in the same window (4cf81d4 PolyU Urdu scale, cc1e5dd
+   HKU a/c-footnote gating) remain N/A under the not-ported rule above.
 
    Exposes:  window.JUPASEngine = {
      gradesFromPdfPayload(payload) -> { canonicalSubject: grade }   // reads CSD attained/not
@@ -205,12 +213,22 @@
         weightedScore: basePoints * mult, isCompulsory: false, isBestOfPool: false, used: false, isBonus: false });
     });
 
-    // best-of-pool weight upgrade
+    // best-of-pool weight upgrade. == upstream b6d5daf (v1.0.1): pools are POSITIONAL —
+    // they apply in data order and CONSUME their picks, so a candidate claimed by an
+    // earlier pool cannot fill a later pool's slot (CityU JS1050-53 "x2.5 in 1st Elective /
+    // x1.5 in 2nd Elective"). Pools sharing a `slot` tag compete for ONE position: once a
+    // pool claims a candidate for that slot, later pools with the same tag are skipped
+    // (JS1053's 2nd elective is x2.5 for Econ/BAFS OR x1.5 for the science list, never
+    // both). Single-pool programmes are unaffected (claiming is a no-op).
+    var poolClaimed = [], claimedSlots = {};
     bestOf.forEach(function (rule) {
-      var pool = cands.filter(function (c) { return subjectMatches(rule.subjects, c.subject); })
+      if (rule.slot && claimedSlots[rule.slot]) return;
+      var pool = cands.filter(function (c) { return poolClaimed.indexOf(c) < 0 && subjectMatches(rule.subjects, c.subject); })
         .sort(function (a, b) { return b.weightedScore - a.weightedScore; });
       for (var u = 0; u < Math.min(rule.count, pool.length); u++) {
         var d = pool[u];
+        poolClaimed.push(d);
+        if (rule.slot) claimedSlots[rule.slot] = true;
         if (rule.weight > d.multiplier) { d.multiplier = rule.weight; d.weightedScore = d.basePoints * d.multiplier; d.isBestOfPool = true; }
       }
     });
@@ -235,6 +253,10 @@
     var pools = constraints.filter(function (n) { return n.type === "compulsory_subject_pool"; });
 
     var selected = [], total = 0, N = subjectsToCount(prog, year, constraints);
+    // Slots a `reserve` pool held empty (applicant lacks the required subject) — tracked at
+    // function scope so the 6th/7th-subject bonus gates below still see the full base.
+    // == upstream 069bc8a (JS4361/JS6688/JS6729/JS6884 Flexible-Admission reference scores).
+    var reservedSlots = 0;
 
     // HKUST sequential formula (graded per-slot pools) — walk the recipe directly
     // instead of the generic weighted Best-N. better-of programmes keep the generic
@@ -255,8 +277,16 @@
     pools.forEach(function (pool) {
       var matched = cands.filter(function (c) { return !c.used && subjectMatches(pool.subjects || [], c.subject); })
         .sort(function (a, b) { return b.weightedScore - a.weightedScore; });
+      var filled = 0;
       for (var u = 0; u < Math.min(Number(pool.count || 0), matched.length) && selected.length < N; u++) {
-        var d = matched[u]; d.used = true; selected.push(d); total += d.weightedScore;
+        var d = matched[u]; d.used = true; selected.push(d); total += d.weightedScore; filled++;
+      }
+      // A `reserve` pool HOLDS its unfilled slot(s) at 0 rather than backfilling with
+      // another subject — HKU/CUHK score a candidate who lacks the required M1/M2 with
+      // that slot empty (Flexible-Admission reference). Only flagged pools reserve.
+      if (pool.reserve) {
+        var shortfall = Number(pool.count || 0) - filled;
+        if (shortfall > 0) { N -= shortfall; reservedSlots += shortfall; }
       }
     });
 
@@ -281,9 +311,9 @@
 
     var leftover = cands.filter(function (c) { return !c.used; }).sort(function (a, b) { return b.weightedScore - a.weightedScore; });
 
-    // bonus 6th
+    // bonus 6th — a reserved (unfilled) slot still counts toward the base for the gate
     var b6 = resolveBonus(constraints, "bonus_6th");
-    if (b6 && selected.length === 5) {
+    if (b6 && selected.length + reservedSlots === 5) {
       var pool6 = leftover;
       if (b6.polyu_style) {
         var pmap = { "5**": 7, "5*": 6, "5": 5, "4": 4, "3": 3, "2": 2, "1": 1 };
@@ -297,9 +327,9 @@
       }
     }
 
-    // bonus 7th
+    // bonus 7th — same reserved-slot rule as bonus 6th
     var b7 = resolveBonus(constraints, "bonus_7th");
-    if (b7 && selected.length === 6) {
+    if (b7 && selected.length + reservedSlots === 6) {
       var c7 = leftover[0];
       if (c7) {
         var add7 = c7.weightedScore * Number(b7.multiplier || 0);
@@ -325,7 +355,11 @@
       var modBest = cands.filter(function (c) { return !c.used && (c.subject.indexOf("Module 1") >= 0 || c.subject.indexOf("Module 2") >= 0 || c.subject === "Mathematics Extended Part (Module 1 or 2)"); })
         .sort(function (a, b) { return b.weightedScore - a.weightedScore; })[0];
       if (modBest) {
-        var lowest = selected.filter(function (u) { return !u.isCompulsory && !u.isBonus; }).sort(function (a, b) { return a.weightedScore - b.weightedScore; })[0];
+        // "the worst one of the 6 subjects" — ALL counted subjects, INCLUDING the compulsory
+        // core (Chi/Eng/Math). The old !isCompulsory filter meant a low core grade could never
+        // be the "worst", wrongly dropping M1/M2 when the worst ELECTIVE already tied it.
+        // == upstream 94f583d (JS4501/JS4502; verified case JS4501 36 -> 37, Chinese L4 half-replaced).
+        var lowest = selected.filter(function (u) { return !u.isBonus; }).sort(function (a, b) { return a.weightedScore - b.weightedScore; })[0];
         if (lowest) {
           var oldW = lowest.weightedScore, newW = oldW / 2 + modBest.weightedScore / 2;
           if (newW > oldW) {
@@ -453,7 +487,25 @@
     return perPool;
   }
 
+  // Public eligibility check. A programme may list its requirements as several acceptable
+  // OR-patterns (`minReq.alternatives`) — e.g. JS1202: "Math 3 + any elective" OR "Math 2 +
+  // a specific science elective". Eligible if the base pattern OR any alternative is fully
+  // satisfied; surfaces the details of whichever pattern passes (or the base pattern's, when
+  // none do, as the most representative failure). == upstream 3c3ea08 (JS1202/JS4238).
   function checkEligibility(grades, minReq, prog) {
+    var base = checkPattern(grades, minReq, prog);
+    var alts = minReq && minReq.alternatives;
+    if (base.eligible || !alts || !alts.length) return base;
+    for (var i = 0; i < alts.length; i++) {
+      // Ignore any nested `alternatives` on an alternative (one level deep, like upstream).
+      var alt = Object.assign({}, alts[i]); delete alt.alternatives;
+      var r = checkPattern(grades, alt, prog);
+      if (r.eligible) return r;
+    }
+    return base;
+  }
+
+  function checkPattern(grades, minReq, prog) {
     var details = [], eligible = true;
     ["chi", "eng", "math", "csd"].forEach(function (key) {
       var got = grades[CORE_NAME[key]], need = minReq && minReq[key];
