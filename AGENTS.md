@@ -51,13 +51,18 @@ gated QA is still pending so the owner doesn't merge early.
    hand-edit the encrypted files.
 
 ## How to verify before opening a PR
-- **Syntax:** every `.js` must pass `node --check`.
-- **Engine smoke test:** load `jupas-engine.js` in node and confirm `window.JUPASEngine` exposes its
-  functions and a trivial call works (CI does this; you can too).
+- **Run the checks:** `node tools/check.mjs --base origin/main` (Node 18+, no install). CI runs exactly
+  this script, so green locally = green in CI. It covers: JS syntax · engine smoke test · no plaintext
+  DB/passcodes · every referenced file exists · the same `?v=` on every page · `sw.js` `CORE` matches
+  the pages · CSP on every page with no third-party origins · every passcode-gated page (detected
+  automatically) is `noindex` and not in `sitemap.xml` · edited `.js`/`.css` got a new `?v=` ·
+  `CACHE` bumped when `CORE` changes.
+- **Bump versions with the helper, not by hand:** `node tools/bump.mjs <file> [...]` raises the
+  file's `?v=` on every page and in `sw.js` (bumping `CACHE` when needed);
+  `node tools/bump.mjs --sync-sw` repairs `sw.js` `CORE`. Add `--dry-run` to preview.
 - **Serve it:** `python3 -m http.server` in the repo and open the page.
 - **Gated pages need a passcode to preview** (kept private). If you can't unlock them, you cannot do
   visual QA — say so and leave UI verification to the local/Claude workflow, which has the passcode.
-- The CI PR check runs the above automatically; make it green.
 
 ## Who does what (play to each tool's strengths)
 - **Codex (cloud/GitHub):** logic refactors, data transforms, content edits, writing tests —
