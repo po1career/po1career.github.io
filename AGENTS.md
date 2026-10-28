@@ -29,8 +29,11 @@ gated QA is still pending so the owner doesn't merge early.
 
 1. **Cache-busting (`?v=N`) — the #1 source of "my change didn't show up".**
    After editing ANY `.css` or `.js`, bump its `?v=N` in **every** HTML file that references it.
-   - `jupas-engine.js` is loaded by BOTH `jupas-evaluator.html` and `jupas-finder.html` — bump both.
-   - If you change `sw.js`'s precache list, bump the `CACHE` constant in `sw.js`.
+   - `jupas-engine.js` is loaded by FOUR pages — `jupas-evaluator.html`, `jupas-finder.html`,
+     `jupas-planner.html`, `jupas-choices.html` — bump all four.
+   - `sw.js`'s `CORE` precache list pins exact `?v=` URLs. If the file you bumped is listed there,
+     update its `?v=` in `CORE` too, so it matches what the HTML loads.
+   - Whenever `sw.js`'s precache list changes, bump the `CACHE` constant in `sw.js`.
    - HTML files themselves are not `?v`-tagged (they're the entry points).
 
 2. **Never commit secrets or plaintext data.** Only encrypted `*.enc.json` is deployable. Never add:
@@ -42,8 +45,8 @@ gated QA is still pending so the owner doesn't merge early.
    strict `Content-Security-Policy`, and **zero third-party network calls** (minors' privacy — fonts
    are self-hosted, no CDNs/analytics). Escape any user-supplied text before inserting as HTML.
 
-4. **Shared vs. separate code.** `jupas-engine.js` is **byte-identical** and shared by the evaluator
-   and finder — treat it as one file. The two `*-analytics.js` copies are **separate** — diff before
+4. **Shared vs. separate code.** `jupas-engine.js` is ONE file shared by the evaluator, finder, planner
+   and choices pages — a change affects all four. The two `*-analytics.js` copies are **separate** — diff before
    assuming a change applies to both.
 
 5. **Database rebuilds require a private toolchain** that is not in this repo. If a task needs the
