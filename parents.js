@@ -11,8 +11,8 @@
   var CARDS = [
     { icon: "🎓", c: "#3b6fb0", c2: "#2f5a92",
       title: { en: "What JUPAS is", zh: "聯招是甚麼" },
-      body: { en: "JUPAS is the main system for applying to Hong Kong's government-funded bachelor's degrees using DSE results. Your child lists up to 20 programmes in order of real preference; the top three (Band A) matter most. <a href=\"faq.html\">See the FAQ &amp; Glossary</a> for the terms.",
-              zh: "聯招是以文憑試成績報讀香港政府資助學士課程的主要系統。孩子最多可按真實意願排列 20 個課程，其中首三個（甲組）最為重要。詞語解釋可參閱<a href=\"faq.html\">常見問題與詞彙</a>。" } },
+      body: { en: "JUPAS lets students apply to programmes at participating institutions using DSE results. Your child lists up to 20 programmes in order of real preference; the top three (Band A) matter most. <a href=\"faq.html\">See the FAQ &amp; Glossary</a> for the terms.",
+              zh: "聯招讓學生以文憑試成績報讀參與院校的課程。孩子最多可按真實意願排列 20 個課程，其中首三個（甲組）最為重要。詞語解釋可參閱<a href=\"faq.html\">常見問題與詞彙</a>。" } },
     { icon: "📊", c: "#2f8f7a", c2: "#247060",
       title: { en: "Reading scores calmly", zh: "冷靜看待分數" },
       body: { en: "Last year's “median” and quartile scores show how competitive a programme was — not a fixed pass mark. They move every year, so use them as a guide, not a verdict. A score is information about one exam, not a measure of your child's worth.",
@@ -28,24 +28,24 @@
   ];
 
   var TIMELINE = [
-    { when: { en: "December", zh: "十二月" },
-      what: { en: "JUPAS application opens (early December); students set their initial 20 programme choices and submit non-academic records (OEA/SLP).",
-              zh: "聯招於十二月初開始接受申請；學生設定最初的 20 個課程志願，並提交非學術紀錄（OEA／SLP）。" } },
-    { when: { en: "January–February", zh: "一月至二月" },
-      what: { en: "Mock-exam season; a good time to review and reorder choices honestly, and to attend university info days together — choices stay editable.",
-              zh: "模擬考試季；適合與孩子一同誠實檢視及重新排序志願，並出席大學資訊日；此時志願仍可修改。" } },
-    { when: { en: "March–April", zh: "三月至四月" },
-      what: { en: "Some programmes hold interviews or make early conditional offers; keep refining the choice order before the exams.",
-              zh: "部分課程會安排面試或提早發出有條件取錄；考試前繼續檢視並調整志願次序。" } },
-    { when: { en: "April–May", zh: "四月至五月" },
-      what: { en: "The HKDSE written examinations take place (early April to early May); the JUPAS application and choice-amendment period closes at the end of May — the last chance to reorder before results.",
-              zh: "文憑試筆試舉行（四月初至五月初）；聯招申請及修改志願期於五月底截止，是放榜前最後一次重新排序志願的機會。" } },
-    { when: { en: "Mid-July — results day", zh: "七月中——放榜" },
-      what: { en: "HKDSE results are released in mid-July, followed by a short but important window to modify JUPAS choices in light of the actual grades.",
-              zh: "文憑試於七月中放榜，隨後設有一個短促而重要的時段，讓學生按實際成績修改聯招志願。" } },
-    { when: { en: "August", zh: "八月" },
-      what: { en: "Main-round JUPAS offers are released and accepted in early August; if places remain, a Clearing round follows in late August. Sub-degree, self-financing and other routes also confirm places around now.",
-              zh: "聯招第一輪（正式遴選）結果於八月初公布及接受取錄；如仍有餘額，補選（清盤輪）會於八月下旬進行；副學位、自資及其他途徑亦同時確認學額。" } }
+    { when: { en: "October–December 2026", zh: "2026 年十月至十二月" },
+      what: { en: "2027 JUPAS applications: 7 October (9 am) to 2 December (5 pm) 2026. Submit the application and pay by the deadline.",
+              zh: "2027 年度聯招申請期：2026 年 10 月 7 日上午 9 時至 12 月 2 日下午 5 時。請於限期前提交申請及繳費。" } },
+    { when: { en: "December 2026–January 2027", zh: "2026 年十二月至 2027 年一月" },
+      what: { en: "Late applications: 4 December 2026 (9 am) to 13 January 2027 (5 pm), with a higher fee. This is separate from updating existing programme choices.",
+              zh: "逾期申請期：2026 年 12 月 4 日上午 9 時至 2027 年 1 月 13 日下午 5 時，費用較高。逾期申請與修改現有課程志願屬不同程序。" } },
+    { when: { en: "January–April 2027", zh: "2027 年一月至四月" },
+      what: { en: "Review choices together after school assessments. Check the separate official deadlines for OEA, SLP and other supporting documents, and follow school instructions.",
+              zh: "校內評估後，可與孩子一同檢視志願。請分別查核 OEA、SLP 及其他證明文件的官方限期，並依照學校指示辦理。" } },
+    { when: { en: "May 2027", zh: "2027 年五月" },
+      what: { en: "Pre-results programme-choice updates close on 26 May 2027 at 5 pm. This is not the initial application deadline.",
+              zh: "放榜前修改課程志願的截止時間為 2027 年 5 月 26 日下午 5 時。這並非首次申請的截止日期。" } },
+    { when: { en: "July 2027", zh: "2027 年七月" },
+      what: { en: "After results, review the official modification arrangements and confirm the submitted choices in the JUPAS account. Ask the Career Team for support.",
+              zh: "放榜後，請查閱官方修改志願安排，並在聯招帳戶核對已提交的志願。如有需要，可向升學輔導組尋求協助。" } },
+    { when: { en: "August 2027", zh: "2027 年八月" },
+      what: { en: "Check offer results and acceptance deadlines promptly. Discuss any alternative routes with the Career Team before making commitments.",
+              zh: "請及時查閱取錄結果及接受取錄的限期。作出承諾前，可與升學輔導組商討其他升學途徑。" } }
   ];
 
   var GOOD = [
@@ -76,8 +76,8 @@
       pg_sub: "A calm, practical guide to your child's senior-secondary journey — how it works, and how to help without adding pressure.",
       orient_h: "Getting your bearings",
       orient_sub: "Four things that make the rest easier to follow.",
-      tl_h: "The F.6 year at a glance",
-      tl_sub: "A typical rhythm — exact dates change each year, so always confirm them on the official websites and through the school.",
+      tl_h: "The F.6 year: 2027 JUPAS admission",
+      tl_sub: "Dates checked on 29 October 2026; all times are Hong Kong time. Recheck the official arrangements before each deadline.",
       sup_h: "Supporting without pressure",
       sup_sub: "Your encouragement matters more than any score. A few things that help — and a few worth easing off.",
       good_h: "What helps",
@@ -95,8 +95,8 @@
       pg_sub: "陪伴孩子走過高中升學路的一份冷靜實用指南——了解整個流程，以及如何在不施加壓力下給予支持。",
       orient_h: "先掌握方向",
       orient_sub: "先弄清這四點，往後就更容易理解。",
-      tl_h: "中六一年一覽",
-      tl_sub: "這是一個概略的節奏——確切日期每年均有變動，請務必於官方網站及透過學校查證。",
+      tl_h: "中六一年：2027 年度聯招",
+      tl_sub: "日期於 2026 年 10 月 29 日核對，時間均為香港時間。請在各項限期前再次查核官方安排。",
       sup_h: "在不施壓下給予支持",
       sup_sub: "你的鼓勵比任何分數都重要。以下是一些有幫助的做法，以及一些值得放輕的地方。",
       good_h: "有幫助的做法",
@@ -126,6 +126,7 @@
     setText("orient-sub", t("orient_sub"));
     $("tl-h").querySelector("span:last-child").textContent = t("tl_h");
     setText("tl-sub", t("tl_sub"));
+    $("tl-source").textContent = lang === "zh" ? "官方聯招申請日期及費用" : "Official JUPAS application dates and fees";
     $("sup-h").querySelector("span:last-child").textContent = t("sup_h");
     setText("sup-sub", t("sup_sub"));
     setText("good-h", t("good_h")); setText("avoid-h", t("avoid_h"));
