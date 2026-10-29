@@ -1,0 +1,7 @@
+{
+  "_comment": "What the site's JUPAS data/engine was last synced to. tools/watch.mjs compares this with JUPASCal's public files every week. Update it at the end of every upstream sync (see the private docs/jupas-engine-and-data.md).",
+  "admissionCycle": 2026,
+  "dataVersion": "dc350fb08e53",
+  "appVersion": "v1.0.2",
+  "syncedOn": "2026-07-16"
+}

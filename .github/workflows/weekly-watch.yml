@@ -1,0 +1,65 @@
+name: Weekly site watch
+
+# Once a week: has JUPASCal published new data / a new release / a new admission cycle since our
+# last sync (tools/upstream.json), and are any external links in the public pages broken?
+# It NEVER edits the site. If something needs a human it keeps ONE open issue titled
+# "Weekly site watch" up to date: opens it, or comments only when the findings CHANGED since the last
+# report (no weekly repeats of the same news); when all is clear again it closes it.
+# Run it by hand any time: Actions tab → "Weekly site watch" → Run workflow.
+
+on:
+  schedule:
+    - cron: "0 1 * * 1"   # Mondays 01:00 UTC = 09:00 Hong Kong
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: weekly-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check upstream data and external links
+        id: watch
+        run: node tools/watch.mjs --report report.md
+
+      - name: Open / update / close the "Weekly site watch" issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FINDINGS: ${{ steps.watch.outputs.findings }}
+          FINGERPRINT: ${{ steps.watch.outputs.fingerprint }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="Weekly site watch"
+          printf '\n[Workflow run](%s)\n' "$RUN_URL" >> report.md
+          num=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
+                  --jq "map(select(.title==\"$TITLE\"))[0].number // empty")
+          if [ "$FINDINGS" = "true" ]; then
+            if [ -n "$num" ]; then
+              last=$(gh issue view "$num" --json body,comments \
+                       --jq '[.body] + [.comments[].body] | map(capture("watch-fingerprint: (?<f>[A-Za-z0-9+/=]+)").f // empty) | last // ""')
+              if [ "$last" = "$FINGERPRINT" ]; then
+                echo "Same findings as the last report on #$num — not posting again."
+              else
+                gh issue comment "$num" --body-file report.md
+              fi
+            else
+              gh issue create --title "$TITLE" --body-file report.md
+            fi
+          elif [ -n "$num" ]; then
+            gh issue comment "$num" --body "All clear this week — closing. $RUN_URL"
+            gh issue close "$num"
+          else
+            echo "All clear — nothing to report."
+          fi
