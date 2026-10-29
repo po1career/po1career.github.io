@@ -69,6 +69,13 @@ gated QA is still pending so the owner doesn't merge early.
 - **Gated pages need a passcode to preview** (kept private). If you can't unlock them, you cannot do
   visual QA — say so and leave UI verification to the local/Claude workflow, which has the passcode.
 
+## Weekly watch (automatic)
+`.github/workflows/weekly-watch.yml` runs `tools/watch.mjs` every Monday (and on demand from the Actions
+tab). It compares JUPASCal's published data version / latest release / next admission cycle with
+`tools/upstream.json`, and checks the external links in the public pages. It never edits the site; it
+keeps one open issue titled "Weekly site watch" and comments only when the findings change. After an
+upstream sync, update `tools/upstream.json` in the same PR so the watch goes quiet.
+
 ## Who does what (play to each tool's strengths)
 - **Codex (cloud/GitHub):** logic refactors, data transforms, content edits, writing tests —
   anything self-verifiable with `node`. Delivers via branch → PR. **Cannot** preview gated pages
