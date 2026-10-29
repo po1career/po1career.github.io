@@ -40,10 +40,12 @@ gated QA is still pending so the owner doesn't merge early.
    `programmes.csv`, any `*Unified_Data*.json` or plaintext `*-db.json`, or any passcode literal.
    (`.gitignore` covers the known ones; don't defeat it.)
 
-3. **Gated tool pages** (`jupas-tool`, `jupas-choices`, `jupas-finder`, `jupas-evaluator`,
-   `streaming-tool`, `dse-portfolio`) must keep: `<meta name="robots" content="noindex">`, their
-   strict `Content-Security-Policy`, and **zero third-party network calls** (minors' privacy — fonts
-   are self-hosted, no CDNs/analytics). Escape any user-supplied text before inserting as HTML.
+3. **Gated tool pages** (`jupas-tool`, `jupas-choices`, `jupas-finder`, `jupas-planner`,
+   `jupas-evaluator`, `streaming-tool`, `dse-portfolio`) must keep: `<meta name="robots" content="noindex">`,
+   no entry in `sitemap.xml`, their strict `Content-Security-Policy`, and **zero third-party network
+   calls** (minors' privacy — fonts are self-hosted, no CDNs/analytics). Escape any user-supplied text
+   before inserting as HTML. `tools/check.mjs` finds gated pages automatically (password input + lock
+   screen), so a new gated page is held to these rules too.
 
 4. **Shared vs. separate code.** `jupas-engine.js` is ONE file shared by the evaluator, finder, planner
    and choices pages — a change affects all four. The two `*-analytics.js` copies are **separate** — diff before
