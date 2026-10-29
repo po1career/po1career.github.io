@@ -1,6 +1,6 @@
 // JUPAS data encryptor — locks programmes.csv into programmes.enc.json with a passcode.
 // Uses the browser's built-in Web Crypto (PBKDF2-SHA256 + AES-GCM). No third-party code.
-// Parameters MUST match the decryptor in jupas-tool.js.
+// Parameters MUST match the decryptor in dse-portfolio.js (the only page that still gates on this file).
 const PBKDF2_ITER = 150000;
 
 function bytesToB64(bytes) {
