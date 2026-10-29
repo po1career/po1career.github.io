@@ -1,7 +1,8 @@
 {
   "_comment": "What the site's JUPAS data/engine was last synced to. tools/watch.mjs compares this with JUPASCal's public files every week. Update it at the end of every upstream sync (see the private docs/jupas-engine-and-data.md).",
   "admissionCycle": 2026,
-  "dataVersion": "dc350fb08e53",
-  "appVersion": "v1.0.2",
-  "syncedOn": "2026-07-16"
+  "dataVersion": "c9385ac5e883",
+  "appVersion": "v1.2.0",
+  "syncedOn": "2026-10-29",
+  "notPorted": "v1.1.0 retaker penalties and v1.2.0 Band B offer box are new upstream features with no input/UI on this site; 93e0647 (PolyU Category C weights) is N/A because students here cannot enter Category C subjects. Data from both releases IS included."
 }
