@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://po1career.github.io/sitemap.xml
+Sitemap: https://po1career.net/sitemap.xml
