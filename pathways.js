@@ -304,6 +304,7 @@
 
   function applyFilter() {
     var grid = $("pw-grid");
+    var anyAsked = state.results !== "any" || state.mode !== "any" || state.place !== "any";
     var scored = cards.map(function (c, idx) {
       return { c: c, idx: idx, m: matchInfo(c.p) };
     });
@@ -318,14 +319,13 @@
     scored.forEach(function (s) {
       var el = s.c.el;
       el.classList.toggle("is-match", s.m.isMatch);
-      var hide = state.matchesOnly && !s.m.isMatch;
+      var hide = state.matchesOnly && anyAsked && !s.m.isMatch;
       el.classList.toggle("hidden", hide);
       if (!hide) shown++;
       if (s.m.isMatch) matched++;
       grid.appendChild(el); // reorder (preserves open state)
     });
 
-    var anyAsked = state.results !== "any" || state.mode !== "any" || state.place !== "any";
     var tpl = anyAsked ? t("count_one") : t("count_none");
     $("pw-count").innerHTML = tpl
       .replace("{shown}", shown).replace("{total}", PATHWAYS.length).replace("{match}", matched);

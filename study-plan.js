@@ -31,6 +31,14 @@
       remember_label: "Remember this plan on this device",
       privacy_off: "Not saved after you close or refresh this page.",
       privacy_on: "Saved only in this browser. Clear removes it from this device.",
+      save_failed: "Your latest edits could not be saved. Keep this page open and try again.",
+      clear_failed: "Saved data could not be removed. Please check this browser's storage settings.",
+      stale: "Your inputs have changed. Generate the study plan again to update the timetable.",
+      incomplete: "Complete both the subject and a valid exam date, or remove this row.",
+      fix_rows: "Please correct the highlighted rows before generating a plan.",
+      past_dates: "This timetable includes dates that have already passed. Check your exam dates and lead days before using it.",
+      invalid_lead: "Enter a whole number from 0 to 120 for the days before the first exam.",
+      subject_label: "Subject {n}", date_label: "Exam date {n}", remove_label: "Remove subject {n}",
       cleared: "Saved plan cleared from this device.",
       plan_heading: "📅 Your suggested study plan",
       note: "Strategy: you begin with the subjects whose exams are furthest away (primacy), and revise each subject right before its own exam (recency) — based on the serial-position effect, which says we remember what we study first and most recently the best.",
@@ -58,6 +66,14 @@
       remember_label: "在此裝置記住這個計劃",
       privacy_off: "關閉或重新整理此頁後，不會保留資料。",
       privacy_on: "只儲存於此瀏覽器；按「清除已儲存計劃」即可移除。",
+      save_failed: "未能儲存最新修改。請保持此頁開啟，並再試一次。",
+      clear_failed: "未能移除已儲存資料。請檢查此瀏覽器的儲存設定。",
+      stale: "輸入資料已更改。請重新產生溫習計劃，以更新時間表。",
+      incomplete: "請填妥科目及有效的考試日期，或移除此行。",
+      fix_rows: "請先修正標示的資料行，再產生計劃。",
+      past_dates: "這份時間表包含已過去的日期。使用前請核對考試日期及提前溫習的天數。",
+      invalid_lead: "請輸入 0 至 120 的整數，表示第一科考試前的天數。",
+      subject_label: "科目 {n}", date_label: "考試日期 {n}", remove_label: "移除科目 {n}",
       cleared: "已從此裝置清除已儲存計劃。",
       plan_heading: "📅 建議溫習計劃",
       note: "策略：先溫習考試日期較遲的科目（首因效應），並在每科考試前作最後重溫（近因效應）——這運用了「序列位置效應」：我們對最先及最近溫習的內容記得最牢。",
@@ -83,13 +99,14 @@
   var lang = localStorage.getItem("clp_lang") || "en";
   var PLAN_KEY = "studyplan_input";
   var REMEMBER_KEY = "studyplan_remember";
+  var lastPlan = null, resultMessage = "", storageMessage = "", rowId = 0;
   function t(k) { return T[lang][k]; }
   function $(id) { return document.getElementById(id); }
   function setText(id, v) { var e = $(id); if (e) e.textContent = v; }
   function esc(s){ return (s||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 
   // ---- date helpers ----
-  function parseDate(s){ if(!s) return null; var p=s.split("-"); if(p.length!==3) return null; var d=new Date(+p[0], +p[1]-1, +p[2]); return isNaN(d)?null:d; }
+  function parseDate(s){ if(!/^\d{4}-\d{2}-\d{2}$/.test(s || "")) return null; var p=s.split("-"); var d=new Date(+p[0], +p[1]-1, +p[2]); return d.getFullYear()===+p[0] && d.getMonth()===+p[1]-1 && d.getDate()===+p[2] ? d : null; }
   function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
   function dkey(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
   function fmtDate(d){ return d.toLocaleDateString(lang==="zh"?"zh-HK":"en-GB",{weekday:"short",day:"numeric",month:"short"}); }
@@ -105,13 +122,50 @@
       '<span class="dot"></span>' +
       '<input type="text" class="s-name" placeholder="' + esc(t("subject_ph")) + '">' +
       '<input type="date" class="s-date">' +
-      '<button type="button" class="rm" aria-label="remove">✕</button>';
+      '<button type="button" class="rm">✕</button>' +
+      '<span class="row-error" hidden></span>';
+    var error = row.querySelector(".row-error");
+    error.id = "subject-error-" + (++rowId);
+    row.querySelectorAll("input").forEach(function (el) { el.setAttribute("aria-describedby", error.id); });
     row.querySelector(".dot").style.background = color.bg;
     row.querySelector(".dot").style.boxShadow = "0 0 0 2px " + color.fg + "55";
     if (name) row.querySelector(".s-name").value = name;
     if (date) row.querySelector(".s-date").value = date;
-    row.querySelector(".rm").onclick = function () { row.remove(); recolorDots(); };
+    row.querySelector(".rm").onclick = function () { row.remove(); recolorDots(); inputsChanged(); };
     list.appendChild(row);
+    labelRows();
+  }
+  function labelRows() {
+    document.querySelectorAll(".subj-row").forEach(function (row, i) {
+      row.querySelector(".s-name").setAttribute("aria-label", t("subject_label").replace("{n}", i + 1));
+      row.querySelector(".s-date").setAttribute("aria-label", t("date_label").replace("{n}", i + 1));
+      row.querySelector(".rm").setAttribute("aria-label", t("remove_label").replace("{n}", i + 1));
+      row.querySelector(".row-error").textContent = t("incomplete");
+    });
+  }
+  function validateRows() {
+    var valid = true;
+    document.querySelectorAll(".subj-row").forEach(function (row) {
+      var name = row.querySelector(".s-name"), date = row.querySelector(".s-date");
+      var incomplete = !!(name.value.trim() || date.value || date.validity.badInput) && (!name.value.trim() || !parseDate(date.value));
+      row.querySelector(".row-error").hidden = !incomplete;
+      name.setAttribute("aria-invalid", String(incomplete && !name.value.trim()));
+      date.setAttribute("aria-invalid", String(incomplete && !parseDate(date.value)));
+      if (incomplete) valid = false;
+    });
+    return valid;
+  }
+  function showResultMessage(key) {
+    lastPlan = null; resultMessage = key;
+    $("result").innerHTML = key ? '<div class="sp-card"><p role="status">' + esc(t(key)) + '</p></div>' : "";
+  }
+  function inputsChanged() {
+    labelRows();
+    document.querySelectorAll(".row-error").forEach(function (el) { el.hidden = true; });
+    document.querySelectorAll(".subj-row input").forEach(function (el) { el.removeAttribute("aria-invalid"); });
+    $("leadDays").removeAttribute("aria-invalid");
+    if (lastPlan || resultMessage) showResultMessage("stale");
+    save();
   }
   function recolorDots() {
     [].forEach.call($("subject-list").children, function (row, i) {
@@ -194,11 +248,14 @@
 
   function render(plan) {
     var box = $("result");
-    if (!plan) { box.innerHTML = '<div class="sp-card"><p class="rest">' + esc(t("empty")) + "</p></div>"; return; }
+    if (!plan) { showResultMessage("empty"); return; }
+    lastPlan = plan; resultMessage = "";
 
     var html = '<div class="sp-card">';
     html += '<h2>' + esc(t("plan_heading")) + "</h2>";
     html += '<div class="sp-note">' + esc(t("note")) + "</div>";
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    if (plan.start < today) html += '<div class="sp-warn">' + esc(t("past_dates")) + '</div>';
     if (plan.warnings.length) {
       html += '<div class="sp-warn">⚠ ' + esc(t("warn").replace("{list}", plan.warnings.join(", "))) + "</div>";
     }
@@ -241,25 +298,27 @@
     try { return localStorage.getItem(key); } catch (e) { return null; }
   }
   function storageSet(key, value) {
-    try { localStorage.setItem(key, value); } catch (e) {}
+    try { localStorage.setItem(key, value); return true; } catch (e) { return false; }
   }
   function clearStoredPlan() {
-    try { localStorage.removeItem(PLAN_KEY); localStorage.removeItem(REMEMBER_KEY); } catch (e) {}
+    try { localStorage.removeItem(PLAN_KEY); localStorage.removeItem(REMEMBER_KEY); storageMessage = ""; return true; }
+    catch (e) { storageMessage = "clear_failed"; return false; }
   }
   function rememberEnabled() {
     return !!($("rememberPlan") && $("rememberPlan").checked);
   }
   function updatePrivacyStatus(message) {
-    setText("privacy-status", message || (rememberEnabled() ? t("privacy_on") : t("privacy_off")));
+    setText("privacy-status", message || (storageMessage ? t(storageMessage) : (rememberEnabled() ? t("privacy_on") : t("privacy_off"))));
   }
   function save() {
-    if (!rememberEnabled()) return;
+    if (!rememberEnabled()) { updatePrivacyStatus(); return; }
     var data = { subjects: [], lead: $("leadDays").value, perDay: $("perDay").value };
     [].forEach.call(document.querySelectorAll(".subj-row"), function (row) {
       data.subjects.push({ name: row.querySelector(".s-name").value, date: row.querySelector(".s-date").value });
     });
-    storageSet(REMEMBER_KEY, "1");
-    storageSet(PLAN_KEY, JSON.stringify(data));
+    var ok = storageSet(REMEMBER_KEY, "1") && storageSet(PLAN_KEY, JSON.stringify(data));
+    storageMessage = ok ? "" : "save_failed";
+    updatePrivacyStatus();
   }
   function load() {
     try { return JSON.parse(storageGet(PLAN_KEY)); } catch (e) { return null; }
@@ -279,6 +338,7 @@
     updatePrivacyStatus();
     // update existing placeholders
     [].forEach.call(document.querySelectorAll(".s-name"), function (i) { i.placeholder = t("subject_ph"); });
+    labelRows();
   }
 
   // ---- init ----
@@ -298,10 +358,13 @@
       addRow("", ""); addRow("", ""); addRow("", "");
     }
 
-    $("addSubjectBtn").onclick = function () { addRow("", ""); };
+    $("addSubjectBtn").onclick = function () { addRow("", ""); inputsChanged(); };
+    $("subject-list").addEventListener("input", inputsChanged);
+    $("subject-list").addEventListener("change", inputsChanged);
+    $("leadDays").addEventListener("input", inputsChanged);
+    $("perDay").addEventListener("change", inputsChanged);
     remember.onchange = function () {
       if (remember.checked) {
-        storageSet(REMEMBER_KEY, "1");
         save();
       } else {
         clearStoredPlan();
@@ -310,30 +373,29 @@
     };
     $("generateBtn").onclick = function () {
       save();
+      if (!validateRows()) { showResultMessage("fix_rows"); return; }
       var subs = readSubjects();
-      var lead = parseInt($("leadDays").value, 10); if (isNaN(lead) || lead < 0) lead = 0;
+      var lead = Number($("leadDays").value);
+      if (!$("leadDays").value.trim() || !Number.isInteger(lead) || lead < 0 || lead > 120) {
+        $("leadDays").setAttribute("aria-invalid", "true"); showResultMessage("invalid_lead"); return;
+      }
       var perDay = parseInt($("perDay").value, 10) === 2 ? 2 : 1;
       render(subs.length ? generate(subs, lead, perDay) : null);
     };
     $("clearBtn").onclick = function () {
       $("subject-list").innerHTML = ""; addRow("", ""); addRow("", "");
-      $("leadDays").value = 7; $("perDay").value = 1; $("result").innerHTML = "";
+      $("leadDays").value = 7; $("perDay").value = 1; showResultMessage("");
       remember.checked = false;
-      clearStoredPlan();
-      updatePrivacyStatus(t("cleared"));
+      var cleared = clearStoredPlan();
+      updatePrivacyStatus(cleared ? t("cleared") : null);
     };
 
     document.querySelector(".langbtn").onclick = function () {
       lang = lang === "en" ? "zh" : "en";
       localStorage.setItem("clp_lang", lang);
       applyLang();
-      // re-render plan if present
-      var subs = readSubjects();
-      if ($("result").innerHTML.trim() && subs.length) {
-        var lead = parseInt($("leadDays").value, 10) || 0;
-        var perDay = parseInt($("perDay").value, 10) === 2 ? 2 : 1;
-        render(generate(subs, lead, perDay));
-      }
+      if (lastPlan) render(lastPlan);
+      else if (resultMessage) showResultMessage(resultMessage);
     };
 
     applyLang();

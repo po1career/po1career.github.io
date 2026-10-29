@@ -39,7 +39,9 @@
     .sp-privacy label{display:flex;align-items:flex-start;gap:9px;font-weight:800;cursor:pointer}
     .sp-privacy input{width:18px;height:18px;margin-top:3px;accent-color:var(--sage-dark);flex:none}
     .sp-privacy-status{display:block;margin-top:8px;font-size:.82rem;font-weight:700;color:#4c6547}
-    .subj-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+    .subj-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+    .row-error{flex-basis:100%;color:#8a3b1e;font-size:.9rem}
+    .subj-row input[aria-invalid="true"]{border-color:#8a3b1e}
     .subj-row .dot{width:14px;height:14px;border-radius:50%;flex:none}
     .subj-row input[type=text]{flex:2;min-width:120px}
     .subj-row input[type=date]{flex:1;min-width:150px}
@@ -102,7 +104,7 @@
 
         <div class="lead-row">
           <span id="perday-a">Study</span>
-          <select id="perDay">
+          <select id="perDay" aria-labelledby="perday-a perday-b">
             <option value="1">1</option>
             <option value="2">2</option>
           </select>
@@ -111,7 +113,7 @@
 
         <div class="lead-row">
           <span id="lead-a">Start studying</span>
-          <input type="number" id="leadDays" min="0" max="120" value="7">
+          <input type="number" id="leadDays" min="0" max="120" value="7" aria-labelledby="lead-a lead-b">
           <span id="lead-b">day(s) before the first exam.</span>
         </div>
 
@@ -151,7 +153,7 @@
     <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
-  <script src="study-plan.js?v=14"></script>
+  <script src="study-plan.js?v=15"></script>
   <script src="tools-data.js?v=6"></script>
   <script src="footer-tools.js?v=2"></script>
   <script src="back-to-top.js?v=1"></script>

@@ -15,6 +15,8 @@
       sub: "Study in focused bursts with short breaks — a simple way to revise more effectively.",
       mode_focus: "Focus", mode_short: "Short Break", mode_long: "Long Break",
       start: "Start", pause: "Pause", reset: "Reset",
+      focus_done: "Focus complete. Press Start when you are ready for your break.",
+      break_done: "Break complete. Press Start when you are ready to focus.",
       settings: "Settings", focus_min: "Focus (min)", short_min: "Short break (min)", long_min: "Long break (min)",
       howto_title: "How it works",
       howto_steps: [
@@ -36,6 +38,8 @@
       sub: "用「番茄工作法」分段專注、適時休息，讓溫習更有效率。",
       mode_focus: "專注", mode_short: "小休", mode_long: "大休",
       start: "開始", pause: "暫停", reset: "重設",
+      focus_done: "專注時段已完成。準備好小休時，請按「開始」。",
+      break_done: "休息時段已完成。準備好專注時，請按「開始」。",
       settings: "設定", focus_min: "專注（分鐘）", short_min: "小休（分鐘）", long_min: "大休（分鐘）",
       howto_title: "使用方法",
       howto_steps: [
@@ -56,6 +60,8 @@
   var settings = loadSettings();
   var mode = "focus";
   var remaining = settings.focus * 60;
+  var remainingMs = remaining * 1000, deadline = 0, sessionTotal = remaining;
+  var completionMessage = "";
   var running = false;
   var timerId = null;
   var completed = 0;
@@ -95,6 +101,7 @@
     var ol = $("howto-list"); ol.innerHTML = "";
     t("howto_steps").forEach(function (s) { var li = document.createElement("li"); li.textContent = s; ol.appendChild(li); });
     setText("ring-label", t(modeKey(mode)));
+    setText("timer-status", completionMessage ? t(completionMessage) : "");
     updateDisplay();
   }
 
@@ -106,7 +113,7 @@
   }
   function updateDisplay() {
     $("time").textContent = fmt(remaining);
-    var total = dur(mode) * 60;
+    var total = sessionTotal;
     updateRing(total ? remaining / total : 0);
     document.title = running
       ? fmt(remaining) + " · " + t(modeKey(mode)) + " — Career Team"
@@ -116,6 +123,8 @@
   function setMode(m) {
     mode = m; running = false; clearInterval(timerId);
     remaining = dur(m) * 60;
+    remainingMs = remaining * 1000; sessionTotal = remaining; deadline = 0;
+    completionMessage = ""; setText("timer-status", "");
     document.querySelectorAll(".mode-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.mode === m); });
     $("startBtn").textContent = t("start");
     setText("ring-label", t(modeKey(mode)));
@@ -123,16 +132,19 @@
   }
 
   function tick() {
-    remaining--;
+    if (!running) return;
+    remainingMs = Math.max(0, deadline - Date.now());
+    remaining = Math.ceil(remainingMs / 1000);
     if (remaining <= 0) { remaining = 0; updateDisplay(); finishSession(); return; }
     updateDisplay();
   }
-  function start() { if (running) return; running = true; ensureAudio(); $("startBtn").textContent = t("pause"); timerId = setInterval(tick, 1000); updateDisplay(); }
-  function pause() { running = false; clearInterval(timerId); $("startBtn").textContent = t("start"); updateDisplay(); }
+  function start() { if (running) return; running = true; deadline = Date.now() + remainingMs; completionMessage = ""; setText("timer-status", ""); ensureAudio(); $("startBtn").textContent = t("pause"); timerId = setInterval(tick, 250); updateDisplay(); }
+  function pause() { tick(); if (!running) return; running = false; clearInterval(timerId); $("startBtn").textContent = t("start"); updateDisplay(); }
   function toggle() { running ? pause() : start(); }
-  function reset() { running = false; clearInterval(timerId); remaining = dur(mode) * 60; $("startBtn").textContent = t("start"); updateDisplay(); }
+  function reset() { setMode(mode); }
 
   function finishSession() {
+    var finishedMode = mode;
     running = false; clearInterval(timerId); beep(); flash();
     if (mode === "focus") {
       completed++; renderTomatoes();
@@ -140,6 +152,8 @@
     } else {
       setMode("focus");
     }
+    completionMessage = finishedMode === "focus" ? "focus_done" : "break_done";
+    setText("timer-status", t(completionMessage));
   }
   function renderTomatoes() { $("tomatoes").textContent = "🍅".repeat(completed); }
 
@@ -182,7 +196,7 @@
       $("set-" + key).addEventListener("change", function () {
         var v = parseInt(this.value, 10); if (isNaN(v) || v < 1) v = 1; if (v > 120) v = 120; this.value = v;
         settings[key] = v; saveSettings();
-        if (!running && mode === key) { remaining = v * 60; updateDisplay(); }
+        if (!running && mode === key) setMode(mode);
       });
     });
 
@@ -195,5 +209,6 @@
     applyLang();
     setMode("focus");
     renderTomatoes();
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
   });
 })();
