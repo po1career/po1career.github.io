@@ -56,15 +56,26 @@ const probeProg = DB.find((p) => p.jupas_code === 'JS8013') ||
   DB.find((p) => { const r = E.evaluateProgramme(p, grades); return r.eligibility.eligible && r.hasScoreData; });
 const PROBE = { code: probeProg.jupas_code, score: E.evaluateProgramme(probeProg, grades).calculation.totalScore, quota: probeProg.quota };
 const fmt = (n) => String(+(+n).toFixed(2));
-// DSE Life Paths: the same game computed in node (fixed seed) — the page must reach the same list and offer
+// DSE Life Paths: the same game computed in node (fixed seed) — the page must reach the same list, offer and life
 win.crypto = webcrypto;
-for (const f of ['jupas-finder-core.js', 'life-paths-core.js'])
+for (const f of ['jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js'])
   if (fs.existsSync(path.join(ROOT, f))) new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(win);
 const LIFE = (() => {
   const L = win.LifePathsCore; if (!L) return null;
   const db = L.indexDB(DB), seed = 'qa-seed', pred = { chi: '4', eng: '4', math: '4', csd: 'attained', elect: PROFILE.elect };
   const list = L.suggestList(pred, [], db), actual = L.resultsDay(pred, seed).actual, round = L.mainRound(list, actual, db, seed);
-  return { seed, list, offer: round.offer ? round.offer.code : null };
+  // chapter 2: the "work" route in short mode, always taking the first option (what the page test clicks)
+  let life = null; const LL = win.LifePathsLife;
+  if (LL) {
+    const l = LL.start({ seed, mode: 'short', route: 'work', field: 'Business', offer: round.offer, prog: null, actual, startAge: 18 });
+    for (let n = 0; n < 120 && l.pend.type !== 'end'; n++) {
+      if (l.pend.type === 'focus') LL.chooseFocus(l, LL.focusOptions(l)[0]);
+      else if (l.pend.type === 'event') LL.chooseEvent(l, 0);
+      else LL.chooseBranch(l, l.pend.options[0]);
+    }
+    life = { age: l.age, monthly: l.job ? l.job.monthly : null };
+  }
+  return { seed, list, offer: round.offer ? round.offer.code : null, life };
 })();
 
 /* ---------- static server for the repo (no caching) ---------- */
@@ -139,19 +150,34 @@ const PAGES = [
 ];
 async function lifePathsCheck(b) {
   return b.js(`${H}
-    const L=window.__lifePaths; await until(()=>document.querySelector('[data-act="start"],[data-act="resume"]'));
-    L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)};
+    const L=window.__lifePaths, q=(sel)=>document.querySelector(sel);
+    // play a life by always clicking the first choice on screen, until the life summary shows
+    const play=async()=>{ for(let n=0;n<120&&!q('.endcard');n++){ const c=q('[data-act="focus"],[data-act="evc"],[data-act="branch"],[data-act="to-end"]');
+      if(!c)break; c.click(); await w(20); } return !!(await until(()=>q('.endcard'))); };
+    await until(()=>q('[data-act="start"],[data-act="resume"]'));
+    L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)}; s.mode='short';
     Object.assign(s.pred,{chi:'4',eng:'4',math:'4',csd:'attained'});
     s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}];
     L.go('list'); L.act('l-suggest'); const list=s.list.slice();
     const tags=document.querySelectorAll('#slots .pill').length;
-    L.act('l-next'); const results=!!(await until(()=>document.querySelector('.rtable')));
-    L.act('r-next'); const offerCard=!!(await until(()=>document.querySelector('.offer-card')));
+    L.act('l-next'); const results=!!(await until(()=>q('.rtable')));
+    L.act('r-next'); const offerCard=!!(await until(()=>q('.offer-card')));
     const offer=s.round.offer?s.round.offer.code:null;
     L.act('o-others'); const routes=document.querySelectorAll('.route').length;
-    document.querySelector('[data-act="route"][data-id="work"]').click();
-    const end=!!(await until(()=>document.querySelector('.endcard')));
-    return JSON.stringify({list, tags, results, offerCard, offer, routes, end});`);
+    q('[data-act="route"][data-id="work"]').click();
+    const meters=document.querySelectorAll('.lifepanel .meter').length;
+    const end=await play(), life=s.life?{age:s.life.age,monthly:s.life.job?s.life.job.monthly:null}:null, dataPage=!!q('.datapage');
+    // the screens the work route skips: retake year → round 2 (→ Clearing Round) → field picker → a second life
+    L.go('routes'); q('[data-act="route"][data-id="retake"]').click();
+    q('[data-act="rt-sub"]').click(); q('[data-act="rt-go"]').click();
+    const retake=!!(await until(()=>q('.rtable'))) && !!(s.retake&&s.retake.results);
+    q('[data-act="r-next"]').click(); await until(()=>q('.offer-card'));
+    let clearing=null;
+    if (q('[data-act="o-clearing"]')) { q('[data-act="o-clearing"]').click(); clearing=!!(await until(()=>q('.cands,.panel .note'))); }
+    L.go('routes'); q('[data-act="route"][data-id="vtc"]').click();
+    const field=!!(await until(()=>q('[data-act="fld"]'))); q('[data-act="fld"]').click(); q('[data-act="f-go"]').click();
+    const end2=await play(), age2=s.life?s.life.age:null;
+    return JSON.stringify({list, tags, results, offerCard, offer, routes, meters, end, life, dataPage, retake, clearing, field, end2, age2});`);
 }
 async function finderCheck(b) {
   return b.js(`${H}
@@ -211,8 +237,13 @@ for (const t of PAGES) {
         const r = JSON.parse(got || '{}');
         record(t.page, `"suggest" list matches the core (${LIFE.list.length} choices, slot tags shown)`,
           JSON.stringify(r.list) === JSON.stringify(LIFE.list) && r.tags === LIFE.list.length, `got ${JSON.stringify(r.list || []).slice(0, 80)}`);
-        record(t.page, 'results day → offers → routes → summary all render', r.results && r.offerCard && r.routes > 0 && r.end, got);
+        record(t.page, 'results day → offers → routes → life (5 meters) → summary + data page all render',
+          r.results && r.offerCard && r.routes > 0 && r.meters === 5 && r.end && r.dataPage, got);
         record(t.page, `same seed → same offer as the core (${LIFE.offer || 'none'})`, r.offer === LIFE.offer, `got ${r.offer}`);
+        if (LIFE.life) record(t.page, `same seed → same life as the core (work route, short mode: ends at ${LIFE.life.age}, HK$${LIFE.life.monthly})`,
+          !!r.life && r.life.age === LIFE.life.age && r.life.monthly === LIFE.life.monthly, `got ${JSON.stringify(r.life)}`);
+        record(t.page, 'retake year → round 2 (→ Clearing Round) → field picker → a second life to 25',
+          r.retake && r.clearing !== false && r.field && r.end2 && r.age2 === 25, got);
       }
       else if (t.page === 'jupas-evaluator.html') {
         const r = JSON.parse(got || '{}');

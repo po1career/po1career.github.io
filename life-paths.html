@@ -127,6 +127,48 @@
   .summary{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;margin:6px 0 12px;}
   .summary dt{font-weight:800;color:var(--muted);font-size:0.85rem;} .summary dd{margin:0;font-weight:700;}
   .real a{color:var(--link);font-weight:800;}
+  /* chapter 2: modes, the life screen, timeline, life summary, data page */
+  #screen h2:focus,.outcome:focus{outline:none;}
+  h3.sub{font-size:1rem;font-weight:800;margin:16px 0 8px;}
+  .modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+  .mode{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--border);background:#fffdf7;color:var(--ink);
+    border-radius:14px;padding:12px 14px;font-family:inherit;cursor:pointer;}
+  .mode b{font-size:1rem;} .mode span{font-size:0.85rem;color:var(--muted);}
+  .mode.on{border:2px solid var(--accent-dark);background:var(--accent-soft);padding:11px 13px;}
+  .mode:focus-visible,.fcard:focus-visible{outline:3px solid #8a5e18;outline-offset:2px;}
+  .cands .hit{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid #f3ecd9;font-size:0.9rem;}
+  .lifehead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;}
+  .lifehead .age{display:inline-flex;align-items:center;justify-content:center;min-width:64px;padding:2px 12px;border-radius:999px;color:#fff;
+    font-size:1.05rem;background:linear-gradient(135deg,#5f7f5b,#4b6848);}
+  .lifehead .trk{font-size:1rem;}
+  .meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 18px;margin:10px 0 4px;}
+  .meter{display:grid;grid-template-columns:7.2em 1fr 2.2em;align-items:center;gap:8px;font-size:0.88rem;}
+  .meter .ml{font-weight:700;white-space:nowrap;}
+  .meter .bar{height:10px;border-radius:999px;background:#f1e7cf;overflow:hidden;}
+  .meter .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#8BA888);transition:width .4s ease;}
+  .meter b{text-align:right;font-variant-numeric:tabular-nums;}
+  .outcome{border:1px solid #cfe2cc;background:#f2f8f1;border-radius:12px;padding:10px 14px;margin:12px 0 4px;}
+  .outcome p{margin:0;} .outcome p + p{margin-top:6px;}
+  .deltas{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .dl{font-size:0.8rem;font-weight:800;border-radius:999px;padding:2px 9px;}
+  .dl.up{background:var(--good-bg);color:var(--good);} .dl.down{background:var(--bad-bg);color:var(--bad);}
+  .focus{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+  .fcard{display:flex;flex-direction:column;gap:4px;text-align:left;border:1px solid var(--border);background:#fff;color:var(--ink);
+    border-radius:14px;padding:12px 14px;font-family:inherit;cursor:pointer;}
+  .fcard b{font-size:0.98rem;} .fcard span{font-size:0.84rem;color:var(--muted);}
+  .fcard:hover{border-color:var(--accent);background:#fffaf0;}
+  .event{border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:12px 0;
+    background:radial-gradient(420px 120px at 0% 0%,rgba(201,162,75,0.16),transparent 70%),#fffdf7;}
+  .event h3{margin:8px 0 4px;font-size:1.08rem;} .event p{margin:4px 0 10px;}
+  .event .support{color:var(--link);font-weight:700;}
+  .tl{list-style:none;padding:0;margin:6px 0;}
+  .tl li{display:grid;grid-template-columns:4.2em 1fr;gap:8px;padding:6px 0 6px 10px;border-left:3px solid var(--border);font-size:0.9rem;}
+  .tl li.good{border-left-color:#8BA888;} .tl li.warn{border-left-color:#e0b55a;}
+  .tl-age{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .mchips{display:flex;flex-wrap:wrap;gap:8px;}
+  .mchip{border:1px solid var(--border);background:#fffdf7;border-radius:999px;padding:4px 12px;font-size:0.88rem;}
+  .datapage h4{margin:12px 0 4px;font-size:0.92rem;}
+  .datapage a{color:var(--link);font-weight:700;}
   /* lock */
   .lockscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(820px 320px at 50% -6%,rgba(201,162,75,0.18),transparent 62%),var(--bg);}
   .lockbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px 26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
@@ -143,6 +185,7 @@
     .slot{grid-template-columns:auto 1fr;} .slot .pill{grid-column:2;justify-self:start;} .slot .ops{grid-column:1 / -1;justify-self:end;}
     .summary{grid-template-columns:1fr;gap:2px;} .summary dd{margin-bottom:8px;}
     .navrow .btn{flex:1 1 auto;}
+    .meter{grid-template-columns:6.8em 1fr 2em;} .tl li{grid-template-columns:3.8em 1fr;}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
 </style>
@@ -191,14 +234,16 @@
     <div class="hero-disc"><span aria-hidden="true">⚠️</span><p>這是模擬，不是預測。遊戲用本站 JUPAS 工具的同一套計分方法和真實的往年收生資料，但每一局都有運氣成分；結果只供參考和反思，真正的決定請與家人及升學輔導老師商量。</p></div>
   </header>
   <ol id="steps" class="steps" aria-label="進度"></ol>
-  <main id="screen" aria-live="polite"></main>
+  <main id="screen"></main>
 </div>
 
 <script src="jupas-engine.js?v=3"></script>
 <script src="jupas-finder-core.js?v=5"></script>
-<script src="life-paths-core.js?v=1"></script>
-<script src="life-paths-content.js?v=1"></script>
-<script src="life-paths-ui.js?v=1"></script>
+<script src="life-paths-core.js?v=2"></script>
+<script src="life-paths-stats.js?v=1"></script>
+<script src="life-paths-life.js?v=2"></script>
+<script src="life-paths-content.js?v=4"></script>
+<script src="life-paths-ui.js?v=5"></script>
 <div class="po1credit">© 2026 保良局第一張永慶中學 · 升學輔導及生涯規劃組</div>
 </body>
 </html>
