@@ -20,7 +20,7 @@ study/JUPAS tools. Some tools are passcode-gated and decrypt an encrypted databa
 - Keep commits small and focused so the other agent always starts from a clean, current `main`.
 
 ## Gated-page QA gate (CI cannot check behind the lock)
-Any PR that touches `jupas-*.html/.js`, `streaming-tool.html`, `dse-portfolio.*`, `sw.js`, or any
+Any PR that touches `jupas-*.html/.js`, `life-paths*`, `streaming-tool.html`, `dse-portfolio.*`, `sw.js`, or any
 `*.enc.json` **must pass the automated gated-page test BEFORE merging**: `node tools/gated-qa.mjs` with the
 passcodes supplied as `PO1_STUDENT_PASS` / `PO1_TEACHER_PASS` / `PO1_STREAMING_PASS` environment variables
 (only the maintainer's local setup has them — never commit them). It checks all locked pages in headless
@@ -44,7 +44,7 @@ the PR body that gated QA is still pending, so the owner doesn't merge early.
    (`.gitignore` covers the known ones; don't defeat it.)
 
 3. **Gated tool pages** (`jupas-choices`, `jupas-finder`, `jupas-planner`, `jupas-evaluator`,
-   `streaming-tool`, `dse-portfolio`) must keep: `<meta name="robots" content="noindex">`,
+   `streaming-tool`, `dse-portfolio`, `life-paths`) must keep: `<meta name="robots" content="noindex">`,
    no entry in `sitemap.xml`, their strict `Content-Security-Policy`, and **zero third-party network
    calls** (minors' privacy — fonts are self-hosted, no CDNs/analytics). Escape any user-supplied text
    before inserting as HTML. `tools/check.mjs` finds gated pages automatically (password input + lock
@@ -88,5 +88,8 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
 
 ## Conventions
 - Vanilla JS, no framework, no build step. Match the surrounding code's style.
-- Every user-facing string is bilingual (English + 繁體中文); add both.
+- Every user-facing string is bilingual (English + 繁體中文); add both. **Exception:** the DSE Life Paths game
+  (`life-paths*`) is 繁體中文 only, by owner decision (2026-11-18).
+- `life-paths-core.js` (the game's simulation) has no DOM dependencies and uses seeded, keyed randomness; test it
+  with `tools/life-paths-test.mjs` (needs `PO1_STUDENT_PASS`).
 - The scoring engine has **no DOM dependencies** — keep it that way so it stays testable in node/JSC.
