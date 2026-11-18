@@ -13,7 +13,7 @@
     eyebrow: '人生模擬 · 中六生',
     disclaimer: '這是模擬，不是預測。遊戲用本站 JUPAS 工具的同一套計分方法和真實的往年收生資料，但每一局都有運氣成分；結果只供參考和反思，真正的決定請與家人及升學輔導老師商量。',
     howItWorks: [
-      '輸入你預計的成績（中、英、數、公民與社會發展及選修科）。',
+      '揀一個角色和夢想，再輸入你預計的成績（或用「快速開始」揀一個學生）。',
       '揀選最多 20 個大學聯招志願，或讓遊戲按你的成績建議。',
       '七月放榜：實際成績或會與預計不同。',
       '八月聯招取錄：看看你獲哪個志願取錄，再決定下一步的出路。'
@@ -21,7 +21,7 @@
     phase1Note: '第一章：由預計成績到八月的出路。第二章：之後的升學或工作日子，模擬至 25 歲（短篇）或 30 歲（長篇）。',
 
     steps: [
-      { id: 'grades', label: '成績' }, { id: 'interests', label: '興趣' }, { id: 'list', label: '志願' },
+      { id: 'me', label: '角色' }, { id: 'grades', label: '成績' }, { id: 'interests', label: '興趣' }, { id: 'list', label: '志願' },
       { id: 'results', label: '放榜' }, { id: 'offers', label: '取錄' }, { id: 'routes', label: '出路' },
       { id: 'life', label: '人生' }, { id: 'end', label: '總結' }
     ],
@@ -340,6 +340,68 @@
       degree: function (name) { return '入讀' + name; }, track: function (t) { return '開始' + t; }, work: '開始找工作',
       graduated: function (cred) { return '畢業（' + cred + '）'; }, senior: '升讀資助學士', job: function (m) { return '全職工作，' + m; },
       partTime: function (cred) { return '兼讀完成（' + cred + '）'; }, masters: '完成兼讀碩士'
-    }
+    },
+
+    /* ---------- fun pack: character, dream, end title, quick start, guesses, reveals ---------- */
+    me: {
+      heading: '你是誰？',
+      avatar: '揀一個角色', avatarHint: '角色會陪你走完這段路（只是造型，不影響結果）。',
+      dream: '你的夢想是？', dreamHint: '遊戲最後會看看你離夢想有多近。也可以不揀。', noDream: '暫時未諗到',
+      next: '下一步：你的成績'
+    },
+    avatars: { cat: '小貓', dog: '小狗', panda: '熊貓', rabbit: '兔仔', owl: '貓頭鷹', fox: '狐狸', penguin: '企鵝', chick: '小雞' },
+    dreams: {
+      nurse: { name: '當護士／醫護人員', desc: '照顧病人，守護健康。',
+        tip: '護理及專職醫療的學位是成為註冊護士的主要途徑；聯招志願可以多放相關課程，讀副學位的話畢業後也可以銜接。' },
+      engineer: { name: '做工程師', desc: '設計和建造，解決實際問題。', tip: '工程學位是成為專業工程師的基礎，畢業後再累積工作經驗。' },
+      it: { name: '做程式設計師／IT', desc: '寫程式、做 App、玩數據。', tip: '計算機及資訊科技的副學位或學位都可以入行；多做項目和實習很有幫助。' },
+      designer: { name: '做設計師', desc: '用創意令生活更好看、更好用。', tip: '設計、創意媒體或藝術課程（副學位或學位）都可以入行；作品集很重要。' },
+      teacher: { name: '做老師', desc: '陪伴學生成長。', tip: '教育學位（或其他學位加教育文憑）是做老師的主要途徑。' },
+      business: { name: '在商界發展', desc: '做市場、金融或管理。', tip: '商業及管理的副學位或學位都可以入行；實習和人脈幫助很大。' },
+      savings: { name: '儲到第一桶金', desc: '為將來打好財政基礎。', tip: '兼職、儲蓄和控制開支會令「財政」上升；讀書時的學費會令它下降。' },
+      world: { name: '去交流，看世界', desc: '到外地學習，擴闊眼界。', tip: '大學的交流機會、內地或海外升學都能看看世界；多參加活動也會擴闊人脈。' },
+      balance: { name: '生活平衡、身心健康', desc: '開心生活，照顧好自己。', tip: '「休息平衡」和「平衡生活」能照顧身心；太拼搏會令「身心」下降。' }
+    },
+    dreamEnd: {
+      heading: '你的夢想',
+      stars: ['還未開始接近這個夢想。', '已踏出第一步。', '很接近了！', '夢想成真！🎉'],
+      tipLabel: '想更接近：', none: '你這一局沒有揀夢想。'
+    },
+    personas: {
+      scholar: { icon: '📖', name: '穩步求學型', desc: '你重視學習，一步一步打好基礎。' },
+      doer: { icon: '🔥', name: '實戰拼搏型', desc: '你喜歡動手做，在實戰中成長。' },
+      saver: { icon: '🧮', name: '精打細算型', desc: '你懂得為將來打算，每一分錢都用得其所。' },
+      balanced: { icon: '🌿', name: '身心平衡型', desc: '你懂得照顧自己，走得穩，也走得遠。' },
+      connector: { icon: '🤝', name: '人脈探索型', desc: '你喜歡認識人，探索新機會。' },
+      allround: { icon: '🌈', name: '斜槓全能型', desc: '你樣樣都試，每方面都有所成長。' }
+    },
+    mods: { comeback: '捲土重來的', clearing: '補選逆轉的', parttime: '邊做邊讀的', exchange: '看過世界的', masters: '再上一層樓的' },
+    titleHeading: '你的人生稱號',
+    quick: {
+      heading: '⚡ 快速開始', hint: '唔想逐科填？揀一個學生，遊戲幫你填好成績和興趣，再建議志願。',
+      samples: { sci: '🔬 理科生', biz: '📈 商科生', arts: '📜 文科生', maker: '🛠 動手做型' },
+      random: '🎲 隨機身份', or: '或者自己逐科填：',
+      done: function (name) { return '已用「' + name + '」的成績和興趣，並為你建議了志願。你可以修改，或直接前往放榜日。'; }
+    },
+    guess: {
+      tag: '估一估',
+      match: function (n) { return '放榜前估一估：你預計的 ' + n + ' 科之中，有幾多科會和預計一樣？'; },
+      band: '開估前估一估：你會在哪個 Band 獲取錄？',
+      bands: ['Band A', 'Band B', 'Band C', 'Band D', 'Band E', '沒有取錄'],
+      pay: function (age) { return '估一估：你 ' + age + ' 歲時，每月收入大約是多少？'; },
+      payBands: ['HK$15,000 以下', 'HK$15,000–20,000', 'HK$20,000–25,000', 'HK$25,000–35,000', 'HK$35,000 以上'],
+      skip: '跳過',
+      exact: '估中了！', near: '差一點點！', far: '和你估的不一樣——現實常常有意外。',
+      matchResult: function (g, m) { return '你估 ' + g + ' 科一樣，實際有 ' + m + ' 科。'; },
+      bandResult: function (g, a) { return '你估「' + g + '」，結果是「' + a + '」。'; },
+      payResult: function (g, a) { return '你估「' + g + '」，實際是「' + a + '」。'; },
+      summary: '估一估成績表', notAsked: '沒有估', noPay: '還未有全職工作'
+    },
+    reveal: {
+      envelope: '📮 你的成績單到了！按每一科的「？」逐科揭曉。', all: '全部揭曉', hidden: '？',
+      scan: '聯招會按你的志願次序，由 A1 開始逐個查看……', skip: '略過動畫',
+      pass: '取錄！', fail: '未能取錄', after: '已不需要再看'
+    },
+    walk: function (a, end) { return '人生路：' + a + ' 歲（終點 ' + end + ' 歲）'; }
   };
 })();

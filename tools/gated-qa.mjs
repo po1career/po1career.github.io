@@ -156,17 +156,27 @@ async function lifePathsCheck(b) {
       if(!c)break; c.click(); await w(20); } return !!(await until(()=>q('.endcard'))); };
     await until(()=>q('[data-act="start"],[data-act="resume"]'));
     L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)}; s.mode='short';
+    // fun pack: the character + dream screen comes first
+    const meScreen=document.querySelectorAll('.avpick').length===8 && document.querySelectorAll('.drpick').length===10;
+    q('[data-act="av"][data-id="fox"]').click(); q('[data-act="dr"][data-id="engineer"]').click();
     Object.assign(s.pred,{chi:'4',eng:'4',math:'4',csd:'attained'});
-    s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}];
+    s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}]; s.cats=[]; s.me.dreamCat=null;
     L.go('list'); L.act('l-suggest'); const list=s.list.slice();
     const tags=document.querySelectorAll('#slots .pill').length;
-    L.act('l-next'); const results=!!(await until(()=>q('.rtable'))), reflect=!!q('.reflect');
-    L.act('r-next'); const offerCard=!!(await until(()=>q('.offer-card')));
+    // results day: 估一估 first, then the grades start face down (one tap, then 全部揭曉)
+    L.act('l-next'); const guessMatch=!!(await until(()=>q('[data-act="guess-match"]')));
+    q('[data-act="guess-match"][data-v="2"]').click(); q('[data-act="flip"]').click(); q('[data-act="reveal-all"]').click();
+    const results=!!(await until(()=>q('.rtable')&&q('[data-act="r-next"]'))), reflect=!!q('.reflect'), guessRes=!!q('.guess-res');
+    // offers: a Band guess, then the choices are scanned in order (skipped here)
+    L.act('r-next'); q('[data-act="guess-band"][data-v="0"]').click();
+    const scan=!!(await until(()=>q('.scanrow'))); q('[data-act="scan-skip"]').click();
+    const offerCard=!!(await until(()=>q('.offer-card')));
     const offer=s.round.offer?s.round.offer.code:null;
     L.act('o-others'); const routes=document.querySelectorAll('.route').length;
     q('[data-act="route"][data-id="work"]').click();
-    const meters=document.querySelectorAll('.lifepanel .meter').length;
+    const meters=document.querySelectorAll('.lifepanel .meter').length, walk=!!q('.walk .walker svg'), payGuess=!!q('[data-act="guess-pay"]');
     const end=await play(), life=s.life?{age:s.life.age,monthly:s.life.job?s.life.job.monthly:null}:null, dataPage=!!q('.datapage');
+    const titleCard=!!q('.titlecard .ptitle'), dreamCard=!!q('.dreamcard .stars'), guesses=!!q('.guesses');
     // Phase 3 on the summary: "what if" (nothing changed = the same life; one change = a comparison), share image, runs
     const replaySame=L.replaySame(), wiBtn=q('[data-act="wi"]');
     if (wiBtn) wiBtn.click();
@@ -177,7 +187,9 @@ async function lifePathsCheck(b) {
     L.go('routes'); q('[data-act="route"][data-id="retake"]').click();
     q('[data-act="rt-sub"]').click(); q('[data-act="rt-go"]').click();
     const retake=!!(await until(()=>q('.rtable'))) && !!(s.retake&&s.retake.results);
-    q('[data-act="r-next"]').click(); await until(()=>q('.offer-card'));
+    q('[data-act="reveal-all"]').click(); q('[data-act="r-next"]').click();
+    { const sk=await until(()=>q('[data-act="scan-skip"]')||q('.offer-card')); if (sk&&sk.matches('[data-act="scan-skip"]')) sk.click(); }
+    await until(()=>q('.offer-card'));
     let clearing=null;
     if (q('[data-act="o-clearing"]')) { q('[data-act="o-clearing"]').click(); clearing=!!(await until(()=>q('.cands,.panel .note'))); }
     L.go('routes'); q('[data-act="route"][data-id="vtc"]').click();
@@ -187,8 +199,11 @@ async function lifePathsCheck(b) {
     L.act('restart'); await until(()=>q('#class-code'));
     const ci=q('#class-code'); ci.value='qa 7b'; ci.dispatchEvent(new Event('input',{bubbles:true})); q('[data-act="start"]').click();
     const classMode=L.state.seed==='class-QA7B' && L.state.classCode==='QA7B' && !!(await until(()=>q('.classpill')));
-    return JSON.stringify({list, tags, results, reflect, offerCard, offer, routes, meters, end, life, dataPage, replaySame, whatIf, runs, share,
-      retake, clearing, field, end2, age2, classMode});`);
+    // quick start (the character carried over): a ready-made student fills the grades and "suggest" builds the list
+    q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
+    const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='fox';
+    return JSON.stringify({list, tags, meScreen, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+      end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
   return b.js(`${H}
@@ -259,6 +274,12 @@ for (const t of PAGES) {
           r.replaySame === true && r.whatIf, got);
         record(t.page, 'reflection prompt, share image (PNG made in the browser) and recent runs render', r.reflect && r.share && r.runs, got);
         record(t.page, 'class mode: the class code becomes the shared seed and shows on screen', r.classMode, got);
+        record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
+          r.meScreen && r.quick, got);
+        record(t.page, 'fun pack: guess before results, grades turned over, Band guess + scan of the choices',
+          r.guessMatch && r.guessRes && r.scan, got);
+        record(t.page, 'fun pack: walking character + pay guess in the life; end title, dream stars and guess scorecard',
+          r.walk && r.payGuess && r.titleCard && r.dreamCard && r.guesses, got);
       }
       else if (t.page === 'jupas-evaluator.html') {
         const r = JSON.parse(got || '{}');

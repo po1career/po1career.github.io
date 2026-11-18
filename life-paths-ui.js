@@ -4,6 +4,9 @@
    Chapter 2: retake year · field of study · the years after August (focus, events, transitions) → life summary.
    Phase 3: class mode (a shared class code = the same luck for everyone), reflection prompts, "what if" (the same
    luck with one decision changed, side by side), a share image drawn on a canvas, the last runs on this device.
+   Fun pack: a character + dream screen, quick-start students, 估一估 guesses before each reveal, results revealed
+   subject by subject, the JUPAS choices scanned in order, a character walking along the road through the years,
+   animated meters, light confetti (none with "reduce motion"), and an end title (life-paths-fun.js).
    Gate = the Finder/Planner contract: PBKDF2-SHA256 150k + AES-GCM decrypt of
    jupas-finder-db.enc.json with the student passcode, remembered in LS jupas_pass.
    Simulation: life-paths-core.js (DSE → August) + life-paths-life.js (after August); text: life-paths-content.js;
@@ -12,12 +15,13 @@
    ========================================================================== */
 (function () {
   'use strict';
-  var C = window.LifePathsCore, L = window.LifePathsLife, ST = window.LifePathsStats, T = window.LifePathsText;
+  var C = window.LifePathsCore, L = window.LifePathsLife, ST = window.LifePathsStats, T = window.LifePathsText, F = window.LifePathsFun;
   var PBKDF2_ITER = 150000, LS_PASS = 'jupas_pass', ENC_URL = 'jupas-finder-db.enc.json';
   var LS_STATE = 'life_paths_state', LS_RUNS = 'life_paths_runs', LS_BIG = 'life_paths_big';
   var LEVELS = ['5**', '5*', '5', '4', '3', '2', '1', 'U'];
   var DB = null, encBlob = null, state = null, resumeStep = null, lastMsg = null;
   var codeDraft = null, shareURL = null;           // the class code being typed on the intro; the last share image {url, w, h}
+  var flips = {}, anim = null, confettiNext = false, scanTimer = null;   // results tiles turned over; a life turn to animate
 
   function $(id) { return document.getElementById(id); }
   function esc(s) {
@@ -43,8 +47,9 @@
     return { chi: '', eng: '', math: '', csd: 'attained', elect: [{ s: '', lv: '' }, { s: '', lv: '' }, { s: '', lv: '' }, { s: '', lv: '' }] };
   }
   function blank(mode, classCode) {
-    return { v: 1, seed: classCode ? classSeed(classCode) : C.newSeed(), classCode: classCode || null, step: 'grades',
-      mode: mode || 'short', pred: blankPred(), cats: [], list: [], results: null, round: null, clearing: null, retake: null,
+    return { v: 1, seed: classCode ? classSeed(classCode) : C.newSeed(), classCode: classCode || null, step: 'me',
+      mode: mode || 'short', me: { avatar: F.AVATAR_IDS[0], dream: null, dreamCat: null }, pred: blankPred(), cats: [], list: [],
+      guesses: {}, revealed: {}, results: null, round: null, clearing: null, retake: null,
       retakePick: [], route: null, field: null, life: null, lifeFrom: null, whatIf: null };
   }
   // class mode: the class code IS the run seed, so everyone typing the same code gets the same luck everywhere
@@ -57,6 +62,16 @@
     crypto.getRandomValues(a);
     for (var i = 0; i < a.length; i++) out += CODE_CHARS[a[i] % CODE_CHARS.length];
     return out;
+  }
+  // a new game keeps the player's character and dream (and the dream's field as an interest)
+  function keepMe(old, s) {
+    var me = old && old.me;
+    if (me && me.avatar) {
+      var cat = me.dream && F.DREAMS[me.dream] && F.DREAMS[me.dream].cat;
+      s.me = { avatar: me.avatar, dream: me.dream || null, dreamCat: cat || null };
+      if (cat) s.cats = [cat];
+    }
+    return s;
   }
   function isBig() { try { return localStorage.getItem(LS_BIG) === '1'; } catch (e) { return false; } }
   function setBig(on) {
@@ -77,7 +92,14 @@
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(LS_STATE) || 'null');
-      if (s && s.v === 1 && s.pred) { if (!s.mode) s.mode = 'short'; if (!s.retakePick) s.retakePick = []; return s; }
+      if (s && s.v === 1 && s.pred) {
+        if (!s.mode) s.mode = 'short'; if (!s.retakePick) s.retakePick = [];
+        // saves from before the fun pack: a default character, no guesses, and anything already seen stays revealed
+        if (!s.me) s.me = { avatar: F.AVATAR_IDS[0], dream: null, dreamCat: null };
+        if (!s.guesses) s.guesses = {};
+        if (!s.revealed) s.revealed = { results: true, offers: true, results2: true, offers2: true };
+        return s;
+      }
     } catch (e) {}
     return null;
   }
@@ -92,11 +114,12 @@
   }
 
   /* ---------- navigation ---------- */
-  var STEP_IDX = { grades: 0, interests: 1, list: 2, results: 3, offers: 4, clearing: 4, routes: 5, retake: 5, field: 5, life: 6, end: 7 };
-  var BACK = { interests: 'grades', list: 'interests', results: 'list', offers: 'results', clearing: 'offers', routes: 'offers', retake: 'routes', field: 'routes' };
+  var STEP_IDX = { me: 0, grades: 1, interests: 2, list: 3, results: 4, offers: 5, clearing: 5, routes: 6, retake: 6, field: 6, life: 7, end: 8 };
+  var BACK = { grades: 'me', interests: 'grades', list: 'interests', results: 'list', offers: 'results', clearing: 'offers', routes: 'offers', retake: 'routes', field: 'routes' };
   // a new screen: back to the top, and keyboard / screen-reader focus to its heading
   function go(step) {
     if (step !== 'end') shareURL = null;
+    if (step !== state.step) { flips = {}; clearTimeout(scanTimer); }
     state.step = step; save(); render(); window.scrollTo(0, 0);
     var h = $('screen').querySelector('h2');
     if (h) { h.setAttribute('tabindex', '-1'); try { h.focus({ preventScroll: true }); } catch (e) {} }
@@ -125,6 +148,7 @@
     var s = SCREENS[state.step] || SCREENS.intro;
     $('screen').innerHTML = (state.classCode && state.step !== 'intro' ? classPill() : '') + s();
     if (state.step === 'list') renderList();
+    afterRender();
   }
   function classPill() { return '<p class="classpill">👥 ' + esc(T.classMode.pill(state.classCode)) + '</p>'; }
   function backBtn() { return backTarget() ? btn('back', '← ' + T.common.back, { ghost: true }) : '<span></span>'; }
@@ -148,15 +172,37 @@
       }).join('');
       var code = codeDraft != null ? codeDraft : state.classCode || '';
       var cls = '<h3 class="sub">👥 ' + esc(K.heading) + '</h3><p class="hint">' + esc(K.hint) + '</p>' +
-        '<div class="row wrap classrow"><input type="text" id="class-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false"' +
+        '<div class="row wrapping classrow"><input type="text" id="class-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false"' +
         ' aria-label="' + esc(K.label) + '" placeholder="' + esc(K.ph) + '" value="' + esc(code) + '">' + btn('class-gen', K.generate, { ghost: true }) + '</div>' +
         '<div id="class-err" class="err" role="alert"></div>' + big;
       return how + '<h3 class="sub">' + esc(M.heading) + '</h3><div class="modes" role="group" aria-label="' + esc(M.heading) + '">' + modes + '</div>' + cls +
         '<div class="navrow"><span></span>' + btn('start', T.intro.start + ' →') + '</div></div>';
     },
 
+    me: function () {
+      var M = T.me, me = state.me;
+      var avs = F.AVATAR_IDS.map(function (id) {
+        var on = me.avatar === id;
+        return '<button type="button" class="avpick' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="av" data-id="' + id + '">' +
+          F.avatarSVG(id, 56) + '<span>' + esc(T.avatars[id]) + '</span></button>';
+      }).join('');
+      var drs = F.DREAM_IDS.map(function (id) {
+        var on = me.dream === id, d = T.dreams[id];
+        return '<button type="button" class="drpick' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="dr" data-id="' + id + '">' +
+          '<span class="dr-icon" aria-hidden="true">' + F.DREAMS[id].icon + '</span><b>' + esc(d.name) + '</b><span>' + esc(d.desc) + '</span></button>';
+      }).join('') + '<button type="button" class="drpick' + (me.dream ? '' : ' on') + '" aria-pressed="' + !me.dream + '" data-act="dr" data-id="">' +
+        '<span class="dr-icon" aria-hidden="true">🤔</span><b>' + esc(M.noDream) + '</b></button>';
+      return '<div class="panel"><h2>' + esc(M.heading) + '</h2><h3 class="sub">' + esc(M.avatar) + '</h3><p class="hint">' + esc(M.avatarHint) + '</p>' +
+        '<div class="avgrid" role="group" aria-label="' + esc(M.avatar) + '">' + avs + '</div>' +
+        '<h3 class="sub">' + esc(M.dream) + '</h3><p class="hint">' + esc(M.dreamHint) + '</p>' +
+        '<div class="drgrid" role="group" aria-label="' + esc(M.dream) + '">' + drs + '</div>' + navRow('me-next', M.next) + '</div>';
+    },
+
     grades: function () {
-      var p = state.pred, G = T.grades;
+      var p = state.pred, G = T.grades, Q = T.quick;
+      var quick = '<div class="quick"><h3 class="sub">' + esc(Q.heading) + '</h3><p class="hint">' + esc(Q.hint) + '</p><div class="row wrapping">' +
+        F.SAMPLE_IDS.map(function (id) { return btn('sample', Q.samples[id], { ghost: true, small: true, data: { id: id } }); }).join('') +
+        btn('sample', Q.random, { small: true, data: { id: 'random' } }) + '</div></div><p class="hint small">' + esc(Q.or) + '</p>';
       function lvSel(attr, val) {
         return '<select ' + attr + ' aria-label="' + esc(G.level) + '"><option value="">' + esc(G.none) + '</option>' +
           LEVELS.map(function (l) { return '<option' + (l === val ? ' selected' : '') + '>' + l + '</option>'; }).join('') + '</select>';
@@ -174,7 +220,7 @@
           }).join('');
           return '<tr><td><select data-el="' + i + '" aria-label="' + esc(G.addElective) + ' ' + (i + 1) + '">' + opts + '</select></td><td>' + lvSel('data-ellv="' + i + '"', e.lv) + '</td></tr>';
         }).join('');
-      return '<div class="panel"><h2>' + esc(G.heading) + '</h2><p class="hint">' + esc(G.hint) + '</p>' +
+      return '<div class="panel"><h2>' + esc(G.heading) + '</h2>' + quick + '<p class="hint">' + esc(G.hint) + '</p>' +
         '<table class="gtable"><tbody>' + rows + '</tbody></table><div id="err" class="err" role="alert"></div>' +
         navRow('g-next', G.next) + '</div>';
     },
@@ -201,28 +247,47 @@
     },
 
     results: function () {
-      var R = T.results, K = T.retake, rt = inRetakeYear(), res = rt ? state.retake.results : state.results, up = 0, down = 0, same = 0, rows, th, tally;
+      var R = T.results, K = T.retake, G = T.guess, rt = inRetakeYear(), res = rt ? state.retake.results : state.results;
+      var shown = !!state.revealed[rt ? 'results2' : 'results'], up = 0, down = 0, same = 0, rows, th, tally;
+      var head = '<div class="panel"><h2>📮 ' + esc(rt ? K.resultsHeading : R.heading) + '</h2><p class="hint">' + esc(rt ? K.resultsIntro : R.intro) + '</p>';
+      // 估一估 before the envelope opens (first sitting): how many subjects will match the prediction?
+      if (!rt && !shown && state.guesses.match == null) {
+        var opts = '';
+        for (var k = 0; k <= res.changes.length; k++) opts += btn('guess-match', String(k), { ghost: true, small: true, data: { v: k } });
+        return head + guessBox(G.match(res.changes.length), opts + btn('guess-match', G.skip, { ghost: true, small: true, data: { v: -1 } })) +
+          '<div class="navrow">' + backBtn() + '<span></span></div></div>';
+      }
+      // every result starts face down: a tap turns one over, 全部揭曉 turns them all
+      function open(i) { return shown || !!flips[i]; }
+      function face(i, val) {
+        if (open(i)) return '<span class="' + (!shown && i === flips.last ? 'pop' : '') + '">' + esc(val) + '</span>';
+        return '<button type="button" class="tile" data-act="flip" data-i="' + i + '" aria-label="' + esc(T.reveal.all) + '">' + esc(T.reveal.hidden) + '</button>';
+      }
       if (rt) {
-        rows = res.changes.map(function (c) {
+        rows = res.changes.map(function (c, i) {
           if (c.diff > 0) up++;
-          return '<tr class="' + (c.diff > 0 ? 'up' : 'same') + '"><td>' + esc(C.SUBJ_ZH[c.key]) + '</td><td>' + esc(c.from) + '</td><td>' + esc(c.sat) + '</td>' +
-            '<td class="big">' + esc(c.to) + ' <span class="mk">' + esc(c.diff > 0 ? '▲ ' + K.up : '＝ ' + K.same) + '</span></td></tr>';
+          return '<tr class="' + (open(i) ? (c.diff > 0 ? 'up' : 'same') : '') + '"><td>' + esc(C.SUBJ_ZH[c.key]) + '</td><td>' + esc(c.from) + '</td><td>' + (open(i) ? esc(c.sat) : '—') + '</td>' +
+            '<td class="big">' + face(i, c.to) + (open(i) ? ' <span class="mk">' + esc(c.diff > 0 ? '▲ ' + K.up : '＝ ' + K.same) + '</span>' : '') + '</td></tr>';
         }).join('');
         th = K.th; tally = K.tally(res.changes.length, up);
       } else {
-        rows = res.changes.map(function (c) {
+        rows = res.changes.map(function (c, i) {
           if (c.diff > 0) up++; else if (c.diff < 0) down++; else same++;
           var mark = c.diff > 0 ? '▲ ' + R.up : c.diff < 0 ? '▼ ' + R.down : '＝ ' + R.same;
-          return '<tr class="' + (c.diff > 0 ? 'up' : c.diff < 0 ? 'down' : 'same') + '"><td>' + esc(C.SUBJ_ZH[c.key]) + '</td><td>' + esc(c.from) + '</td><td class="big">' + esc(c.to) + '</td><td class="mk">' + esc(mark) + '</td></tr>';
+          return '<tr class="' + (open(i) ? (c.diff > 0 ? 'up' : c.diff < 0 ? 'down' : 'same') : '') + '"><td>' + esc(C.SUBJ_ZH[c.key]) + '</td><td>' + esc(c.from) + '</td>' +
+            '<td class="big">' + face(i, c.to) + '</td><td class="mk">' + (open(i) ? esc(mark) : '') + '</td></tr>';
         }).join('');
         var csdTxt = res.actual.csd === 'attained' ? T.grades.csdAttained : T.grades.csdNot;
         rows += '<tr class="same"><td>' + esc(C.SUBJ_ZH.csd) + '</td><td>' + esc(csdTxt) + '</td><td class="big">' + esc(csdTxt) + '</td><td class="mk">＝ ' + esc(R.same) + '</td></tr>';
         th = R.th; tally = same + ' 科與預計相同 · ' + down + ' 科較預計低 · ' + up + ' 科較預計高';
       }
+      var table = '<div class="tablewrap"><table class="rtable"><thead><tr>' + th.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+      if (!shown) {
+        return head + '<p class="note envelope">' + esc(T.reveal.envelope) + '</p>' + table +
+          '<div class="navrow">' + backBtn() + btn('reveal-all', T.reveal.all + ' →') + '</div></div>';
+      }
       var met = C.meets332A(res.actual);
-      return '<div class="panel"><h2>📮 ' + esc(rt ? K.resultsHeading : R.heading) + '</h2><p class="hint">' + esc(rt ? K.resultsIntro : R.intro) + '</p>' +
-        '<div class="tablewrap"><table class="rtable"><thead><tr>' + th.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + rows +
-        '</tbody></table></div><p class="tally">' + esc(tally) + '</p>' +
+      return head + table + '<p class="tally">' + esc(tally) + '</p>' + (rt ? '' : guessResult('match')) +
         '<div class="callout ' + (met ? 'ok' : 'warn') + '">' + esc(met ? R.met332A : R.not332A) + '<br><span class="small">' + esc(R.stat332A) + '</span></div>' +
         reflectBox('results') +
         '<details class="explain"><summary>' + esc(R.ruleTitle) + '</summary><p>' + esc(rt ? K.rule : R.rule) + '</p></details>' +
@@ -231,7 +296,20 @@
     },
 
     offers: function () {
-      var O = T.offers, round = curRound(), o = round.offer, card;
+      var O = T.offers, G = T.guess, round = curRound(), o = round.offer, card, rt = inRetakeYear();
+      var h2 = '<h2>✉️ ' + esc(rt ? T.retake.roundHeading : O.heading) + '</h2>';
+      if (!state.revealed[rt ? 'offers2' : 'offers'] && round.rows.length) {
+        if (!rt && state.guesses.band == null) {
+          return '<div class="panel">' + h2 + guessBox(G.band, G.bands.map(function (b, k) { return btn('guess-band', b, { ghost: true, small: true, data: { v: k } }); }).join('') +
+            btn('guess-band', G.skip, { ghost: true, small: true, data: { v: -1 } })) + '<div class="navrow">' + backBtn() + '<span></span></div></div>';
+        }
+        // the scan: JUPAS looks at the choices in order and gives the first one whose line is cleared
+        return '<div class="panel">' + h2 + '<p class="hint">' + esc(T.reveal.scan) + '</p><ol class="scan">' + round.rows.map(function (r) {
+          var p = DB.byCode[r.code];
+          return '<li class="scanrow"><span class="chipband b' + C.bandOfSlot(r.i) + '">' + esc(C.slotLabel(r.i)) + '</span>' +
+            '<span class="sname">' + (p ? esc(pname(p)) : esc(r.code)) + '</span><span class="scan-st"></span></li>';
+        }).join('') + '</ol><div class="navrow"><span></span>' + btn('scan-skip', T.reveal.skip, { ghost: true }) + '</div></div>';
+      }
       if (o) {
         var p = DB.byCode[o.code];
         card = '<div class="offer-card"><div class="big-emoji" aria-hidden="true">🎉</div><p class="headline">' +
@@ -254,7 +332,7 @@
       var how = '<details class="explain"><summary>' + esc(O.howTitle) + '</summary><ul>' + O.how.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
       var btns = o ? btn('o-others', O.others, { ghost: true }) + btn('o-accept', O.accept + ' →')
         : (!state.clearing ? btn('o-clearing', '🔄 ' + T.clearing.button, { ghost: true }) : '') + btn('o-others', O.toRoutes + ' →');
-      return '<div class="panel"><h2>✉️ ' + esc(inRetakeYear() ? T.retake.roundHeading : O.heading) + '</h2>' + card + detail + how +
+      return '<div class="panel">' + h2 + card + (rt ? '' : guessResult('band')) + detail + how +
         '<div class="navrow">' + backBtn() + btns + '</div></div>';
     },
 
@@ -322,8 +400,10 @@
       var trackTxt = T.tracks[l.track.id] + (code ? '：' + pname(code) + '（' + pinst(code) + '）' : (study && l.track.field ? '（' + catZh(l.track.field) + '）' : ''));
       var sub = study && l.track.yearsLeft > 0 ? LT.yearOf(l.track.year) : l.job ? LT.income + ' ' + money(l.job.monthly) : '';
       var meters = L.METERS.map(function (k) {
+        var dl = lastMsg && lastMsg.deltas.filter(function (x) { return x.k === k; })[0];
         return '<div class="meter"><span class="ml">' + T.meterIcons[k] + ' ' + esc(T.meters[k]) + '</span>' +
-          '<span class="bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + l.meters[k] + '" aria-label="' + esc(T.meters[k]) + '"><i style="width:' + l.meters[k] + '%"></i></span><b>' + l.meters[k] + '</b></div>';
+          '<span class="bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + l.meters[k] + '" aria-label="' + esc(T.meters[k]) + '"><i style="width:' + l.meters[k] + '%"></i></span><b>' + l.meters[k] + '</b>' +
+          (dl ? '<em class="float ' + (dl.d > 0 ? 'up' : 'down') + '" aria-hidden="true">' + (dl.d > 0 ? '+' : '−') + Math.abs(dl.d) + '</em>' : '') + '</div>';
       }).join('');
       if (lastMsg) {
         card += '<div class="outcome" role="status">' + (lastMsg.text ? '<p>' + esc(lastMsg.text) + '</p>' : '') +
@@ -331,7 +411,12 @@
             return '<span class="dl ' + (d.d > 0 ? 'up' : 'down') + '">' + T.meterIcons[d.k] + ' ' + esc(T.meters[d.k]) + ' ' + (d.d > 0 ? '+' : '−') + Math.abs(d.d) + '</span>';
           }).join('') + '</p>' : '') + '</div>' + (lastMsg.reflect ? reflectBox(lastMsg.reflect) : '');
       }
-      var p = l.pend;
+      var p = l.pend, G = T.guess;
+      // 估一估 at the start of the life (it does not block the first choice)
+      if (state.guesses.pay == null && l.decisions.length <= 1 && p.type !== 'end') {
+        card += guessBox(G.pay(l.endAge), G.payBands.map(function (t, k) { return btn('guess-pay', t, { ghost: true, small: true, data: { v: k } }); }).join('') +
+          btn('guess-pay', G.skip, { ghost: true, small: true, data: { v: -1 } }));
+      }
       if (p.type === 'focus') {
         card += '<h3 class="sub">' + esc(LT.focusHeading(l.age, L.turnYears(l))) + '</h3><div class="focus">' + L.focusOptions(l).map(function (id) {
           var f = T.focus[id];
@@ -340,11 +425,11 @@
       } else if (p.type === 'event') {
         var ev = T.events[p.id];
         card += '<div class="event"><span class="pill p-mid">' + esc(LT.eventTag) + '</span><h3>' + esc(ev.title) + '</h3><p>' + esc(ev.body) + '</p>' +
-          (ev.support ? '<p class="small support">' + esc(LT.support) + '</p>' : '') + '<div class="row wrap">' +
+          (ev.support ? '<p class="small support">' + esc(LT.support) + '</p>' : '') + '<div class="row wrapping">' +
           ev.choices.map(function (c, i) { return btn('evc', c, { ghost: i > 0, data: { i: i } }); }).join('') + '</div></div>';
       } else if (p.type === 'branch') {
         var b = T.branches[p.id];
-        card += '<div class="event"><h3>' + esc(b.title) + '</h3>' + (b.note ? '<p class="small">' + esc(b.note) + '</p>' : '') + '<div class="row wrap">' +
+        card += '<div class="event"><h3>' + esc(b.title) + '</h3>' + (b.note ? '<p class="small">' + esc(b.note) + '</p>' : '') + '<div class="row wrapping">' +
           p.options.map(function (o, i) { return btn('branch', b.options[o], { ghost: i > 0, data: { id: o } }); }).join('') + '</div></div>';
       } else {
         card += '<div class="navrow"><span></span>' + btn('to-end', LT.toEnd + ' →') + '</div>';
@@ -353,7 +438,7 @@
         return '<li class="' + e.tone + '"><span class="tl-age">' + esc(LT.age(e.age)) + '</span>' + esc(logText(e)) + '</li>';
       }).join('');
       return '<div class="panel lifepanel"><h2 class="lifehead"><span class="age">' + esc(LT.age(l.age)) + '</span><span class="trk">' + esc(trackTxt) +
-        (sub ? '<span class="small muted"> · ' + esc(sub) + '</span>' : '') + '</span></h2><div class="meters">' + meters + '</div>' + card +
+        (sub ? '<span class="small muted"> · ' + esc(sub) + '</span>' : '') + '</span></h2>' + walkStrip(l) + '<div class="meters">' + meters + '</div>' + card +
         (backTarget() ? '<div class="navrow">' + backBtn() + '<span></span></div>' : '') +
         '<details class="explain timeline" open><summary>' + esc(LT.timeline) + '</summary><ol class="tl">' + tl + '</ol></details></div>';
     },
@@ -381,12 +466,13 @@
         l.decisions.forEach(function (d) { if (d.key === 'focus') focusCount[d.data.id] = (focusCount[d.data.id] || 0) + 1; });
         var topFocus = Object.keys(focusCount).sort(function (a, b) { return focusCount[b] - focusCount[a]; }).slice(0, 2)
           .map(function (id) { return T.focus[id].name + '（' + LE.times(focusCount[id]) + '）'; }).join('、');
-        body = art() + '<h2>🌟 ' + esc(LE.heading(l.age)) + '</h2><dl class="summary"><dt>' + esc(LE.status) + '</dt><dd>' + esc(status) + '</dd>' +
+        body = art() + '<h2>🌟 ' + esc(LE.heading(l.age)) + '</h2>' + titleCard(l) + dreamCard(l) +
+          '<dl class="summary"><dt>' + esc(LE.status) + '</dt><dd>' + esc(status) + '</dd>' +
           '<dt>' + esc(LE.cred) + '</dt><dd>' + esc(T.creds[L.topCred(l)]) + '</dd>' +
           (topFocus ? '<dt>' + esc(LE.topFocus) + '</dt><dd>' + esc(topFocus) + '</dd>' : '') + '</dl>' +
           '<p class="small muted">' + esc(LE.compare(l.age)) + '</p><h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
           (choices ? '<h3 class="sub">' + esc(LE.keyChoices) + '</h3><ol class="tl">' + choices + '</ol>' : '') +
-          reflectBox('end') + whatIfSection() + shareSection() +
+          guessSummary() + reflectBox('end') + whatIfSection() + shareSection() +
           '<details class="explain"><summary>' + esc(LE.chapter1) + '</summary>' + ch1 + '</details>' +
           '<details class="explain timeline"><summary>' + esc(T.life.timeline) + '</summary><ol class="tl">' +
           l.log.map(function (e) { return '<li class="' + e.tone + '"><span class="tl-age">' + esc(T.life.age(e.age)) + '</span>' + esc(logText(e)) + '</li>'; }).join('') + '</ol></details>';
@@ -395,7 +481,7 @@
       }
       // class mode keeps the class luck: no "new luck" replay, and editing grades or the list keeps the same seed
       return '<div class="panel endcard">' + body + dataPage() + runsSection() +
-        '<div class="row wrap">' + (state.classCode ? '' : btn('e-again', '🎲 ' + X.again)) +
+        '<div class="row wrapping">' + (state.classCode ? '' : btn('e-again', '🎲 ' + X.again)) +
         btn('e-edit', state.classCode ? T.classMode.againClass : X.edit, { ghost: !state.classCode }) + btn('restart', X.restart, { ghost: true }) + '</div>' +
         '<p class="real">' + esc(X.real) + X.realLinks.map(function (k) { return '<a href="' + k.href + '">' + esc(k.label) + '</a>'; }).join(' · ') + '</p>' +
         '<p class="hint">' + esc(X.teacher) + '</p><p class="small muted">' + esc(X.runCode) + '：' + esc(state.seed) + '</p></div>';
@@ -560,12 +646,14 @@
     x.fillText(s, X0, Y0);
   }
   function makeShare(l) {
-    var steps = pathSteps(l).slice(0, 7);
-    // 1080 wide; the height follows the number of milestones so a short path has no empty band
-    var S = T.share, W = 1080, H = 1000 + 58 * Math.max(2, steps.length), F = '"Noto Sans TC", "PingFang HK", "Microsoft JhengHei", sans-serif';
+    var steps = pathSteps(l).slice(0, 7), lt = lifeTitle(l), dream = state.me.dream;
+    var dreamTxt = dream ? T.dreamEnd.heading + '：' + T.dreams[dream].name + '　' + stars(F.dreamStars(l, dream)) : '';
+    // 1080 wide; the height follows the number of milestones (and the dream line) so there is no empty band
+    var S = T.share, W = 1080, H = 1060 + 58 * Math.max(2, steps.length) + (dreamTxt ? 52 : 0);
+    var FONT = '"Noto Sans TC", "PingFang HK", "Microsoft JhengHei", sans-serif';
     var title = S.title(l.age), now = S.now + lifeStatus(l), cred = S.cred + T.creds[L.topCred(l)];
-    var all = [T.title, title, now, cred, S.foot1, S.foot2].concat(steps.map(function (s) { return T.life.age(s.age) + s.text; }))
-      .concat(L.METERS.map(function (k) { return T.meters[k]; })).join('') + '0123456789HK$,.…';
+    var all = [T.title, title, lt.name, now, cred, dreamTxt, S.foot1, S.foot2].concat(steps.map(function (s) { return T.life.age(s.age) + s.text; }))
+      .concat(L.METERS.map(function (k) { return T.meters[k]; })).join('') + '0123456789HK$,.…★☆';
     var ready = document.fonts && document.fonts.load
       ? Promise.all(['800', '700', '500'].map(function (w) { return document.fonts.load(w + ' 40px "Noto Sans TC"', all); })) : Promise.resolve();
     return ready.catch(function () {}).then(function () {
@@ -581,10 +669,14 @@
       var band = x.createLinearGradient(M, 0, W - M, 0); band.addColorStop(0, '#C9A24B'); band.addColorStop(1, '#8BA888');
       x.fillStyle = band; x.fillRect(M, M, W - 2 * M, 12); x.restore();
       x.textBaseline = 'alphabetic';
-      x.fillStyle = '#936c1f'; fitText(x, T.title, PX, 150, W - 2 * PX, '800', 34, F);
-      x.fillStyle = '#5B3A24'; fitText(x, title, PX, 228, W - 2 * PX, '800', 62, F);
+      // header: the title and the end title on the left, the character on the right
+      var TW = W - 2 * PX - 190;
+      x.fillStyle = '#936c1f'; fitText(x, T.title, PX, 150, TW, '800', 34, FONT);
+      x.fillStyle = '#5B3A24'; fitText(x, title, PX, 226, TW, '800', 58, FONT);
+      x.fillStyle = '#A9842F'; fitText(x, lt.name, PX, 284, TW, '800', 38, FONT);
+      F.drawAvatar(x, state.me.avatar, W - PX - 168, 104, 168);
       // art: hills and a dashed road with a dot for every milestone
-      var top = 262, hgt = 150, left = PX, right = W - PX;
+      var top = 318, hgt = 150, left = PX, right = W - PX;
       x.save(); roundRect(x, left, top, right - left, hgt, 22); x.clip();
       x.fillStyle = '#FFF6E2'; x.fillRect(left, top, right - left, hgt);
       x.fillStyle = '#F2D27A'; x.globalAlpha = 0.75; x.beginPath(); x.arc(right - 70, top + 42, 24, 0, Math.PI * 2); x.fill(); x.globalAlpha = 1;
@@ -603,31 +695,32 @@
       }
       x.restore();
       // milestones
-      var y = 482, rowH = 58;
+      var y = 538, rowH = 58;
       x.strokeStyle = '#E8DCC2'; x.lineWidth = 4;
       if (steps.length > 1) { x.beginPath(); x.moveTo(PX + 10, y - 12); x.lineTo(PX + 10, y - 12 + (steps.length - 1) * rowH); x.stroke(); }
       steps.forEach(function (s, k) {
         var yy = y + k * rowH;
         x.fillStyle = k === steps.length - 1 ? '#5f7f5b' : '#C9A24B'; x.beginPath(); x.arc(PX + 10, yy - 12, 10, 0, Math.PI * 2); x.fill();
-        x.fillStyle = '#8a6f59'; fitText(x, T.life.age(s.age), PX + 40, yy, 120, '800', 32, F);
-        x.fillStyle = '#5B3A24'; fitText(x, s.text, PX + 160, yy, W - PX - (PX + 160), '700', 34, F);
+        x.fillStyle = '#8a6f59'; fitText(x, T.life.age(s.age), PX + 40, yy, 120, '800', 32, FONT);
+        x.fillStyle = '#5B3A24'; fitText(x, s.text, PX + 160, yy, W - PX - (PX + 160), '700', 34, FONT);
       });
-      // now + highest qualification
-      y = 482 + Math.max(steps.length, 1) * rowH + 30;
-      x.fillStyle = '#5B3A24'; fitText(x, now, PX, y, W - 2 * PX, '800', 40, F);
-      x.fillStyle = '#8a6f59'; fitText(x, cred, PX, y + 52, W - 2 * PX, '700', 34, F);
+      // now + highest qualification (+ the dream)
+      y = 538 + Math.max(steps.length, 1) * rowH + 30;
+      x.fillStyle = '#5B3A24'; fitText(x, now, PX, y, W - 2 * PX, '800', 40, FONT);
+      x.fillStyle = '#8a6f59'; fitText(x, cred, PX, y + 52, W - 2 * PX, '700', 34, FONT);
+      if (dreamTxt) { x.fillStyle = '#A9842F'; fitText(x, dreamTxt, PX, y + 104, W - 2 * PX, '700', 34, FONT); }
       // the five meters (two columns)
-      var my = y + 110, colW = (W - 2 * PX - 40) / 2;
+      var my = y + 110 + (dreamTxt ? 52 : 0), colW = (W - 2 * PX - 40) / 2;
       L.METERS.forEach(function (k, n) {
         var cx = PX + (n % 2) * (colW + 40), cy = my + Math.floor(n / 2) * 56, v = l.meters[k];
-        x.fillStyle = '#5B3A24'; fitText(x, T.meters[k], cx, cy, 150, '700', 30, F);
+        x.fillStyle = '#5B3A24'; fitText(x, T.meters[k], cx, cy, 150, '700', 30, FONT);
         roundRect(x, cx + 160, cy - 22, colW - 230, 18, 9); x.fillStyle = '#F1E7CF'; x.fill();
         if (v > 0) { roundRect(x, cx + 160, cy - 22, Math.max(18, (colW - 230) * v / 100), 18, 9); x.fillStyle = '#B7A35A'; x.fill(); }
-        x.fillStyle = '#5B3A24'; fitText(x, String(v), cx + colW - 56, cy, 60, '800', 30, F);
+        x.fillStyle = '#5B3A24'; fitText(x, String(v), cx + colW - 56, cy, 60, '800', 30, FONT);
       });
       // footer
-      x.fillStyle = '#8a6f59'; fitText(x, S.foot1, PX, H - M - 78, W - 2 * PX, '700', 28, F);
-      x.fillStyle = '#936c1f'; fitText(x, S.foot2, PX, H - M - 34, W - 2 * PX, '800', 28, F);
+      x.fillStyle = '#8a6f59'; fitText(x, S.foot1, PX, H - M - 78, W - 2 * PX, '700', 28, FONT);
+      x.fillStyle = '#936c1f'; fitText(x, S.foot2, PX, H - M - 34, W - 2 * PX, '800', 28, FONT);
       return { url: cv.toDataURL('image/png'), w: W, h: H };
     });
   }
@@ -645,6 +738,152 @@
     }).join('');
     return '<details class="explain runs"><summary>🗂 ' + esc(R.heading) + '</summary><div class="tablewrap"><table class="otable"><thead><tr>' +
       R.th.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div></details>';
+  }
+
+  /* ---------- fun pack: 估一估 guesses ---------- */
+  function guessBox(q, buttons) {
+    return '<div class="guess"><span class="tag">🎯 ' + esc(T.guess.tag) + '</span><p>' + esc(q) + '</p><div class="row wrapping">' + buttons + '</div></div>';
+  }
+  function verdict(g, a) { return g === a ? T.guess.exact : Math.abs(g - a) <= 1 ? T.guess.near : T.guess.far; }
+  // the Band of the Main Round offer (0–4 = A–E, 5 = none), before any Clearing Round
+  function mainBand() {
+    var r = state.round && state.round.rows.filter(function (x) { return x.status === 'offer'; })[0];
+    return r ? 'ABCDE'.indexOf(C.bandOfSlot(r.i)) : 5;
+  }
+  function guessOutcome(kind) {
+    var G = T.guess, g = state.guesses[kind];
+    if (g == null || g < 0) return null;
+    if (kind === 'match') {
+      if (!state.results) return null;
+      var m = state.results.changes.filter(function (c) { return c.diff === 0; }).length;
+      return G.matchResult(g, m) + ' ' + verdict(g, m);
+    }
+    if (kind === 'band') { if (!state.round) return null; var a = mainBand(); return G.bandResult(G.bands[g], G.bands[a]) + ' ' + verdict(g, a); }
+    var l = state.life;
+    if (!l || l.pend.type !== 'end') return null;
+    if (!l.job) return G.payResult(G.payBands[g], G.noPay);
+    var b = F.payBand(l.job.monthly);
+    return G.payResult(G.payBands[g], G.payBands[b]) + ' ' + verdict(g, b);
+  }
+  function guessResult(kind) { var t = guessOutcome(kind); return t ? '<p class="guess-res">🎯 ' + esc(t) + '</p>' : ''; }
+  function guessSummary() {
+    var lines = ['match', 'band', 'pay'].map(guessOutcome).filter(Boolean);
+    if (!lines.length) return '';
+    return '<details class="explain guesses" open><summary>🎯 ' + esc(T.guess.summary) + '</summary><ul>' +
+      lines.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></details>';
+  }
+
+  /* ---------- fun pack: the end title and the dream ---------- */
+  function storyFlags() { var ro = curRound() && curRound().offer; return { retake: !!state.retake, clearing: !!(ro && ro.clearing) }; }
+  function lifeTitle(l) {
+    var pz = F.persona(l, storyFlags()), P = T.personas[pz.id];
+    return { icon: P.icon, name: (pz.mod ? T.mods[pz.mod] : '') + P.name, desc: P.desc };
+  }
+  function stars(s) { return new Array(s + 1).join('★') + new Array(4 - s).join('☆'); }
+  function titleCard(l) {
+    var t = lifeTitle(l), av = state.me.avatar;
+    return '<div class="titlecard">' + F.avatarSVG(av, 76, esc(T.avatars[av])) + '<div><span class="small muted">' + esc(T.titleHeading) + '</span>' +
+      '<b class="ptitle">' + t.icon + ' ' + esc(t.name) + '</b><span>' + esc(t.desc) + '</span></div></div>';
+  }
+  function dreamCard(l) {
+    var id = state.me.dream, D = T.dreamEnd;
+    if (!id) return '';
+    var s = F.dreamStars(l, id), d = T.dreams[id];
+    return '<div class="dreamcard"><span class="dr-icon" aria-hidden="true">' + F.DREAMS[id].icon + '</span><div><span class="small muted">' + esc(D.heading) + '</span>' +
+      '<b>' + esc(d.name) + ' <span class="stars" role="img" aria-label="' + s + ' / 3">' + stars(s) + '</span></b><span>' + esc(D.stars[s]) + '</span>' +
+      (s < 3 ? '<span class="small tip">' + esc(D.tipLabel + d.tip) + '</span>' : '') + '</div></div>';
+  }
+
+  /* ---------- fun pack: the character walking along the road of the years ---------- */
+  var WALK_W = 600, WALK_H = 96;                      // the strip is exactly WALK_H px tall, so % positions match the drawing
+  function walkX(l, age) { var a0 = l.log[0].age, span = Math.max(1, l.endAge - a0); return 36 + (Math.min(age, l.endAge) - a0) / span * (WALK_W - 72); }
+  function walkY(x) { return 68 + 7 * Math.sin(x / 60); }
+  function walkPos(l, age, h) { var x = walkX(l, age); return { left: (x / WALK_W * 100).toFixed(2) + '%', top: ((walkY(x) - h) / WALK_H * 100).toFixed(2) + '%' }; }
+  function walkStrip(l) {
+    var pts = [], x;
+    for (x = 0; x <= WALK_W; x += 12) pts.push(x + ',' + walkY(x).toFixed(1));
+    var marks = l.log.filter(function (e) { return e.key === 'graduated' || e.key === 'gotJob' || e.key === 'mastersDone' || e.key === 'partTimeDone'; })
+      .map(function (e) { var p = walkPos(l, e.age, 30); return '<span class="wmark" style="left:' + p.left + ';top:' + p.top + '">' + (e.key === 'gotJob' ? '💼' : '🎓') + '</span>'; }).join('');
+    var me = walkPos(l, l.age, 40), flag = walkPos(l, l.endAge, 30);
+    return '<div class="walk" role="img" aria-label="' + esc(T.walk(l.age, l.endAge)) + '"><svg viewBox="0 0 ' + WALK_W + ' ' + WALK_H + '" preserveAspectRatio="none" aria-hidden="true">' +
+      '<rect width="' + WALK_W + '" height="' + WALK_H + '" fill="#FFF6E2"/>' +
+      '<path d="M0 ' + WALK_H + 'L0 74C120 56 240 80 360 66C460 54 540 74 ' + WALK_W + ' 62L' + WALK_W + ' ' + WALK_H + 'Z" fill="#DCE7D6"/>' +
+      '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#E8DCC2" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#C9A24B" stroke-width="2" stroke-dasharray="6 8"/></svg>' +
+      marks + '<span class="wmark" style="left:' + flag.left + ';top:' + flag.top + '">🏁</span>' +
+      '<div class="walker" style="left:' + me.left + ';top:' + me.top + '">' + F.avatarSVG(state.me.avatar, 40) + '</div>' +
+      '<div class="ages"><span>' + esc(T.life.age(l.log[0].age)) + '</span><span>' + esc(T.life.age(l.endAge)) + '</span></div></div>';
+  }
+
+  /* ---------- fun pack: motion (all of it skipped when the device asks for reduced motion) ---------- */
+  function reduceMotion() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function confetti() {
+    if (reduceMotion()) return;
+    var colors = ['#C9A24B', '#8BA888', '#E07A7A', '#6189a3', '#F2D27A', '#bd7d54'], box = document.createElement('div'), h = '';
+    box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
+    for (var i = 0; i < 36; i++) {
+      h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + colors[i % colors.length] +
+        ';animation-delay:' + (Math.random() * 0.35).toFixed(2) + 's;animation-duration:' + (1.4 + Math.random() * 0.9).toFixed(2) + 's"></i>';
+    }
+    box.innerHTML = h; document.body.appendChild(box);
+    setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 2800);
+  }
+  // offer day: light up each choice in order until the one that clears (the real JUPAS rule), then show the offer
+  function startScan() {
+    clearTimeout(scanTimer);
+    if (reduceMotion()) { scanTimer = setTimeout(finishScan, 0); return; }
+    var rows = curRound().rows, els = document.querySelectorAll('#screen .scanrow'), i = 0;
+    function next() {
+      var el = els[i], r = rows[i];
+      if (!el || !el.isConnected) return;                                   // the screen changed meanwhile
+      el.classList.add('checking');
+      if (el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+      scanTimer = setTimeout(function () {
+        var ok = r.status === 'offer';
+        el.classList.remove('checking'); el.classList.add(ok ? 'pass' : 'fail');
+        el.querySelector('.scan-st').textContent = ok ? T.reveal.pass : T.reveal.fail;
+        i++;
+        if (ok) {
+          for (var k = i; k < els.length; k++) { els[k].classList.add('skipped'); els[k].querySelector('.scan-st').textContent = T.reveal.after; }
+          scanTimer = setTimeout(finishScan, 1000);
+        } else scanTimer = setTimeout(i < els.length ? next : finishScan, i < els.length ? 90 : 800);
+      }, 230);
+    }
+    scanTimer = setTimeout(next, 350);
+  }
+  function finishScan() {
+    clearTimeout(scanTimer);
+    if (state.step !== 'offers') return;
+    state.revealed[inRetakeYear() ? 'offers2' : 'offers'] = true;
+    if (curRound().offer) confettiNext = true;
+    save(); render();
+  }
+  // a life turn: meters slide from the old values, the character walks on, the age counts up
+  function animateLife(a) {
+    if (reduceMotion()) return;
+    var l = state.life;
+    document.querySelectorAll('#screen .lifepanel .meter').forEach(function (row, n) {
+      var k = L.METERS[n], bar = row.querySelector('.bar i');
+      if (!bar || a.m0[k] == null || a.m0[k] === l.meters[k]) return;
+      bar.style.transition = 'none'; bar.style.width = a.m0[k] + '%'; void bar.offsetWidth;
+      bar.style.transition = ''; bar.style.width = l.meters[k] + '%';
+    });
+    var w = document.querySelector('#screen .walker');
+    if (w && a.age0 !== l.age) {
+      var p0 = walkPos(l, a.age0, 40), to = { left: w.style.left, top: w.style.top };
+      w.style.transition = 'none'; w.style.left = p0.left; w.style.top = p0.top; void w.offsetWidth;
+      w.style.transition = ''; w.classList.add('hop'); w.style.left = to.left; w.style.top = to.top;
+    }
+    var ag = document.querySelector('#screen .lifehead .age');
+    if (ag && a.age0 < l.age) {
+      var cur = a.age0; ag.textContent = T.life.age(cur);
+      var t = setInterval(function () { cur++; ag.textContent = T.life.age(Math.min(cur, l.age)); if (cur >= l.age) clearInterval(t); }, 260);
+    }
+  }
+  function afterRender() {
+    if (state.step === 'offers' && document.querySelector('#screen .scanrow')) startScan();
+    if (state.step === 'life' && anim) { var a = anim; anim = null; animateLife(a); }
+    if (confettiNext) { confettiNext = false; confetti(); }
   }
 
   /* ---------- the JUPAS list (search + 20 slots) ---------- */
@@ -698,10 +937,17 @@
   // run one life choice, then show what it led to: the new timeline lines, how the five meters moved, and a
   // reflection prompt after the first stretch of life and at each graduation
   function lifeAfter(fn, intro) {
-    var l = state.life, before = l.log.length, m0 = {}, turns0 = l.turns || 0;
+    var l = state.life, before = l.log.length, m0 = {}, turns0 = l.turns || 0, age0 = l.age;
+    var hadJob = l.log.some(function (e) { return e.key === 'gotJob'; });
     L.METERS.forEach(function (k) { m0[k] = l.meters[k]; });
     fn();
     var fresh = l.log.slice(before);
+    anim = { age0: age0, m0: m0 };
+    // a little celebration for the big moments
+    if (fresh.some(function (e) {
+      return e.key === 'graduated' || e.key === 'seniorYes' || e.key === 'mastersDone' || (e.key === 'gotJob' && !hadJob) ||
+        (e.key === 'event' && e.data.id === 'promotion');
+    })) confettiNext = true;
     var text = (intro ? [intro] : []).concat(fresh.map(logText)).filter(Boolean).join(' ');
     var deltas = L.METERS.map(function (k) { return { k: k, d: l.meters[k] - m0[k] }; }).filter(function (x) { return x.d; });
     var reflect = fresh.some(function (e) { return e.key === 'graduated'; }) ? 'graduation' : turns0 === 0 && (l.turns || 0) === 1 ? 'year1' : null;
@@ -721,15 +967,52 @@
     start: function () {
       var code = normCode(codeDraft != null ? codeDraft : state && state.classCode);
       if (code && !validCode(code)) { $('class-err').textContent = T.classMode.invalid; return; }
-      state = blank(state && state.mode, code || null); resumeStep = null; codeDraft = null; go('grades');
+      state = keepMe(state, blank(state && state.mode, code || null)); resumeStep = null; codeDraft = null; go('me');
     },
+    av: function (b) { state.me.avatar = b.getAttribute('data-id'); save(); render(); },
+    dr: function (b) {
+      var id = b.getAttribute('data-id') || null, me = state.me;
+      if (me.dreamCat) state.cats = state.cats.filter(function (k) { return k !== me.dreamCat; });   // undo the last dream's interest
+      me.dream = id; me.dreamCat = null;
+      var cat = id && F.DREAMS[id].cat;
+      if (cat && state.cats.indexOf(cat) < 0) { state.cats.unshift(cat); me.dreamCat = cat; }   // the dream's field becomes an interest
+      save(); render();
+    },
+    'me-next': function () { go('grades'); },
+    // quick start: a ready-made (or random) student fills the grades and interests, then "suggest" builds the list
+    sample: function (b) {
+      var id = b.getAttribute('data-id'), s = id === 'random' ? F.randomStudent(Math.random) : F.SAMPLES[id];
+      var el = s.pred.elect.map(function (e) { return { s: e.s, lv: e.lv }; });
+      while (el.length < 4) el.push({ s: '', lv: '' });
+      state.pred = { chi: s.pred.chi, eng: s.pred.eng, math: s.pred.math, csd: s.pred.csd, elect: el };
+      var cats = s.cats.slice(), dc = state.me.dream && F.DREAMS[state.me.dream].cat;
+      if (dc && cats.indexOf(dc) < 0) cats.unshift(dc);
+      state.cats = cats; state.me.dreamCat = null;
+      state.list = C.suggestList(predClean(), state.cats, DB);
+      go('list');
+      var name = (id === 'random' ? T.quick.random : T.quick.samples[id]).replace(/^\S+\s+/, '');
+      listMsg(state.list.length ? T.quick.done(name) : T.list.noneEligible);
+    },
+    'guess-match': function (b) { state.guesses.match = +b.getAttribute('data-v'); save(); render(); },
+    flip: function (b) {
+      var i = +b.getAttribute('data-i'), res = inRetakeYear() ? state.retake.results : state.results;
+      flips[i] = true; flips.last = i;
+      if (res.changes.every(function (c, k) { return flips[k]; })) state.revealed[inRetakeYear() ? 'results2' : 'results'] = true;
+      save(); render();
+    },
+    'reveal-all': function () { state.revealed[inRetakeYear() ? 'results2' : 'results'] = true; save(); render(); },
+    'guess-band': function (b) { state.guesses.band = +b.getAttribute('data-v'); save(); render(); },
+    'scan-skip': function () { finishScan(); },
+    'guess-pay': function (b) { state.guesses.pay = +b.getAttribute('data-v'); save(); render(); },
     'class-gen': function () {
       codeDraft = genCode();
       var i = $('class-code'); if (i) i.value = codeDraft;
       var e = $('class-err'); if (e) e.textContent = '';
     },
     resume: function () { var s = resumeStep; resumeStep = null; go(s); },
-    restart: function () { state = blank(state && state.mode, state && state.classCode); resumeStep = null; lastMsg = null; codeDraft = null; go('intro'); },
+    restart: function () {
+      state = keepMe(state, blank(state && state.mode, state && state.classCode)); resumeStep = null; lastMsg = null; codeDraft = null; go('intro');
+    },
     back: back,
     csd: function (b) { state.pred.csd = b.getAttribute('data-v'); save(); render(); },
     'g-next': function () {
@@ -759,6 +1042,7 @@
     'l-del': function (b) { state.list.splice(+b.getAttribute('data-i'), 1); save(); renderList(); },
     'l-next': function () {
       state.results = C.resultsDay(predClean(), state.seed);
+      state.guesses = {}; state.revealed = {}; flips = {};
       state.round = null; state.clearing = null; state.retake = null; state.retakePick = [];
       state.route = null; state.field = null; state.life = null; state.lifeFrom = null; lastMsg = null;
       go('results');
@@ -779,7 +1063,7 @@
       if (state.clearing.picked) return;
       var code = b.getAttribute('data-code'), ok = C.clearingResult(code, state.seed, roundOpts());
       state.clearing.picked = code; state.clearing.ok = ok;
-      if (ok) curRound().offer = { code: code, slot: '補選', clearing: true };
+      if (ok) { curRound().offer = { code: code, slot: '補選', clearing: true }; confettiNext = true; }
       save(); render();
     },
     'o-accept': function () { state.route = 'degree'; startLife(); },
@@ -799,6 +1083,7 @@
     },
     'rt-go': function () {
       state.retake = { subjects: state.retakePick.slice(), results: C.retakeResults(state.results.actual, state.retakePick, state.seed), round: null };
+      state.revealed.results2 = false; state.revealed.offers2 = false; flips = {};
       state.clearing = null; go('results');
     },
     fld: function (b) { state.field = b.getAttribute('data-k'); save(); render(); },

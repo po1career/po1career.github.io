@@ -62,7 +62,7 @@
   .btn:disabled{opacity:0.45;cursor:not-allowed;}
   .btn:focus-visible,.chip:focus-visible,.seg button:focus-visible,.ops button:focus-visible{outline:3px solid #8a5e18;outline-offset:2px;}
   .navrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;}
-  .row{display:flex;gap:10px;align-items:center;margin-bottom:10px;} .row.wrap{flex-wrap:wrap;}
+  .row{display:flex;gap:10px;align-items:center;margin-bottom:10px;} .row.wrapping{flex-wrap:wrap;}
   /* grades */
   .gtable{border-collapse:collapse;width:100%;}
   .gtable td{border-bottom:1px solid #f3ecd9;padding:8px 6px;vertical-align:middle;}
@@ -191,6 +191,61 @@
   .shareimg{display:block;width:100%;max-width:420px;height:auto;border:1px solid var(--border);border-radius:14px;margin:8px 0;box-shadow:var(--shadow);}
   a.btn{display:inline-block;text-decoration:none;}
   .runs tr.cur td{background:var(--good-bg);}
+  /* fun pack: character + dream, quick start, guesses, reveals, walking strip, confetti, end title */
+  .avgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px;}
+  .avpick{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px solid transparent;background:#fffdf7;border-radius:16px;
+    padding:8px 4px;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.86rem;color:var(--ink);}
+  .avpick svg{transition:transform .2s ease;} .avpick:hover svg{transform:translateY(-3px) rotate(-5deg);}
+  .avpick.on{border-color:var(--accent-dark);background:var(--accent-soft);}
+  .drgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+  .drpick{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--border);background:#fff;border-radius:14px;
+    padding:10px 12px;font-family:inherit;color:var(--ink);cursor:pointer;}
+  .drpick.on{border:2px solid var(--accent-dark);background:var(--accent-soft);padding:9px 11px;}
+  .drpick b{font-size:0.92rem;} .drpick span{font-size:0.8rem;color:var(--muted);}
+  .dr-icon{font-size:1.5rem;line-height:1.2;}
+  .avpick:focus-visible,.drpick:focus-visible,.tile:focus-visible{outline:3px solid #8a5e18;outline-offset:2px;}
+  .quick{border:1px dashed #d6c08a;background:#fffaf0;border-radius:14px;padding:4px 14px 6px;margin:4px 0 6px;}
+  .quick h3.sub{margin-top:8px;} .quick .row{margin-bottom:4px;}
+  .guess{border:2px solid #e8c25a;background:#fffaf0;border-radius:14px;padding:12px 14px;margin:12px 0;}
+  .guess .tag{display:inline-block;background:#e8c25a;color:#5B3A24;font-weight:800;border-radius:999px;padding:1px 10px;font-size:0.78rem;}
+  .guess p{margin:8px 0;font-weight:700;} .guess .row{margin-bottom:0;}
+  .guess-res{font-weight:800;color:#8a5e18;margin:8px 0;}
+  .envelope{text-align:center;}
+  .tile{width:2.3em;height:2.3em;border-radius:10px;border:none;background:linear-gradient(135deg,#C9A24B,#A9842F);color:#fff;font-weight:800;
+    font-size:1.05rem;cursor:pointer;box-shadow:0 3px 0 #8a5e18;font-family:inherit;}
+  .tile:hover{transform:translateY(-1px);}
+  .pop{display:inline-block;animation:pop .5s ease;}
+  @keyframes pop{0%{transform:scale(.3) rotate(-12deg);opacity:0;}70%{transform:scale(1.25);}100%{transform:none;opacity:1;}}
+  .scan{list-style:none;padding:0;margin:8px 0;}
+  .scanrow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:10px;
+    border:1px solid transparent;transition:background .2s,opacity .2s;font-size:0.9rem;}
+  .scanrow .sname{min-width:0;font-weight:700;} .scan-st{font-weight:800;font-size:0.82rem;white-space:nowrap;}
+  .scanrow.checking{background:#fff3d4;border-color:#e8c25a;}
+  .scanrow.fail{opacity:.55;} .scanrow.fail .scan-st{color:var(--bad);}
+  .scanrow.pass{background:var(--good-bg);border-color:#bfe3cf;} .scanrow.pass .scan-st{color:var(--good);}
+  .scanrow.skipped{opacity:.35;}
+  .walk{position:relative;height:96px;margin:8px 0 10px;border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+  .walk svg{position:absolute;inset:0;width:100%;height:100%;}
+  .walker{position:absolute;width:40px;height:40px;margin-left:-20px;transition:left .9s ease,top .9s ease;}
+  .walker svg{display:block;} .walker.hop svg{animation:hop .45s ease 2;}
+  @keyframes hop{50%{transform:translateY(-7px);}}
+  .wmark{position:absolute;margin-left:-10px;font-size:1rem;line-height:1;}
+  .walk .ages{position:absolute;left:8px;right:8px;bottom:3px;display:flex;justify-content:space-between;font-size:0.72rem;font-weight:800;color:#4b6848;}
+  .meter{position:relative;}
+  .meter .float{position:absolute;right:-4px;top:-12px;font-style:normal;font-weight:800;font-size:0.78rem;animation:floatUp 1.6s ease forwards;}
+  .float.up{color:var(--good);} .float.down{color:var(--bad);}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(8px);}20%{opacity:1;}80%{opacity:1;}100%{opacity:0;transform:translateY(-10px);}}
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50;}
+  .confetti i{position:absolute;top:-14px;width:8px;height:14px;border-radius:2px;animation:fall 1.8s ease-in forwards;}
+  @keyframes fall{to{transform:translateY(105vh) rotate(560deg);}}
+  .titlecard,.dreamcard{display:flex;align-items:center;gap:14px;border-radius:16px;padding:12px 16px;margin:8px 0 12px;}
+  .titlecard{border:2px solid #e8c25a;background:radial-gradient(420px 140px at 0% 0%,rgba(201,162,75,0.22),transparent 70%),#fffdf7;}
+  .dreamcard{border:1px solid var(--border);background:#fffdf7;}
+  .titlecard>div,.dreamcard>div{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .titlecard svg{flex:none;}
+  .ptitle{font-size:1.3rem;font-weight:800;}
+  .dreamcard .dr-icon{font-size:2rem;flex:none;} .dreamcard .tip{color:var(--muted);}
+  .stars{color:#C9A24B;letter-spacing:2px;}
   /* lock */
   .lockscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(820px 320px at 50% -6%,rgba(201,162,75,0.18),transparent 62%),var(--bg);}
   .lockbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px 26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
@@ -264,8 +319,9 @@
 <script src="life-paths-core.js?v=2"></script>
 <script src="life-paths-stats.js?v=1"></script>
 <script src="life-paths-life.js?v=5"></script>
-<script src="life-paths-content.js?v=6"></script>
-<script src="life-paths-ui.js?v=8"></script>
+<script src="life-paths-fun.js?v=1"></script>
+<script src="life-paths-content.js?v=8"></script>
+<script src="life-paths-ui.js?v=10"></script>
 <div class="po1credit">© 2026 保良局第一張永慶中學 · 升學輔導及生涯規劃組</div>
 </body>
 </html>
