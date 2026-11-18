@@ -129,7 +129,9 @@
   // C&SD's all-age medians for each education level: upper secondary 17,200 · sub-degree 23,000 · degree 36,900)
   var GROWTH = { dse: 0.015, dae: 0.015, subdegree: 0.02, degree: 0.03, masters: 0.03 };
   function startingPay(l, level) {
-    var z = C().normal(l.seed, 'pay|' + l.age + '|' + level);
+    // ONE personal pay factor per life (keyed by the seed only), so a "what if" that starts work at another age or
+    // with another qualification compares the decision, not a different draw of luck
+    var z = C().normal(l.seed, 'pay');
     var personal = Math.exp(0.15 * z) * (1 + (l.meters.skills - 50) / 400 + (l.meters.connections - 50) / 800);
     var base = referencePay(level, l.field) * (level === 'masters' ? 1.08 : 1);
     return Math.round(base * personal / 100) * 100;
@@ -154,13 +156,17 @@
   }
 
   /* ---------- graduation & branches ---------- */
+  // the choice offered at each turning point (options in screen order)
+  var BRANCHES = { afterDegree: ['work', 'masters'], afterSub: ['senior', 'topup', 'work'], afterSeniorNo: ['topup', 'work'],
+    afterDae: ['subdeg', 'vtc', 'work'] };
+  function branch(id) { return { type: 'branch', id: id, options: BRANCHES[id].slice() }; }
   function graduate(l) {
     var t = TRACKS[l.track.id];
     l.creds.push({ level: t.cred, field: l.track.field, track: l.track.id, code: l.track.code, age: l.age });
     log(l, 'graduated', { track: l.track.id, cred: t.cred, field: l.track.field, code: l.track.code }, 'good');
-    if (t.cred === 'degree') l.pend = { type: 'branch', id: 'afterDegree', options: ['work', 'masters'] };
-    else if (t.cred === 'subdegree') l.pend = { type: 'branch', id: 'afterSub', options: ['senior', 'topup', 'work'] };
-    else if (t.cred === 'dae') l.pend = { type: 'branch', id: 'afterDae', options: ['subdeg', 'vtc', 'work'] };
+    if (t.cred === 'degree') l.pend = branch('afterDegree');
+    else if (t.cred === 'subdegree') l.pend = branch('afterSub');
+    else if (t.cred === 'dae') l.pend = branch('afterDae');
     else { jobSearch(l); l.pend = null; }                                       // masters → straight to work
   }
   function chooseBranch(l, opt) {
@@ -170,7 +176,7 @@
     else if (opt === 'senior') {
       var p = clamp(0.45 + (l.meters.study - 55) / 100, 0.15, 0.85);
       if (C().uniform(l.seed, 'senior|' + l.age) < p) { startTrack(l, 'senior'); log(l, 'seniorYes', { p: p }, 'good'); }
-      else { log(l, 'seniorNo', { p: p }, 'warn'); l.pend = { type: 'branch', id: 'afterSeniorNo', options: ['topup', 'work'] }; return; }
+      else { log(l, 'seniorNo', { p: p }, 'warn'); l.pend = branch('afterSeniorNo'); return; }
     } else startTrack(l, opt);
     if (!l.pend) l.pend = l.age >= l.endAge ? { type: 'end' } : { type: 'focus' };
   }
@@ -268,13 +274,17 @@
   }
 
   /* ---------- start ---------- */
+  // Rule version stamped on every life. BUMP IT whenever a rule change would replay an old saved life differently
+  // (the "what if" screen then asks for a new game instead of comparing old rules with new ones).
+  // 2 = Phase 3 (one personal pay factor per life).
+  var MODEL_VERSION = 2;
   // ctx: { seed, mode:'short'|'long', route, field, offer:{code}|null, prog (offer programme)|null, actual, startAge }
   function start(ctx) {
     var lv = [ctx.actual.chi, ctx.actual.eng, ctx.actual.math].concat((ctx.actual.elect || []).map(function (e) { return e.lv; }))
       .map(function (x) { return Math.max(0, C().lvIndex(x)); });
     var avg = lv.reduce(function (a, b) { return a + b; }, 0) / Math.max(1, lv.length);
     var long = ctx.mode === 'long';
-    var l = { v: 1, seed: ctx.seed, mode: long ? 'long' : 'short', step: long ? 1 : 2, endAge: long ? 30 : 25,
+    var l = { v: 1, model: MODEL_VERSION, seed: ctx.seed, mode: long ? 'long' : 'short', step: long ? 1 : 2, endAge: long ? 30 : 25,
       age: ctx.startAge || 18, field: ctx.field || 'Business',
       meters: { study: clamp(Math.round(25 + 8 * avg), 0, 100), skills: 30, wellbeing: 65, connections: 40, money: 40 },
       creds: [{ level: 'dse', age: ctx.startAge || 18 }], job: null, track: null, pend: null, queue: [], log: [], decisions: [], flags: {} };
@@ -297,10 +307,51 @@
   function trackKind(l) { return TRACKS[l.track.id].kind; }
   function focusOptions(l) { return FOCUS[trackKind(l)].map(function (f) { return f.id; }); }
 
+  /* ---------- "what if": the same life again with ONE decision changed and the same luck ---------- */
+  // Every draw is keyed by seed + purpose + age, so replaying with the same seed gives the same luck. The player's
+  // other decisions are reused as habits: the focus they chose at that age (or the latest one before it, switched
+  // to its study ↔ work twin when the track kind differs), the same answer to the same event, the same option at
+  // the same turning point; anything new takes the first option. Replaying with no change reproduces the life exactly.
+  var FOCUS_TWIN = { study: 'learn', experience: 'perform', parttime: 'save', balance: 'wbalance', explore: 'network',
+    learn: 'study', perform: 'experience', save: 'parttime', wbalance: 'balance', network: 'explore' };
+  // ctx: the start context of the alternative life (same seed); orig: the original life;
+  // change: { key: 'route' } (ctx already holds the new route) | { key: 'branch', id, age, opt } |
+  //         { key: 'event', id, age, choice } | { key: 'none' }
+  function replay(ctx, orig, change) {
+    var l = start(ctx), focusAt = {}, ages = [], evAt = {}, evAny = {}, brAny = {};
+    orig.decisions.forEach(function (d) {
+      if (d.key === 'focus') { focusAt[d.age] = d.data.id; ages.push(d.age); }
+      else if (d.key === 'event') { evAt[d.data.id + '|' + d.age] = d.data.choice; if (!(d.data.id in evAny)) evAny[d.data.id] = d.data.choice; }
+      else if (d.key === 'branch') { if (!(d.data.id in brAny)) brAny[d.data.id] = d.data.opt; }
+    });
+    ages.sort(function (a, b) { return a - b; });
+    function habit() {
+      var id = focusAt[l.age];
+      if (id == null && ages.length) { var at = ages[0]; ages.forEach(function (a) { if (a <= l.age) at = a; }); id = focusAt[at]; }
+      var opts = focusOptions(l);
+      if (opts.indexOf(id) < 0) id = FOCUS_TWIN[id];
+      return opts.indexOf(id) >= 0 ? id : opts[0];
+    }
+    for (var n = 0; n < 300 && l.pend.type !== 'end'; n++) {
+      var p = l.pend;
+      if (p.type === 'focus') chooseFocus(l, habit());
+      else if (p.type === 'event') {
+        var k = p.id + '|' + l.age, ch = change.key === 'event' && change.id === p.id && change.age === l.age ? change.choice
+          : k in evAt ? evAt[k] : p.id in evAny ? evAny[p.id] : 0;
+        chooseEvent(l, Math.min(ch, eventById(p.id).choices.length - 1));
+      } else {
+        var o = change.key === 'branch' && change.id === p.id && change.age === l.age ? change.opt : brAny[p.id];
+        chooseBranch(l, p.options.indexOf(o) >= 0 ? o : p.options[0]);
+      }
+    }
+    return l;
+  }
+
   window.LifePathsLife = {
     METERS: METERS, TRACKS: TRACKS, EVENTS: EVENTS, FOCUS: FOCUS, CRED_RANK: CRED_RANK, HEALTH_SHARE: HEALTH_SHARE,
+    BRANCHES: BRANCHES, FOCUS_TWIN: FOCUS_TWIN, MODEL_VERSION: MODEL_VERSION,
     start: start, chooseFocus: chooseFocus, chooseEvent: chooseEvent, chooseBranch: chooseBranch, turnYears: turnYears,
-    programmeYears: programmeYears, isSubDegree: isSubDegree,
+    replay: replay, programmeYears: programmeYears, isSubDegree: isSubDegree,
     focusOptions: focusOptions, trackKind: trackKind, topCred: topCred, referencePay: referencePay, eventById: eventById
   };
 })();

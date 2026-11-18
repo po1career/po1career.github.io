@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 140" preserveAspectRatio="xMidYMid slice">
+  <!-- DSE Life Paths art: a winding road from school to work (site palette; self-made) -->
+  <defs>
+    <linearGradient id="lp-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3d4"/>
+      <stop offset="1" stop-color="#fbe7b4"/>
+    </linearGradient>
+    <radialGradient id="lp-sun" cx="88%" cy="6%" r="45%">
+      <stop offset="0" stop-color="#ffd25e" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ffdf86" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="140" fill="url(#lp-sky)"/>
+  <rect width="600" height="140" fill="url(#lp-sun)"/>
+
+  <!-- clouds -->
+  <g fill="#ffffff" opacity="0.8">
+    <ellipse cx="120" cy="34" rx="40" ry="11"/>
+    <ellipse cx="160" cy="41" rx="28" ry="9"/>
+    <ellipse cx="452" cy="28" rx="36" ry="10"/>
+  </g>
+
+  <!-- hills -->
+  <path d="M0,140 C110,98 230,118 340,104 C450,90 520,112 600,96 L600,140 Z" fill="#bcd6ad" opacity="0.85"/>
+  <path d="M0,140 C140,120 300,134 420,124 C510,117 560,128 600,122 L600,140 Z" fill="#96bd8c" opacity="0.9"/>
+
+  <!-- birds -->
+  <g stroke="#6e4d31" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.75">
+    <path d="M320,44 q7,-7 14,0 q7,-7 14,0"/>
+    <path d="M362,30 q5,-5 10,0 q5,-5 10,0"/>
+  </g>
+
+  <!-- the road -->
+  <path d="M14,126 C110,128 150,96 236,98 S372,122 440,104 S540,64 592,58" fill="none" stroke="#e0cfa6"
+        stroke-width="15" stroke-linecap="round"/>
+  <path d="M14,126 C110,128 150,96 236,98 S372,122 440,104 S540,64 592,58" fill="none" stroke="#f6ecd6"
+        stroke-width="11" stroke-linecap="round"/>
+  <path d="M14,126 C110,128 150,96 236,98 S372,122 440,104 S540,64 592,58" fill="none" stroke="#c9a24b"
+        stroke-width="2.2" stroke-linecap="round" stroke-dasharray="7 9"/>
+
+  <!-- start: a small flag -->
+  <path d="M40,124 V98" stroke="#6e4d31" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M41,98 L60,104 L41,111 Z" fill="#c9a24b"/>
+
+  <!-- a graduation cap -->
+  <path d="M216,72 L236,62 L256,72 L236,82 Z" fill="#5b3a24"/>
+  <rect x="226" y="75" width="20" height="9" rx="2" fill="#6e4d31"/>
+  <path d="M251,73 V86" stroke="#c9a24b" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="251" cy="88" r="2.6" fill="#c9a24b"/>
+
+  <!-- a briefcase -->
+  <path d="M434,74 V69 h12 v5" fill="none" stroke="#8a5e18" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="426" y="74" width="28" height="19" rx="4" fill="#a9842f"/>
+  <path d="M426,82 H454" stroke="#8a5e18" stroke-width="1.6"/>
+
+  <!-- a star at the end of the road -->
+  <path d="M580,56 V40" stroke="#6e4d31" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M580,20 L582.5,26.6 L589.5,26.9 L584,31.3 L585.9,38.1 L580,34.2 L574.1,38.1 L576,31.3 L570.5,26.9 L577.5,26.6 Z" fill="#c9a24b"/>
+
+  <!-- milestones on the road -->
+  <g fill="#a9842f" stroke="#fffdf8" stroke-width="2">
+    <circle cx="40" cy="126" r="5"/>
+    <circle cx="236" cy="98" r="5"/>
+    <circle cx="440" cy="104" r="5"/>
+    <circle cx="582" cy="59" r="5"/>
+  </g>
+</svg>

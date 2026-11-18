@@ -154,10 +154,15 @@ const FIELDS = ['Business', 'Science', 'Engineering', 'Computing', 'Medicine', '
 const progs = LIST.filter((p) => p.institution !== 'SSSDP').slice(0, 60);
 let lifeOk = 0, lifeErr = [], decisions = 0, maxDec = 0; const pays = {}; const LIVES = 3000;
 const seenBranches = {}, seenLogKeys = new Set();          // collected for the text-coverage checks (section 7)
+// the start context of simulated life i (route overridable for the "what if" checks in section 8)
+function ctxFor(i, route) {
+  const r = route || ROUTES[i % ROUTES.length], mode = i % 2 ? 'long' : 'short', prog = progs[i % progs.length];
+  return { seed: 'life' + i, mode, route: r, field: FIELDS[i % FIELDS.length], offer: r === 'degree' ? { code: prog.jupas_code } : null,
+    prog: r === 'degree' ? prog : null, actual: students[i % N], startAge: i % 7 === 0 ? 19 : 18 };
+}
 function playLife(i, pick) {
-  const r = ROUTES[i % ROUTES.length], mode = i % 2 ? 'long' : 'short', prog = progs[i % progs.length];
-  const l = L.start({ seed: 'life' + i, mode, route: r, field: FIELDS[i % FIELDS.length], offer: r === 'degree' ? { code: prog.jupas_code } : null,
-    prog: r === 'degree' ? prog : null, actual: students[i % N], startAge: i % 7 === 0 ? 19 : 18 });
+  const ctx = ctxFor(i), r = ctx.route, mode = ctx.mode;
+  const l = L.start(ctx);
   let n = 0, lastAge = l.age;
   while (l.pend.type !== 'end' && n < 200) {
     n++;
@@ -175,7 +180,7 @@ function playLife(i, pick) {
   if (l.pend.type !== 'end') throw new Error(`did not end (age ${l.age}, pending ${JSON.stringify(l.pend)})`);
   if (l.age !== l.endAge) throw new Error(`ended at ${l.age}, expected ${l.endAge}`);
   l.log.forEach((e) => seenLogKeys.add(e.key));
-  return { l, n, r, mode };
+  return { l, n, r, mode, ctx };
 }
 const pickA = (i, n, k) => (i + n) % k;
 for (let i = 0; i < LIVES; i++) {
@@ -234,6 +239,37 @@ for (const k of ['startDegree', 'startTrack', 'startWork']) if (typeof T.logs[k]
 check(`every event, choice, focus, track, credential, meter, route, field, branch and log line has text ` +
   `(${L.EVENTS.length} events, ${Object.keys(seenBranches).length} branches, ${seenLogKeys.size} log kinds seen)`, miss.length === 0, miss.slice(0, 8).join(', '));
 check('the step bar has the 8 steps the screens use', T.steps.map((x) => x.id).join() === 'grades,interests,list,results,offers,routes,life,end');
+
+/* 8. "what if" (Phase 3): the same luck with ONE decision changed — L.replay */
+console.log('\n"what if" replays');
+const WI = 800, wi = { exact: 0, prefix: 0, prefixN: 0, route: 0, routeN: 0, err: [] };
+for (let i = 0; i < WI; i++) {
+  try {
+    const { l, ctx } = playLife(i, pickA);
+    if (JSON.stringify(L.replay(ctx, l, { key: 'none' })) === JSON.stringify(l)) wi.exact++;
+    // change the first turning point or event answer: identical before it, the new answer at it, a clean ending
+    const idx = l.decisions.findIndex((x) => x.key === 'branch' || x.key === 'event');
+    if (idx >= 0) {
+      const d = l.decisions[idx]; wi.prefixN++;
+      const change = d.key === 'branch'
+        ? { key: 'branch', id: d.data.id, age: d.age, opt: L.BRANCHES[d.data.id].find((o) => o !== d.data.opt) }
+        : { key: 'event', id: d.data.id, age: d.age, choice: (d.data.choice + 1) % L.eventById(d.data.id).choices.length };
+      const a = L.replay(ctx, l, change), ad = a.decisions[idx];
+      const before = (x) => JSON.stringify(x.decisions.slice(0, idx));
+      if (before(a) === before(l) && ad && ad.key === d.key && JSON.stringify(ad.data) !== JSON.stringify(d.data) &&
+        a.pend.type === 'end' && a.age === a.endAge) wi.prefix++;
+      else wi.err.push(`life${i}: ${d.key} change`);
+    }
+    // another route at the start: a valid life to the same final age
+    const alt = ROUTES[(i + 3) % ROUTES.length]; wi.routeN++;
+    const a2 = L.replay(ctxFor(i, alt), l, { key: 'route' });
+    if (a2.pend.type === 'end' && a2.age === a2.endAge && a2.decisions[0].data.route === alt) wi.route++;
+  } catch (e) { wi.err.push(`life${i}: ${e.message}`); }
+}
+check(`no change → the very same life (${wi.exact}/${WI})`, wi.exact === WI, wi.err.slice(0, 3).join(' | '));
+check(`one turning point or event answer changed → identical before it, the new answer at it, ends cleanly (${wi.prefix}/${wi.prefixN})`,
+  wi.prefix === wi.prefixN && wi.prefixN > 50, wi.err.slice(0, 3).join(' | '));
+check(`another route at the start → a valid life to the same final age (${wi.route}/${wi.routeN})`, wi.route === wi.routeN, wi.err.slice(0, 3).join(' | '));
 
 console.log(`\nsummary: ${offers}/${N} simulated students got a Main Round offer with a suggested list ` +
   `(${eligibleAny} had any suggestion; avg list ${(suggestedLen / N).toFixed(1)} choices; ${lowerCleared} lower choices also cleared)`);

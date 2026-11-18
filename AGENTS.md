@@ -94,5 +94,7 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
   DOM dependencies and uses seeded, keyed randomness; test it with `tools/life-paths-test.mjs` (needs
   `PO1_STUDENT_PASS`), which also checks that `life-paths-content.js` has text for every id the engine produces.
   Cited figures live only in `life-paths-stats.js` (source, year and link each); anything else is labelled
-  illustrative on the game's 資料來源與假設 page.
+  illustrative on the game's 資料來源與假設 page. Bump `MODEL_VERSION` in `life-paths-life.js` whenever a rule change
+  would replay an old saved life differently (the "what if" screen relies on it). The game's class code, saves and
+  share image never leave the device — keep it that way.
 - The scoring engine has **no DOM dependencies** — keep it that way so it stays testable in node/JSC.

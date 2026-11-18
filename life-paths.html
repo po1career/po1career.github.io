@@ -169,6 +169,28 @@
   .mchip{border:1px solid var(--border);background:#fffdf7;border-radius:999px;padding:4px 12px;font-size:0.88rem;}
   .datapage h4{margin:12px 0 4px;font-size:0.92rem;}
   .datapage a{color:var(--link);font-weight:700;}
+  /* phase 3: class mode, projector text, reflection, what if, share image, recent runs, art */
+  html.big{font-size:118%;} html.big .wrap{max-width:1100px;}
+  .classpill{display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;padding:4px 12px;border-radius:999px;
+    background:#eef4ec;border:1px solid #cfe2cc;color:#3f6a3b;font-weight:800;font-size:0.84rem;}
+  .classrow input{flex:1 1 180px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;}
+  .toggle{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:0.9rem;margin:8px 0 0;cursor:pointer;}
+  .toggle input{width:18px;height:18px;accent-color:var(--accent-dark);}
+  .reflect{border:1px dashed #d6c08a;background:#fffaf0;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:0.92rem;}
+  .reflect p{margin:0;} .reflect p + p{margin-top:6px;}
+  .art{display:block;width:100%;height:auto;max-height:150px;object-fit:cover;border-radius:14px;margin:4px 0 12px;}
+  .whatif,.sharebox{border-top:1px solid var(--border);margin-top:16px;padding-top:4px;}
+  .wi-alts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;}
+  .cmpbox{border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:12px 0;background:#fffdf7;}
+  .cmpbox h4{margin:0 0 6px;font-size:1rem;} .cmpbox h4:focus{outline:none;}
+  .cmp{border-collapse:collapse;width:100%;margin:6px 0;}
+  .cmp th,.cmp td{border-bottom:1px solid #f3ecd9;padding:7px 8px;text-align:left;font-size:0.9rem;vertical-align:top;}
+  .cmp thead th{font-size:0.8rem;color:var(--muted);} .cmp tbody th{font-weight:700;white-space:nowrap;}
+  .cmp .d-up{color:var(--good);font-weight:800;} .cmp .d-down{color:var(--bad);font-weight:800;}
+  .paths p{margin:6px 0;font-size:0.88rem;}
+  .shareimg{display:block;width:100%;max-width:420px;height:auto;border:1px solid var(--border);border-radius:14px;margin:8px 0;box-shadow:var(--shadow);}
+  a.btn{display:inline-block;text-decoration:none;}
+  .runs tr.cur td{background:var(--good-bg);}
   /* lock */
   .lockscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(820px 320px at 50% -6%,rgba(201,162,75,0.18),transparent 62%),var(--bg);}
   .lockbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:34px 26px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;}
@@ -241,9 +263,9 @@
 <script src="jupas-finder-core.js?v=5"></script>
 <script src="life-paths-core.js?v=2"></script>
 <script src="life-paths-stats.js?v=1"></script>
-<script src="life-paths-life.js?v=2"></script>
-<script src="life-paths-content.js?v=4"></script>
-<script src="life-paths-ui.js?v=5"></script>
+<script src="life-paths-life.js?v=5"></script>
+<script src="life-paths-content.js?v=6"></script>
+<script src="life-paths-ui.js?v=8"></script>
 <div class="po1credit">© 2026 保良局第一張永慶中學 · 升學輔導及生涯規劃組</div>
 </body>
 </html>
