@@ -160,13 +160,19 @@ async function lifePathsCheck(b) {
     s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}];
     L.go('list'); L.act('l-suggest'); const list=s.list.slice();
     const tags=document.querySelectorAll('#slots .pill').length;
-    L.act('l-next'); const results=!!(await until(()=>q('.rtable')));
+    L.act('l-next'); const results=!!(await until(()=>q('.rtable'))), reflect=!!q('.reflect');
     L.act('r-next'); const offerCard=!!(await until(()=>q('.offer-card')));
     const offer=s.round.offer?s.round.offer.code:null;
     L.act('o-others'); const routes=document.querySelectorAll('.route').length;
     q('[data-act="route"][data-id="work"]').click();
     const meters=document.querySelectorAll('.lifepanel .meter').length;
     const end=await play(), life=s.life?{age:s.life.age,monthly:s.life.job?s.life.job.monthly:null}:null, dataPage=!!q('.datapage');
+    // Phase 3 on the summary: "what if" (nothing changed = the same life; one change = a comparison), share image, runs
+    const replaySame=L.replaySame(), wiBtn=q('[data-act="wi"]');
+    if (wiBtn) wiBtn.click();
+    const whatIf=!!wiBtn && !!(await until(()=>q('#wi-cmp .cmp'))), runs=!!q('.runs');
+    const sh=q('[data-act="share"]'); if (sh) sh.click();
+    const share=!!sh && !!(await until(()=>{const u=L.shareURL;return u&&/^data:image\\/png;base64,/.test(u.url)&&u.w===1080&&q('.shareimg');},20000));
     // the screens the work route skips: retake year → round 2 (→ Clearing Round) → field picker → a second life
     L.go('routes'); q('[data-act="route"][data-id="retake"]').click();
     q('[data-act="rt-sub"]').click(); q('[data-act="rt-go"]').click();
@@ -177,7 +183,12 @@ async function lifePathsCheck(b) {
     L.go('routes'); q('[data-act="route"][data-id="vtc"]').click();
     const field=!!(await until(()=>q('[data-act="fld"]'))); q('[data-act="fld"]').click(); q('[data-act="f-go"]').click();
     const end2=await play(), age2=s.life?s.life.age:null;
-    return JSON.stringify({list, tags, results, offerCard, offer, routes, meters, end, life, dataPage, retake, clearing, field, end2, age2});`);
+    // class mode: a typed class code becomes the shared seed and shows on every screen
+    L.act('restart'); await until(()=>q('#class-code'));
+    const ci=q('#class-code'); ci.value='qa 7b'; ci.dispatchEvent(new Event('input',{bubbles:true})); q('[data-act="start"]').click();
+    const classMode=L.state.seed==='class-QA7B' && L.state.classCode==='QA7B' && !!(await until(()=>q('.classpill')));
+    return JSON.stringify({list, tags, results, reflect, offerCard, offer, routes, meters, end, life, dataPage, replaySame, whatIf, runs, share,
+      retake, clearing, field, end2, age2, classMode});`);
 }
 async function finderCheck(b) {
   return b.js(`${H}
@@ -244,6 +255,10 @@ for (const t of PAGES) {
           !!r.life && r.life.age === LIFE.life.age && r.life.monthly === LIFE.life.monthly, `got ${JSON.stringify(r.life)}`);
         record(t.page, 'retake year → round 2 (→ Clearing Round) → field picker → a second life to 25',
           r.retake && r.clearing !== false && r.field && r.end2 && r.age2 === 25, got);
+        record(t.page, '"what if": nothing changed rebuilds the same life; one change shows the side-by-side comparison',
+          r.replaySame === true && r.whatIf, got);
+        record(t.page, 'reflection prompt, share image (PNG made in the browser) and recent runs render', r.reflect && r.share && r.runs, got);
+        record(t.page, 'class mode: the class code becomes the shared seed and shows on screen', r.classMode, got);
       }
       else if (t.page === 'jupas-evaluator.html') {
         const r = JSON.parse(got || '{}');
