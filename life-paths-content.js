@@ -18,11 +18,12 @@
       '七月放榜：實際成績或會與預計不同。',
       '八月聯招取錄：看看你獲哪個志願取錄，再決定下一步的出路。'
     ],
-    phase1Note: '第一章：由預計成績到八月的出路。第二章（升學或工作的日子，模擬至 25–30 歲）即將推出。',
+    phase1Note: '第一章：由預計成績到八月的出路。第二章：之後的升學或工作日子，模擬至 25 歲（短篇）或 30 歲（長篇）。',
 
     steps: [
       { id: 'grades', label: '成績' }, { id: 'interests', label: '興趣' }, { id: 'list', label: '志願' },
-      { id: 'results', label: '放榜' }, { id: 'offers', label: '取錄' }, { id: 'routes', label: '出路' }, { id: 'end', label: '總結' }
+      { id: 'results', label: '放榜' }, { id: 'offers', label: '取錄' }, { id: 'routes', label: '出路' },
+      { id: 'life', label: '人生' }, { id: 'end', label: '總結' }
     ],
 
     categories: [
@@ -102,7 +103,7 @@
       choose: '選擇這條路', entry: '入學', leadsTo: '出路', more: '了解更多'
     },
     routeInfo: {
-      degree: { icon: '🎓', name: '接受聯招取錄，入讀大學', summary: '入讀你獲取錄的本地學士課程。',
+      degree: { icon: '🎓', name: '接受聯招取錄，入讀大學', summary: '入讀你獲聯招取錄的課程（絕大部分是本地學士課程）。',
         entry: '已獲大學聯招取錄。', leadsTo: '獲認可的學士學位，銜接專業資格或研究生課程。' },
       selffin: { icon: '🏛️', name: '自資學士學位', summary: '本地自資院校的學士課程，部分屬指定專業資助（SSSDP）。',
         entry: '按課程而定的文憑試要求；一般需達 332A。', leadsTo: '獲本地認證的學士學位。', link: 'https://www.cspe.edu.hk/en/' },
@@ -126,7 +127,6 @@
     end: {
       heading: '第一章總結',
       predicted: '你預計的成績', actual: '你的實際成績', offer: '聯招取錄', path: '你選擇的出路', noOffer: '沒有聯招取錄',
-      next: '第二章（升學或工作的日子，模擬至 25–30 歲）即將推出。',
       again: '同一份志願，再玩一次（全新運氣）', edit: '修改預計成績或志願', restart: '由頭開始',
       real: '回到現實：',
       realLinks: [
@@ -137,6 +137,160 @@
       runCode: '本局代碼'
     },
     intro: { start: '開始', resume: '繼續上一局', restart: '重新開始', how: '玩法' },
-    common: { back: '上一步', lvlUnit: '級' }
+    common: { back: '上一步', lvlUnit: '級' },
+
+    /* ---------- Phase 2 ---------- */
+    modes: {
+      heading: '揀選模式',
+      short: { name: '短篇（約 10 分鐘）', desc: '每一回合代表兩年，模擬至 25 歲。' },
+      long: { name: '長篇（約 25 分鐘）', desc: '每一回合代表一年，模擬至 30 歲，事件更多。' }
+    },
+    clearing: {
+      button: '參加八月尾「補選」',
+      heading: '八月尾：補選',
+      intro: '第一輪沒有取錄的話，部分課程仍可能有餘額。下面是你符合入學要求、而且分數接近本局競爭水平的課程。揀一個試試看。',
+      note: '遊戲假設：你揀的課程約六成機會仍有學位（簡化的假設，不代表真實情況）。',
+      none: '這一局沒有適合補選的課程。',
+      pick: '揀這個', yourScore: '你的分數',
+      success: function (name, inst) { return '補選成功！你獲「' + name + '」（' + inst + '）取錄。'; },
+      fail: '可惜這個課程已經額滿。不要緊，還有很多出路。',
+      toRoutes: '看看我的出路'
+    },
+    retake: {
+      heading: '重考文憑試',
+      intro: '揀最多兩科重考。明年七月放榜時，每科以兩次考試中較好的成績計算。',
+      rule: '遊戲假設：每科重考約 30% 與上次相同、45% 進步一級、15% 進步兩級、10% 退步一級（取較好的一次，所以不會比上次差）。有重考生規則的課程，分數一律打九五折（簡化：真實規則因大學而異）。',
+      pickMax: '最多揀兩科。',
+      next: '一年後……七月放榜',
+      resultsHeading: '第二次放榜',
+      resultsIntro: '一年過去了。你重考的科目，以兩次考試中較好的成績計算。',
+      th: ['科目', '上次成績', '今次考試', '計算的成績'],
+      up: '進步了', same: '維持上次成績',
+      tally: function (n, up) { return '重考 ' + n + ' 科，其中 ' + up + ' 科進步。'; },
+      roundHeading: '第二年：大學聯招第一輪取錄',
+      listNote: '你沿用去年的志願。',
+      done: '已重考過一次', after: '（重考後）'
+    },
+    field: {
+      heading: '你會讀哪個範疇？',
+      hint: '這會影響之後的課程內容和畢業後的工作。',
+      start: '開始這段旅程'
+    },
+    meters: { study: '學業', skills: '能力經驗', wellbeing: '身心', connections: '人脈', money: '財政' },
+    meterIcons: { study: '📚', skills: '🛠', wellbeing: '💚', connections: '🤝', money: '💰' },
+    creds: { dse: '中學文憑', dae: '應用教育文憑', subdegree: '副學位', degree: '學士學位', masters: '碩士學位' },
+    tracks: {
+      ugc: '學士課程', selffin: '自資學士課程', mainland: '內地學士課程', overseas: '海外學士課程',
+      subdeg: '副學位課程', vtc: '高級文憑（職業專才教育）', dae: '應用教育文憑', senior: '學士課程（高年級入學）',
+      topup: '自資銜接學士課程', masters: '碩士課程', work: '全職工作', jobsearch: '找工作中'
+    },
+    life: {
+      heading: '人生旅程',
+      age: function (a) { return a + ' 歲'; },
+      yearOf: function (y) { return '第 ' + y + ' 年'; },
+      focusHeading: function (a, step) { return step === 2 ? '這兩年（' + a + '–' + (a + 1) + ' 歲），你會專注甚麼？' : '這一年（' + a + ' 歲），你會專注甚麼？'; },
+      timeline: '人生時間線',
+      income: '月薪', changed: '變化：',
+      focusDone: function (name, step) { return (step === 2 ? '這兩年' : '這一年') + '你選擇了「' + name + '」。'; },
+      chose: '選擇：',
+      eventTag: '發生了一件事',
+      support: '如果你在現實中也有這種感覺，請找你信任的人傾談，或聯絡學校的社工／輔導老師。',
+      toEnd: '看看我的人生總結'
+    },
+    focus: {
+      study: { name: '用功讀書', desc: '專心讀書，爭取好成績。（學業↑，身心稍↓）' },
+      experience: { name: '實習／累積經驗', desc: '找實習、做項目，累積實戰經驗。（能力經驗↑）' },
+      parttime: { name: '兼職賺錢', desc: '做兼職幫補開支。（財政↑，學業、身心稍↓）' },
+      balance: { name: '休息平衡', desc: '好好照顧自己，作息有度。（身心↑）' },
+      explore: { name: '參加活動、認識朋友', desc: '參加學會、比賽和活動。（人脈↑，能力經驗稍↑）' },
+      perform: { name: '全力投入工作', desc: '爭取表現，加薪機會較高。（能力經驗、財政↑，身心↓）' },
+      learn: { name: '業餘進修', desc: '下班後讀兼讀課程，日後可提升學歷。（學業↑，財政、身心稍↓）' },
+      network: { name: '擴闊人脈、留意機會', desc: '多認識行內朋友，或會遇到新工作機會。（人脈↑）' },
+      wbalance: { name: '平衡生活', desc: '工作以外，也照顧身心和家人。（身心↑）' },
+      save: { name: '努力儲蓄', desc: '控制開支，為將來打算。（財政↑）' }
+    },
+    events: {
+      scholarship: { title: '獲得獎學金', body: '你的努力被看見了——你獲頒一筆獎學金。', choices: ['太好了！'], results: ['獎學金幫補了學費，也給你很大鼓勵。'] },
+      exchange: { title: '交流機會', body: '學校有一個學期的交流名額，你想去嗎？', choices: ['去交流', '留在本地讀書'],
+        results: ['你在交流期間認識了很多新朋友，眼界大開，但開支也不少。', '你留在本地，專心完成課程。'] },
+      internship: { title: '實習機會', body: '一間機構願意給你暑期實習。', choices: ['接受實習', '婉拒，專心讀書'],
+        results: ['實習很辛苦，但你學到很多，也多了一位推薦人。', '你把暑假用來溫習和休息。'] },
+      award: { title: '項目獲獎', body: '你參與的項目／比賽獲得獎項！', choices: ['繼續努力'], results: ['這次經驗令你更有自信，也認識了志同道合的人。'] },
+      mentor: { title: '遇上師友', body: '一位行內前輩願意定期和你傾談，分享經驗。', choices: ['接受指導', '暫時不用'],
+        results: ['前輩的建議令你少走了不少冤枉路。', '你決定先靠自己摸索。'] },
+      volunteer: { title: '義工服務', body: '朋友邀請你一起參加長期義工服務。', choices: ['參加', '太忙了，下次吧'],
+        results: ['服務別人令你很有滿足感，也擴闊了圈子。', '你把時間留給其他事情。'] },
+      switchField: { title: '想轉讀其他範疇？', body: '你發覺現在讀的科目和自己的興趣不太合。', choices: ['轉讀其他範疇（要多讀一年）', '堅持完成'],
+        results: ['轉科後你讀得開心得多，只是要多花一年。', '你決定堅持下去，雖然有時讀得辛苦。'] },
+      familyMoney: { title: '家庭經濟緊張', body: '家中最近開支大，經濟比較緊。', choices: ['多做兼職幫補家計', '申請資助或學生貸款'],
+        results: ['你多做了兼職，手頭鬆一點，但人也累了。', '你申請了資助，暫時渡過難關。（政府和院校設有學費資助及貸款計劃）'] },
+      familyCare: { title: '家人需要照顧', body: '家中長輩身體欠佳，需要家人輪流照顧。', choices: ['抽時間幫忙照顧', '與家人商量分工'],
+        results: ['你花了不少時間照顧家人，雖然辛苦，一家人更親近了。', '大家分工合作，你也能兼顧自己的事。'] },
+      moveHome: { title: '搬屋', body: '家人決定搬到較遠的地區，路程長了。', choices: ['調整作息'], results: ['你花了一段時間適應新的生活節奏。'] },
+      friendPath: { title: '好友各有路向', body: '中學好友選了一條和你很不同的路。', choices: ['保持聯絡', '各自忙碌'],
+        results: ['你們常常分享近況，互相打氣。', '你們慢慢少了聯絡。'] },
+      overwhelmed: { title: '感到很累', body: '最近事情太多，你覺得很累、有點喘不過氣。', choices: ['停一停，好好休息', '找信任的人傾訴'],
+        results: ['休息過後，你重新有了動力。', '說出來之後，你感覺輕鬆了不少。'], support: true },
+      promotion: { title: '升職加薪', body: '你的表現獲得肯定，升職了！', choices: ['太好了'], results: ['月薪增加了約一成。'] },
+      jobOffer: { title: '新的工作機會', body: '朋友介紹了一份待遇較好的新工作。', choices: ['轉工', '留在原公司'],
+        results: ['你轉了新工作，月薪提高了。', '你選擇留在熟悉的環境，繼續累積經驗。'] },
+      crunch: { title: '項目趕工', body: '公司有一個大項目要趕在限期前完成。', choices: ['加班完成', '和上司商量分工'],
+        results: ['項目順利完成，你學到很多，但累壞了。', '你和上司商量好安排，壓力減輕了。'] },
+      masters: { title: '進修碩士？', body: '你考慮兼讀一個碩士課程，提升自己。', choices: ['報讀兼讀碩士', '暫時不讀'],
+        results: ['你開始兼讀碩士，大約兩年後完成。', '你決定先專注工作。'] }
+    },
+    branches: {
+      afterDegree: { title: '畢業了！下一步？', short: '畢業後', options: { work: '開始找工作', masters: '先讀一年碩士（自費）' } },
+      afterSub: { title: '完成副學位，下一步？', short: '完成副學位後', options: { senior: '申請教資會資助學士（高年級入學）', topup: '讀自資銜接學士（兩年）', work: '開始工作' },
+        note: '教資會每年約有 5,000 個高年級學額給副學位畢業生。遊戲假設成功機會約一半，按你的「學業」上落（簡化假設）。' },
+      afterSeniorNo: { title: '這次未獲高年級學額，下一步？', short: '未獲高年級學額後', options: { topup: '讀自資銜接學士（兩年）', work: '開始工作' } },
+      afterDae: { title: '完成應用教育文憑，下一步？', short: '完成應用教育文憑後', options: { subdeg: '讀副學位', vtc: '讀高級文憑（職業專才教育）', work: '開始工作' } }
+    },
+    logs: {
+      startDegree: function (name, inst, yrs) { return '入讀「' + name + '」（' + inst + '），' + yrs + ' 年制。'; },
+      startTrack: function (track, field) { return '開始' + track + (field ? '（' + field + '）' : '') + '。'; },
+      startWork: '中學畢業後，開始找工作。',
+      graduated: function (cred) { return '畢業，取得' + cred + '！'; },
+      gotJob: function (field, monthly) { return '找到全職工作' + (field ? '（' + field + '相關）' : '') + '，月薪約 HK$' + monthly.toLocaleString('en-US') + '。'; },
+      noJobYet: '暫時未找到全職工作，先做兼職，繼續尋找。',
+      seniorYes: '成功獲得教資會資助學士高年級學額！',
+      seniorNo: '這次未獲高年級學額。',
+      partTimeDone: function (cred) { return '完成兼讀課程，學歷提升至' + cred + '，月薪也提高了。'; },
+      mastersDone: '完成兼讀碩士，月薪提高了。'
+    },
+    lifeEnd: {
+      heading: function (age) { return '你的人生路（至 ' + age + ' 歲）'; },
+      now: '現在', cred: '最高學歷', monthly: '月薪', status: '狀態',
+      compare: function (age) { return age >= 25 ? '參考：25–34 歲在職人士每月收入中位數 HK$22,500（政府統計處，2025）' : '參考：15–24 歲在職人士每月收入中位數 HK$15,300（政府統計處，2025）'; },
+      keyChoices: '這一路上的選擇', meters: '最後的狀態', chapter1: '第一章：由預計成績到八月',
+      topFocus: '最常專注', times: function (n) { return n + ' 次'; },
+      reflect: '回想一下：哪一個選擇對你影響最大？如果再來一次，你會怎樣選？'
+    },
+    data: {
+      title: '資料來源與假設',
+      cited: '引用的公開資料', illustrative: '遊戲的簡化假設（不是真實統計）', source: '來源',
+      cite: {
+        dse: function (s) { return '文憑試：' + s.year + ' 年約 ' + s.percentDaySchool + '% 日校考生（' + s.count.toLocaleString('en-US') + ' 人）達到 332A。'; },
+        ugc: function (s) {
+          return '學士畢業生起薪參考：教資會資助學士課程畢業生的平均年薪（' + s.year + '）——' +
+            Object.keys(s.values).map(function (k) { return s.zh[k] + ' ' + s.values[k] + ' 千元'; }).join('、') + '。這是平均數，不是中位數；遊戲把它除以 12 作每月起薪的參考。';
+        },
+        edu: function (s, m) { return '中學程度及副學位起薪參考：' + s.year + ' 年按教育程度劃分的每月收入中位數——高中 ' + m(s.values.upperSecondary) + '、副學位 ' + m(s.values.subDegree) + '、學位 ' + m(s.values.degree) + '（所有年齡）。'; },
+        age: function (s, m) { return '同齡比較：' + s.year + ' 年每月收入中位數——15–24 歲 ' + m(s.values['15-24']) + '、25–34 歲 ' + m(s.values['25-34']) + '。'; },
+        senior: function (s) { return '副學位銜接：教資會每年約 ' + s.approx.toLocaleString('en-US') + ' 個資助學士高年級學額。'; },
+        jupas: '聯招課程資料：本站 JUPAS 工具使用的同一個資料庫及計分方法（往年收生分數參考、學額、取錄統計）。'
+      },
+      assumptions: [
+        '放榜成績：每科 55% 與預計相同、25% 低一級、15% 高一級、5% 低兩級。',
+        '聯招取錄：以去年收生分數參考推算每個課程本局的「競爭水平」，每年上落；Band A 以外按課程近年取錄比例調整。',
+        '補選：約六成機會仍有學位。重考：每科 30% 相同、45% 進步一級、15% 進步兩級、10% 退步一級，取較好一次。',
+        '副學位升讀資助學士高年級：約一半機會，按「學業」上落。',
+        '找到全職工作的機會：學士約九成、副學位及其他約八成半，按「能力經驗」和「人脈」上落。',
+        '課程年期：聯招資料庫沒有年期資料，遊戲按課程名稱和簡介推算——醫科、牙醫、中醫、獸醫 6 年；雙學位及簡介註明五年制的課程 5 年；其他學士課程 4 年；高級文憑 2 年。',
+        '起薪：學士按上面教資會的學科平均年薪 ÷ 12（「護理及專職醫療」與醫科同屬一類、平均數被醫科拉高，遊戲取該類別的 65%）；副學位取副學位收入中位數的 75%、中學程度約 HK$12,900（按 15–24 歲收入比例調低）；再按「能力經驗」、「人脈」和運氣上落。',
+        '加薪：每年按學歷約 1.5%–3%，另有升職、轉工等事件。',
+        '各種專注選擇對五項指標的影響、起始指標和人生事件的發生機會，都是遊戲的示意設定。'
+      ]
+    }
   };
 })();

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* ============================================================
-   tools/life-paths-test.mjs — simulation tests for DSE Life Paths (life-paths-core.js).
+   tools/life-paths-test.mjs — simulation tests for DSE Life Paths (life-paths-core.js = DSE → August,
+   life-paths-life.js = the years after; life-paths-content.js is checked to cover every id they produce).
    Runs thousands of simulated students against the REAL (decrypted) JUPAS database with the
    shared engine and checks invariants + the owner-approved rules. Needs the student passcode:
      PO1_STUDENT_PASS=… node tools/life-paths-test.mjs        (or the private tools/run-life-paths-test.sh)
@@ -20,9 +21,9 @@ const key = await webcrypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(j.salt), 
 const LIST = JSON.parse(Buffer.from(await webcrypto.subtle.decrypt({ name: 'AES-GCM', iv: b(j.iv) }, key, b(j.data))));
 
 const window = { crypto: webcrypto };
-for (const f of ['jupas-engine.js', 'jupas-finder-core.js', 'life-paths-core.js'])
+for (const f of ['jupas-engine.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js', 'life-paths-content.js'])
   new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(window);
-const C = window.LifePathsCore, DB = C.indexDB(LIST);
+const C = window.LifePathsCore, L = window.LifePathsLife, DB = C.indexDB(LIST);
 
 let failed = 0;
 const check = (name, ok, detail = '') => { console.log(`  ${ok ? '✓' : '✗'} ${name}${!ok && detail ? '  — ' + detail : ''}`); if (!ok) failed++; };
@@ -126,6 +127,113 @@ const ro = C.routeOptions(weak, null);
 check('without 332A: no self-financing degree / Mainland scheme; DAE, VTC, retake, work still open',
   !ro.find((r) => r.id === 'selffin').available && !ro.find((r) => r.id === 'mainland').available &&
   ['dae', 'vtc', 'retake', 'work'].every((id) => ro.find((r) => r.id === id).available));
+
+/* 5. Phase 2: retake + Clearing Round */
+console.log('\nretake + Clearing Round');
+const prev = { chi: '3', eng: '2', math: '3', csd: 'attained', elect: [{ s: 'bio', lv: '3' }, { s: 'econ', lv: '2' }] };
+let better = 0, worse = 0, tooMany = 0;
+for (let i = 0; i < 500; i++) {
+  const r = C.retakeResults(prev, ['eng', 'econ', 'bio'], 'rt' + i);
+  if (r.changes.length > 2) tooMany++;
+  r.changes.forEach((c) => { if (c.diff > 0) better++; if (c.diff < 0) worse++; });
+}
+check(`retaken subjects never end lower (best of two sittings): ${better}/1000 improved, ${worse} lower`, worse === 0 && better > 500);
+check('at most two subjects retaken', tooMany === 0);
+const rk = C.mainRound(C.suggestList(students[3], [], DB), students[3], DB, 'r2', { round: 2, retake: true });
+const r1k = C.mainRound(C.suggestList(students[3], [], DB), students[3], DB, 'r2');
+check('a retake year draws fresh lines (round 2 ≠ round 1)', rk.rows.length === 0 || rk.rows.some((r, i) => r.line !== undefined && r.line !== r1k.rows[i].line));
+const cand = C.clearingCandidates({ chi: '3', eng: '3', math: '2', csd: 'attained', elect: [{ s: 'bio', lv: '3' }, { s: 'econ', lv: '3' }] }, DB, 'cl1', null, []);
+check(`clearing candidates are eligible and within half a spread (${cand.length} shown)`, cand.length <= 6 && cand.every((c) => c.margin >= 0));
+let cr = 0; for (let i = 0; i < 4000; i++) if (C.clearingResult('JS1000', 'c' + i)) cr++;
+check(`clearing pick succeeds ≈ 60% (got ${(cr / 40).toFixed(1)}%)`, Math.abs(cr / 4000 - 0.6) < 0.03);
+
+/* 6. Phase 2: whole lives */
+console.log('\nlives after August (Phase 2)');
+const ROUTES = ['degree', 'selffin', 'subdeg', 'vtc', 'dae', 'mainland', 'overseas', 'work'];
+const FIELDS = ['Business', 'Science', 'Engineering', 'Computing', 'Medicine', 'Health', 'SocialSciences', 'Arts', 'Education', 'Law', 'Design'];
+const progs = LIST.filter((p) => p.institution !== 'SSSDP').slice(0, 60);
+let lifeOk = 0, lifeErr = [], decisions = 0, maxDec = 0; const pays = {}; const LIVES = 3000;
+const seenBranches = {}, seenLogKeys = new Set();          // collected for the text-coverage checks (section 7)
+function playLife(i, pick) {
+  const r = ROUTES[i % ROUTES.length], mode = i % 2 ? 'long' : 'short', prog = progs[i % progs.length];
+  const l = L.start({ seed: 'life' + i, mode, route: r, field: FIELDS[i % FIELDS.length], offer: r === 'degree' ? { code: prog.jupas_code } : null,
+    prog: r === 'degree' ? prog : null, actual: students[i % N], startAge: i % 7 === 0 ? 19 : 18 });
+  let n = 0, lastAge = l.age;
+  while (l.pend.type !== 'end' && n < 200) {
+    n++;
+    if (l.pend.type === 'focus') { const o = L.focusOptions(l); L.chooseFocus(l, o[pick(i, n, o.length)]); }
+    else if (l.pend.type === 'event') L.chooseEvent(l, pick(i, n, L.eventById(l.pend.id).choices.length));
+    else {
+      const seen = (seenBranches[l.pend.id] ||= new Set());
+      l.pend.options.forEach((o) => seen.add(o));
+      L.chooseBranch(l, l.pend.options[pick(i, n, l.pend.options.length)]);
+    }
+    if (l.age < lastAge) throw new Error('age went backwards'); lastAge = l.age;
+    for (const k of L.METERS) if (!Number.isInteger(l.meters[k]) || l.meters[k] < 0 || l.meters[k] > 100) throw new Error(`meter ${k}=${l.meters[k]}`);
+    if (l.job && !(l.job.monthly > 5000 && l.job.monthly < 300000)) throw new Error('pay ' + l.job.monthly);
+  }
+  if (l.pend.type !== 'end') throw new Error(`did not end (age ${l.age}, pending ${JSON.stringify(l.pend)})`);
+  if (l.age !== l.endAge) throw new Error(`ended at ${l.age}, expected ${l.endAge}`);
+  l.log.forEach((e) => seenLogKeys.add(e.key));
+  return { l, n, r, mode };
+}
+const pickA = (i, n, k) => (i + n) % k;
+for (let i = 0; i < LIVES; i++) {
+  try {
+    const { l, n, r, mode } = playLife(i, pickA);
+    decisions += n; maxDec = Math.max(maxDec, n); lifeOk++;
+    if (l.job) (pays[`${L.topCred(l)}/${mode}`] ||= []).push(l.job.monthly);
+  } catch (e) { lifeErr.push(`life${i}: ${e.message}`); }
+}
+check(`${LIVES} lives across every route and both modes end cleanly at 25 / 30`, lifeOk === LIVES, lifeErr.slice(0, 3).join(' | '));
+check('same seed + same choices → identical life', JSON.stringify(playLife(5, pickA).l) === JSON.stringify(playLife(5, pickA).l));
+const shortDec = [], longDec = [];
+for (let i = 0; i < 400; i++) { try { const { n, mode } = playLife(i, pickA); (mode === 'short' ? shortDec : longDec).push(n); } catch (e) {} }
+const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+check(`short mode is shorter than long (decisions after August: ${avg(shortDec).toFixed(1)} vs ${avg(longDec).toFixed(1)})`, avg(shortDec) < avg(longDec));
+const ref = L.referencePay('degree', 'Business');
+check(`degree reference pay = UGC Business average ÷ 12 (HK$${Math.round(ref)})`, Math.abs(ref - 292000 / 12) < 1);
+const refH = L.referencePay('degree', 'Health');
+check(`nursing / allied health = ${L.HEALTH_SHARE * 100}% of the UGC medicine-dentistry-health average (HK$${Math.round(refH)})`,
+  Math.abs(refH - 554000 / 12 * L.HEALTH_SHARE) < 1);
+const yrs = {}; LIST.forEach((p) => { const y = L.programmeYears(p); yrs[y] = (yrs[y] || 0) + 1; });
+const yBad = LIST.filter((p) => (/Medicine and Bachelor of Surgery/i.test(p.name_en) && L.programmeYears(p) !== 6) ||
+  (/\(Double Degree\)/i.test(p.name_en) && L.programmeYears(p) !== 5) || (L.isSubDegree(p) && L.programmeYears(p) !== 2)).map((p) => p.jupas_code);
+check(`programme length (approximate — the DB has no duration): ${Object.entries(yrs).map(([y, n]) => `${y} yr × ${n}`).join(', ')}; medicine 6 · double degree 5 · Higher Diploma 2`,
+  yBad.length === 0 && (yrs[4] || 0) > LIST.length * 0.8, yBad.join(' '));
+const hd = LIST.find((p) => L.isSubDegree(p));
+if (hd) {
+  const lh = L.start({ seed: 'hd', mode: 'long', route: 'degree', field: 'Education', offer: { code: hd.jupas_code }, prog: hd, actual: students[0], startAge: 18 });
+  check(`a JUPAS Higher Diploma offer (${hd.jupas_code}) starts a 2-year sub-degree, not a degree`, lh.track.id === 'subdeg' && lh.track.yearsLeft === 2 && lh.track.code === hd.jupas_code);
+}
+const med = (a) => { a = a.slice().sort((x, y) => x - y); return a[a.length >> 1]; };
+console.log('  final monthly pay by highest qualification (median): ' + Object.entries(pays).sort().map(([k, v]) => `${k} HK$${med(v)} (n=${v.length})`).join(' · '));
+
+/* 7. every id the engine can produce has player-facing text (catches a missing label after an edit) */
+console.log('\ngame text covers the engine');
+const T = window.LifePathsText, miss = [];
+for (const e of L.EVENTS) {
+  const t = T.events[e.id];
+  if (!t || !t.title || !t.body || !Array.isArray(t.choices) || t.choices.length !== e.choices.length ||
+    !Array.isArray(t.results) || t.results.length !== e.choices.length) miss.push('event ' + e.id);
+}
+for (const kind of Object.keys(L.FOCUS)) for (const f of L.FOCUS[kind]) if (!T.focus[f.id] || !T.focus[f.id].name || !T.focus[f.id].desc) miss.push('focus ' + f.id);
+for (const id of Object.keys(L.TRACKS)) if (!T.tracks[id]) miss.push('track ' + id);
+for (const lv of Object.keys(L.CRED_RANK)) if (!T.creds[lv]) miss.push('credential ' + lv);
+for (const k of L.METERS) if (!T.meters[k] || !T.meterIcons[k]) miss.push('meter ' + k);
+for (const id of C.ROUTES) { const r = T.routeInfo[id]; if (!r || !r.icon || !r.name || !r.summary || !r.entry || !r.leadsTo) miss.push('route ' + id); }
+for (const w of ['noOffer', 'needs332A', 'needs22222']) if (!T.routes.why[w]) miss.push('route reason ' + w);
+for (const f of FIELDS) if (!T.categories.some((c) => c.key === f) || !window.LifePathsStats.fieldToUgc[f]) miss.push('field ' + f);
+for (const [id, opts] of Object.entries(seenBranches)) {
+  const br = T.branches[id];
+  if (!br || !br.title || !br.short) { miss.push('branch ' + id); continue; }
+  opts.forEach((o) => { if (!br.options[o]) miss.push(`branch ${id} option ${o}`); });
+}
+for (const k of seenLogKeys) if (k !== 'start' && k !== 'event' && !T.logs[k]) miss.push('log ' + k);
+for (const k of ['startDegree', 'startTrack', 'startWork']) if (typeof T.logs[k] === 'undefined') miss.push('log ' + k);
+check(`every event, choice, focus, track, credential, meter, route, field, branch and log line has text ` +
+  `(${L.EVENTS.length} events, ${Object.keys(seenBranches).length} branches, ${seenLogKeys.size} log kinds seen)`, miss.length === 0, miss.slice(0, 8).join(', '));
+check('the step bar has the 8 steps the screens use', T.steps.map((x) => x.id).join() === 'grades,interests,list,results,offers,routes,life,end');
 
 console.log(`\nsummary: ${offers}/${N} simulated students got a Main Round offer with a suggested list ` +
   `(${eligibleAny} had any suggestion; avg list ${(suggestedLen / N).toFixed(1)} choices; ${lowerCleared} lower choices also cleared)`);

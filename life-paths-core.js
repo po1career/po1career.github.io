@@ -123,8 +123,13 @@
       fewPlaces: !isNaN(quota) && quota < 20
     };
   }
-  // the hidden line for this simulated year (same for everyone sharing the seed)
-  function lineFor(prog, q, seed) { return q.centre + q.sigma * normal(seed, 'line|' + prog.jupas_code); }
+  // the hidden line for this simulated year (same for everyone sharing the seed). Round 2 = the year after a
+  // DSE retake: a fresh year, so fresh lines (keys carry the year).
+  function yk(opts) { return opts && opts.round === 2 ? 'y2|' : ''; }
+  function lineFor(prog, q, seed, opts) { return q.centre + q.sigma * normal(seed, 'line|' + yk(opts) + prog.jupas_code); }
+  // repeaters: programmes whose DB entry states a repeater policy get a flat −5% (ILLUSTRATIVE simplification,
+  // design §10b) — the real rules differ by university (e.g. HKU −10% on the retaken subject).
+  function retakePenalty(prog, opts) { return opts && opts.retake && prog.retake && (prog.retake.policy_en || prog.retake.penalty) ? 0.95 : 1; }
 
   function bandOfSlot(i) { return i < 3 ? 'A' : i < 6 ? 'B' : i < 10 ? 'C' : i < 15 ? 'D' : 'E'; }
   function slotLabel(i) { return bandOfSlot(i) + (i + 1); }
@@ -132,28 +137,28 @@
   // JUPAS Main Round (simplified): walk the list A1 → E20; the FIRST choice where the student meets
   // the entry requirements and clears this year's line gives the (only) offer. Every choice is still
   // evaluated so the game can explain each one.
-  function mainRound(codes, actual, db, seed) {
-    var grades = toEngineGrades(actual), byCode = db.byCode, rows = [], offer = null;
+  function mainRound(codes, actual, db, seed, opts) {
+    var grades = toEngineGrades(actual), byCode = db.byCode, rows = [], offer = null, y = yk(opts);
     codes.forEach(function (code, i) {
       var prog = byCode[code];
       if (!prog) { rows.push({ i: i, code: code, status: 'notfound' }); return; }
-      var ev = E().evaluateProgramme(prog, grades), score = ev.calculation.totalScore;
+      var ev = E().evaluateProgramme(prog, grades), score = ev.calculation.totalScore * retakePenalty(prog, opts);
       var row = { i: i, code: code, slot: slotLabel(i), band: bandOfSlot(i), score: score, eligible: ev.eligibility.eligible,
         fails: ev.eligibility.eligible ? [] : ev.eligibility.details.filter(function (d) { return d.pass === false; }) };
       if (!row.eligible) { row.status = 'ineligible'; rows.push(row); return; }
       var q = offerParams(prog);
       if (q.noData) {
         row.noData = true;
-        row.cleared = uniform(seed, 'nodata|' + code) < 0.5;
+        row.cleared = uniform(seed, 'nodata|' + y + code) < 0.5;
       } else {
-        var line = lineFor(prog, q, seed);
-        var luck = q.interview ? 0.5 * q.spread * normal(seed, 'interview|' + code) : 0;
+        var line = lineFor(prog, q, seed, opts);
+        var luck = q.interview ? 0.5 * q.spread * normal(seed, 'interview|' + y + code) : 0;
         var eff = score + luck, nonA = i >= 3;
         row.line = line; row.interview = q.interview; row.interviewLuck = luck; row.effective = eff;
         row.fewPlaces = q.fewPlaces; row.aOnly = q.aOnly; row.bandAShare = q.bandAShare;
         if (nonA && q.aOnly) {
           row.need = line; row.lottery = true;
-          row.cleared = eff >= line && uniform(seed, 'aonly|' + code) < NON_A_CAP_A_ONLY;
+          row.cleared = eff >= line && uniform(seed, 'aonly|' + y + code) < NON_A_CAP_A_ONLY;
         } else {
           row.need = line + (nonA ? q.nonAPenalty : 0);
           row.cleared = eff >= row.need;
@@ -164,6 +169,42 @@
       rows.push(row);
     });
     return { offer: offer, rows: rows };
+  }
+
+  /* ---------- Clearing Round (late August; ILLUSTRATIVE, design §10b) ---------- */
+  // Programmes the student is eligible for whose score is within half a spread of this year's line; the
+  // closest-to-the-line first. A pick succeeds with ~60% (a place may still be free).
+  var CLEARING_CHANCE = 0.6;
+  function clearingCandidates(actual, db, seed, opts, exclude) {
+    var grades = toEngineGrades(actual), out = [];
+    db.list.forEach(function (prog) {
+      if (exclude && exclude.indexOf(prog.jupas_code) >= 0) return;
+      var q = offerParams(prog); if (q.noData) return;
+      var ev = E().evaluateProgramme(prog, grades); if (!ev.eligibility.eligible) return;
+      var score = ev.calculation.totalScore * retakePenalty(prog, opts), line = lineFor(prog, q, seed, opts);
+      var margin = (score - (line - 0.5 * q.spread)) / q.spread;
+      if (margin >= 0) out.push({ code: prog.jupas_code, score: score, margin: margin });
+    });
+    return out.sort(function (a, b) { return a.margin - b.margin; }).slice(0, 6);
+  }
+  function clearingResult(code, seed, opts) { return uniform(seed, 'clearing|' + yk(opts) + code) < CLEARING_CHANCE; }
+
+  /* ---------- retaking the DSE (ILLUSTRATIVE, design §10b) ---------- */
+  // each retaken subject (max 2): 30% same · 45% +1 · 15% +2 · 10% −1; the better of the two sittings counts.
+  var RETAKE_RULE = [{ shift: 0, p: 0.30 }, { shift: 1, p: 0.45 }, { shift: 2, p: 0.15 }, { shift: -1, p: 0.10 }];
+  function retakeResults(prev, keys, seed) {
+    var next = { chi: prev.chi, eng: prev.eng, math: prev.math, csd: prev.csd, elect: (prev.elect || []).map(function (e) { return { s: e.s, lv: e.lv }; }) };
+    var changes = [];
+    (keys || []).slice(0, 2).forEach(function (k) {
+      var u = uniform(seed, 'retake|' + k), acc = 0, shift = 0;
+      for (var i = 0; i < RETAKE_RULE.length; i++) { acc += RETAKE_RULE[i].p; if (u < acc) { shift = RETAKE_RULE[i].shift; break; } }
+      var cur = CORES.indexOf(k) >= 0 ? next[k] : (next.elect.filter(function (e) { return e.s === k; })[0] || {}).lv;
+      if (!cur) return;
+      var sat = shiftLevel(cur, shift), best = lvIndex(sat) > lvIndex(cur) ? sat : cur;
+      if (CORES.indexOf(k) >= 0) next[k] = best; else next.elect.forEach(function (e) { if (e.s === k) e.lv = best; });
+      changes.push({ key: k, from: cur, sat: sat, to: best, diff: lvIndex(best) - lvIndex(cur) });
+    });
+    return { actual: next, changes: changes };
   }
 
   /* ---------- "suggest for me" (same slot rules as the Finder/Planner, design §2) ---------- */
@@ -231,6 +272,8 @@
     newSeed: newSeed, uniform: uniform, normal: normal,
     lvIndex: lvIndex, toEngineGrades: toEngineGrades, meets332A: meets332A, meets22222: meets22222,
     resultsDay: resultsDay, offerParams: offerParams, mainRound: mainRound,
+    clearingCandidates: clearingCandidates, clearingResult: clearingResult, CLEARING_CHANCE: CLEARING_CHANCE,
+    retakeResults: retakeResults, RETAKE_RULE: RETAKE_RULE,
     suggestList: suggestList, slotTagFor: slotTagFor, slotLabel: slotLabel, bandOfSlot: bandOfSlot,
     routeOptions: routeOptions, indexDB: indexDB
   };

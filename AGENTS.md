@@ -90,6 +90,9 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
 - Vanilla JS, no framework, no build step. Match the surrounding code's style.
 - Every user-facing string is bilingual (English + 繁體中文); add both. **Exception:** the DSE Life Paths game
   (`life-paths*`) is 繁體中文 only, by owner decision (2026-11-18).
-- `life-paths-core.js` (the game's simulation) has no DOM dependencies and uses seeded, keyed randomness; test it
-  with `tools/life-paths-test.mjs` (needs `PO1_STUDENT_PASS`).
+- The game's simulation — `life-paths-core.js` (DSE → August) and `life-paths-life.js` (the years after) — has no
+  DOM dependencies and uses seeded, keyed randomness; test it with `tools/life-paths-test.mjs` (needs
+  `PO1_STUDENT_PASS`), which also checks that `life-paths-content.js` has text for every id the engine produces.
+  Cited figures live only in `life-paths-stats.js` (source, year and link each); anything else is labelled
+  illustrative on the game's 資料來源與假設 page.
 - The scoring engine has **no DOM dependencies** — keep it that way so it stays testable in node/JSC.
