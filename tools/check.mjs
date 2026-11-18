@@ -168,7 +168,7 @@ if (argBase) {
     if (oldCore && core && JSON.stringify(oldCore) !== JSON.stringify(core) && cacheOf(oldSw) === cacheOf(swSrc))
       err('pr', 'sw.js CORE changed but the CACHE name did not — bump CACHE so returning visitors refresh', 'sw.js');
   }
-  const touchedGated = changed.filter((f) => /^(jupas-|streaming-tool|dse-portfolio|sw\.js)|\.enc\.json$/.test(f));
+  const touchedGated = changed.filter((f) => /^(jupas-|life-paths|streaming-tool|dse-portfolio|sw\.js)|\.enc\.json$/.test(f));
   if (touchedGated.length) warn('pr', 'touches gated pages/data — needs local QA behind the passcode before merge: ' + touchedGated.join(', '));
 }
 

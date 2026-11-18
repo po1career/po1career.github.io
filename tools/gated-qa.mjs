@@ -56,6 +56,16 @@ const probeProg = DB.find((p) => p.jupas_code === 'JS8013') ||
   DB.find((p) => { const r = E.evaluateProgramme(p, grades); return r.eligibility.eligible && r.hasScoreData; });
 const PROBE = { code: probeProg.jupas_code, score: E.evaluateProgramme(probeProg, grades).calculation.totalScore, quota: probeProg.quota };
 const fmt = (n) => String(+(+n).toFixed(2));
+// DSE Life Paths: the same game computed in node (fixed seed) — the page must reach the same list and offer
+win.crypto = webcrypto;
+for (const f of ['jupas-finder-core.js', 'life-paths-core.js'])
+  if (fs.existsSync(path.join(ROOT, f))) new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(win);
+const LIFE = (() => {
+  const L = win.LifePathsCore; if (!L) return null;
+  const db = L.indexDB(DB), seed = 'qa-seed', pred = { chi: '4', eng: '4', math: '4', csd: 'attained', elect: PROFILE.elect };
+  const list = L.suggestList(pred, [], db), actual = L.resultsDay(pred, seed).actual, round = L.mainRound(list, actual, db, seed);
+  return { seed, list, offer: round.offer ? round.offer.code : null };
+})();
 
 /* ---------- static server for the repo (no caching) ---------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
@@ -125,7 +135,24 @@ const PAGES = [
   { page: 'dse-portfolio.html', app: 'dse-app', pass: 'student', check: dseCheck },
   { page: 'jupas-evaluator.html', app: 'app', pass: 'teacher', check: evaluatorCheck },
   { page: 'streaming-tool.html', app: 'app', pass: 'streaming', check: null },
+  ...(LIFE ? [{ page: 'life-paths.html', app: 'app', pass: 'student', check: lifePathsCheck }] : []),
 ];
+async function lifePathsCheck(b) {
+  return b.js(`${H}
+    const L=window.__lifePaths; await until(()=>document.querySelector('[data-act="start"],[data-act="resume"]'));
+    L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)};
+    Object.assign(s.pred,{chi:'4',eng:'4',math:'4',csd:'attained'});
+    s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}];
+    L.go('list'); L.act('l-suggest'); const list=s.list.slice();
+    const tags=document.querySelectorAll('#slots .pill').length;
+    L.act('l-next'); const results=!!(await until(()=>document.querySelector('.rtable')));
+    L.act('r-next'); const offerCard=!!(await until(()=>document.querySelector('.offer-card')));
+    const offer=s.round.offer?s.round.offer.code:null;
+    L.act('o-others'); const routes=document.querySelectorAll('.route').length;
+    document.querySelector('[data-act="route"][data-id="work"]').click();
+    const end=!!(await until(()=>document.querySelector('.endcard')));
+    return JSON.stringify({list, tags, results, offerCard, offer, routes, end});`);
+}
 async function finderCheck(b) {
   return b.js(`${H}
     const set=(el,v)=>{el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}));el.dispatchEvent(new Event('input',{bubbles:true}));};
@@ -180,6 +207,13 @@ for (const t of PAGES) {
       const got = await t.check(b);
       if (t.page === 'jupas-choices.html') record(t.page, `${PROBE.code} intake auto-fills ${PROBE.quota}`, String(got) === String(PROBE.quota), `got ${got}`);
       else if (t.page === 'dse-portfolio.html') record(t.page, 'app renders', got === 'ok', got);
+      else if (t.page === 'life-paths.html') {
+        const r = JSON.parse(got || '{}');
+        record(t.page, `"suggest" list matches the core (${LIFE.list.length} choices, slot tags shown)`,
+          JSON.stringify(r.list) === JSON.stringify(LIFE.list) && r.tags === LIFE.list.length, `got ${JSON.stringify(r.list || []).slice(0, 80)}`);
+        record(t.page, 'results day → offers → routes → summary all render', r.results && r.offerCard && r.routes > 0 && r.end, got);
+        record(t.page, `same seed → same offer as the core (${LIFE.offer || 'none'})`, r.offer === LIFE.offer, `got ${r.offer}`);
+      }
       else if (t.page === 'jupas-evaluator.html') {
         const r = JSON.parse(got || '{}');
         record(t.page, `database unlocked (${DB.length} programmes)`, new RegExp('\\b' + DB.length + '\\b').test(r.db || ''), r.db || 'no status');
