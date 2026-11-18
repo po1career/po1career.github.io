@@ -152,7 +152,8 @@ if (argBase) {
   let changed = [];
   try { changed = git('diff', '--name-only', `${argBase}...HEAD`).split('\n').filter(Boolean); }
   catch (e) { err('pr', `could not diff against ${argBase}: ${e.message.split('\n')[0]}`); }
-  const showBase = (f) => { try { return git('show', `${argBase}:${f}`); } catch { return null; } };
+  // a file that is new in this PR has no base version — return null quietly (no "fatal:" noise in logs)
+  const showBase = (f) => { const r = spawnSync('git', ['show', `${argBase}:${f}`], { encoding: 'utf8' }); return r.status === 0 ? r.stdout : null; };
   for (const f of changed.filter((f) => /\.(js|css)$/.test(f) && f !== 'sw.js' && fs.existsSync(f))) {
     for (const h of htmls) for (const r of refs[h]) {
       if (r.path !== f) continue;
