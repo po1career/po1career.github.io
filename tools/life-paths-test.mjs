@@ -21,7 +21,7 @@ const key = await webcrypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(j.salt), 
 const LIST = JSON.parse(Buffer.from(await webcrypto.subtle.decrypt({ name: 'AES-GCM', iv: b(j.iv) }, key, b(j.data))));
 
 const window = { crypto: webcrypto };
-for (const f of ['jupas-engine.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js', 'life-paths-content.js'])
+for (const f of ['jupas-engine.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js', 'life-paths-fun.js', 'life-paths-content.js'])
   new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(window);
 const C = window.LifePathsCore, L = window.LifePathsLife, DB = C.indexDB(LIST);
 
@@ -238,7 +238,7 @@ for (const k of seenLogKeys) if (k !== 'start' && k !== 'event' && !T.logs[k]) m
 for (const k of ['startDegree', 'startTrack', 'startWork']) if (typeof T.logs[k] === 'undefined') miss.push('log ' + k);
 check(`every event, choice, focus, track, credential, meter, route, field, branch and log line has text ` +
   `(${L.EVENTS.length} events, ${Object.keys(seenBranches).length} branches, ${seenLogKeys.size} log kinds seen)`, miss.length === 0, miss.slice(0, 8).join(', '));
-check('the step bar has the 8 steps the screens use', T.steps.map((x) => x.id).join() === 'grades,interests,list,results,offers,routes,life,end');
+check('the step bar has the 9 steps the screens use', T.steps.map((x) => x.id).join() === 'me,grades,interests,list,results,offers,routes,life,end');
 
 /* 8. "what if" (Phase 3): the same luck with ONE decision changed — L.replay */
 console.log('\n"what if" replays');
@@ -270,6 +270,38 @@ check(`no change → the very same life (${wi.exact}/${WI})`, wi.exact === WI, w
 check(`one turning point or event answer changed → identical before it, the new answer at it, ends cleanly (${wi.prefix}/${wi.prefixN})`,
   wi.prefix === wi.prefixN && wi.prefixN > 50, wi.err.slice(0, 3).join(' | '));
 check(`another route at the start → a valid life to the same final age (${wi.route}/${wi.routeN})`, wi.route === wi.routeN, wi.err.slice(0, 3).join(' | '));
+
+/* 9. fun pack: characters, dreams, end titles, quick start (life-paths-fun.js) */
+console.log('\nfun pack (characters, dreams, titles, quick start)');
+const F = window.LifePathsFun;
+const pathOk = (d) => /^[MLQAaZz0-9 .\-]+$/.test(d) && d.length > 10;
+check(`${F.AVATAR_IDS.length} characters drawn from valid shapes, each with a name`, F.AVATAR_IDS.length >= 8 &&
+  F.AVATAR_IDS.every((id) => F.AVATARS[id].length >= 6 && F.AVATARS[id].every(([d, c]) => pathOk(d) && /^#[0-9A-Fa-f]{6}$/.test(c)) && T.avatars[id]));
+const validPred = (p) => [p.chi, p.eng, p.math].every((x) => C.LEVELS.includes(x)) && ['attained', 'notattained'].includes(p.csd) &&
+  p.elect.length >= 2 && p.elect.every((e) => C.ELECTIVES.includes(e.s) && C.LEVELS.includes(e.lv)) && new Set(p.elect.map((e) => e.s)).size === p.elect.length;
+const catOk = (k) => T.categories.some((c) => c.key === k);
+check('quick-start students: valid grades and interests, named, and "suggest" finds programmes for each',
+  F.SAMPLE_IDS.every((id) => validPred(F.SAMPLES[id].pred) && F.SAMPLES[id].cats.every(catOk) && T.quick.samples[id] &&
+    C.suggestList(F.SAMPLES[id].pred, F.SAMPLES[id].cats, DB).length > 0));
+let rs = 7; const rrand = () => (rs = (rs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+check('500 random students are all valid', Array.from({ length: 500 }, () => F.randomStudent(rrand)).every((x) => validPred(x.pred) && x.cats.every(catOk)));
+const dreamDist = Object.fromEntries(F.DREAM_IDS.map((id) => [id, [0, 0, 0, 0]])), personaN = {}, fpErr = [];
+for (let i = 0; i < 1500; i++) {
+  try {
+    const { l } = playLife(i, pickA);
+    F.DREAM_IDS.forEach((id) => { const st = F.dreamStars(l, id); if (!(st >= 0 && st <= 3)) throw new Error('stars ' + st); dreamDist[id][st]++; });
+    const p = F.persona(l, { retake: i % 11 === 0, clearing: i % 13 === 0 });
+    if (!F.PERSONA_IDS.includes(p.id) || (p.mod && !F.MOD_IDS.includes(p.mod))) throw new Error('title ' + JSON.stringify(p));
+    const k = p.id + (p.mod ? '+' + p.mod : ''); personaN[k] = (personaN[k] || 0) + 1;
+  } catch (e) { fpErr.push(`life${i}: ${e.message}`); }
+}
+check('every dream gets 0–3 stars; full stars are reachable but not automatic', fpErr.length === 0 &&
+  F.DREAM_IDS.every((id) => dreamDist[id][3] > 0 && dreamDist[id][0] + dreamDist[id][1] > 0), fpErr.slice(0, 3).join(' | ') || JSON.stringify(dreamDist));
+console.log('  dream stars 0/1/2/3 over 1500 lives: ' + F.DREAM_IDS.map((id) => `${id} ${dreamDist[id].join('/')}`).join(' · '));
+console.log('  end titles: ' + Object.entries(personaN).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, n]) => `${k} ${n}`).join(' · '));
+check('every dream, title and twist has text; guess options match', F.DREAM_IDS.every((id) => T.dreams[id] && T.dreams[id].name && T.dreams[id].tip) &&
+  F.PERSONA_IDS.every((id) => T.personas[id] && T.personas[id].name) && F.MOD_IDS.every((id) => T.mods[id]) &&
+  T.guess.bands.length === 6 && T.guess.payBands.length === F.PAY_BANDS.length);
 
 console.log(`\nsummary: ${offers}/${N} simulated students got a Main Round offer with a suggested list ` +
   `(${eligibleAny} had any suggestion; avg list ${(suggestedLen / N).toFixed(1)} choices; ${lowerCleared} lower choices also cleared)`);
