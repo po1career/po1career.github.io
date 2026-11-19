@@ -481,8 +481,35 @@ check(`${F.AVATAR_IDS.length} characters drawn from valid shapes, each with a na
     JSON.stringify(F.layersOf({ avatar: 'custom', look: randoms[0] })) === JSON.stringify(F.lookLayers(randoms[0])) &&
     /<svg viewBox="0 0 64 64"/.test(F.avatarSVG({ avatar: 'custom', look: randoms[1] }, 40)));
   const K = T.look, noText = F.LOOK_PARTS.filter((k) => !K.parts[k] || !Array.isArray(K.options[k]) || K.options[k].length !== F.LOOK[k] ||
-    K.options[k].some((x) => !x) || (F.LOOK_COLOURS[k] && F.LOOK_COLOURS[k].length !== F.LOOK[k]));
+    K.options[k].some((x) => !x) || (F.LOOK_COLOURS[k] && F.LOOK_COLOURS[k].length !== F.LOOK_BASE[k]));
   check('every part and option of the creator has a name (and every colour part has its colours)', noText.length === 0 && !!K.name, noText.join());
+  // badges: each unlocks exactly one avatar item beyond the open options; random looks never use a locked item
+  const B = T.badges, badItems = [];
+  F.BADGES.forEach((b) => {
+    const u = F.UNLOCKS[b], t = B.list[b];
+    if (!t || !t.icon || !t.name || !t.how || !t.item || !u || u.v < F.LOOK_BASE[u.part] || u.v >= F.LOOK[u.part] || F.lockedBy(u.part, u.v) !== b) badItems.push(b);
+  });
+  let lockedOptions = 0;
+  F.LOOK_PARTS.forEach((k) => { for (let v = 0; v < F.LOOK[k]; v++) { const need = F.lockedBy(k, v); if (need) lockedOptions++; if (!need !== v < F.LOOK_BASE[k]) badItems.push(k + v); } });
+  check(`${F.BADGES.length} badges, each named with how to earn it and unlocking exactly one of the ${lockedOptions} badge items`,
+    badItems.length === 0 && lockedOptions === F.BADGES.length && !!B.heading, badItems.join());
+  check('random looks only use items open to everyone', randoms.every((l) => F.LOOK_PARTS.every((k) => !F.lockedBy(k, l[k]))));
+}
+{
+  // the badges a game earns: chapter-1 flags, then what the life did
+  const bl = L.start({ seed: 'bd', mode: 'short', route: 'work', field: 'Business', offer: null, prog: null, actual: students[0], startAge: 18 });
+  const st = F.badgesFor(null, { offer: true, retake: true, clearing: false }, null);
+  check('chapter-1 badges follow the story (Main Round offer, retake, Clearing) even without a life', st.join() === 'offer,comeback');
+  const rate = {}; let n = 0;
+  for (let i = 0; i < 3000; i++) {
+    const { l } = playLife(i, (a, b, k) => Math.floor(C.uniform('bdg' + a, 'p' + b) * k));
+    F.badgesFor(l, {}, F.DREAM_IDS[i % F.DREAM_IDS.length]).forEach((b) => { rate[b] = (rate[b] || 0) + 1; }); n++;
+  }
+  const lifeBadges = ['vocational', 'world', 'society', 'firstJob', 'learner', 'boss', 'balanced', 'dream'];
+  console.log('  badges earned per 100 lives (random choices): ' + lifeBadges.map((b) => `${b} ${Math.round(100 * (rate[b] || 0) / n)}`).join(' · '));
+  check('every life badge can be earned, and only 第一份全職 comes almost every time (the others under 60%)',
+    lifeBadges.every((b) => (rate[b] || 0) > 0) && lifeBadges.filter((b) => b !== 'firstJob').every((b) => rate[b] / n < 0.6) &&
+    F.badgesFor(bl, {}, null).every((b) => F.BADGES.includes(b)));
 }
 const validPred = (p) => [p.chi, p.eng, p.math].every((x) => C.LEVELS.includes(x)) && ['attained', 'notattained'].includes(p.csd) &&
   p.elect.length >= 2 && p.elect.every((e) => C.ELECTIVES.includes(e.s) && C.LEVELS.includes(e.lv)) && new Set(p.elect.map((e) => e.s)).size === p.elect.length;

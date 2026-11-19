@@ -77,8 +77,10 @@
     [16, 8, 0].forEach(function (s) { var x = (pa >> s) & 255, y = (pb >> s) & 255; out |= Math.round(x + (y - x) * t) << s; });
     return '#' + ('000000' + out.toString(16)).slice(-6).toUpperCase();
   }
-  // how many options each part has; the names live in life-paths-content.js (T.look.options)
-  var LOOK = { face: 4, skin: 6, hair: 10, hairCol: 8, eyes: 5, brows: 4, mouth: 5, glasses: 4, head: 6, top: 6, topCol: 8, extra: 6, bg: 8 };
+  // how many options each part has; the names live in life-paths-content.js (T.look.options). LOOK_BASE = the options
+  // open to everyone; the rest (headwear 6–11, tops 6–8, extra 6, backgrounds 8–9) are unlocked by badges (UNLOCKS)
+  var LOOK_BASE = { face: 4, skin: 6, hair: 10, hairCol: 8, eyes: 5, brows: 4, mouth: 5, glasses: 4, head: 6, top: 6, topCol: 8, extra: 6, bg: 8 };
+  var LOOK = { face: 4, skin: 6, hair: 10, hairCol: 8, eyes: 5, brows: 4, mouth: 5, glasses: 4, head: 12, top: 9, topCol: 8, extra: 7, bg: 10 };
   var LOOK_PARTS = ['face', 'skin', 'hair', 'hairCol', 'eyes', 'brows', 'mouth', 'glasses', 'head', 'top', 'topCol', 'extra', 'bg'];
   var LOOK_COLOURS = {
     skin: ['#FCE3CF', '#F4CDAE', '#E8B48B', '#CF9466', '#A56C44', '#73482B'],
@@ -153,7 +155,15 @@
     function (c, d) { return [[TORSO, c], ['M26.4 41.9L37.6 41.9L32 51Z', SHIRT], ['M26.4 41.9L32 51L29.4 52.4L24.8 44Z', d],
       ['M37.6 41.9L32 51L34.6 52.4L39.2 44Z', d]]; },                                                 // 西裝外套
     function (c, d) { return [[TORSO, c], ['M26.4 41.9Q32 46.6 37.6 41.9L38.8 42.5Q32 48.6 25.2 42.5Z', WHITE],
-      ['M11.5 46.4L15.4 44.8L18.6 53.6L14.7 55.2Z', WHITE], ['M48.6 44.8L52.5 46.4L49.3 55.2L45.4 53.6Z', WHITE]]; }   // 運動衫
+      ['M11.5 46.4L15.4 44.8L18.6 53.6L14.7 55.2Z', WHITE], ['M48.6 44.8L52.5 46.4L49.3 55.2L45.4 53.6Z', WHITE]]; },   // 運動衫
+    // unlocked by badges
+    function (c, d) { return [[TORSO, c], ['M26.4 41.9Q32 46.6 37.6 41.9L38.8 42.5Q32 48.6 25.2 42.5Z', WHITE], [rrect(31.4, 46.5, 1.2, 15, 0.6), d],
+      [circ(29.6, 50, 0.85), WHITE], [circ(29.6, 54.5, 0.85), WHITE], [circ(34.4, 50, 0.85), WHITE], [circ(34.4, 54.5, 0.85), WHITE]]; },   // 學會外套
+    function (c, d) { return [[TORSO, '#D9D4C5'], ['M8 50.4C9.4 45 17.6 43.1 26.6 42.8Q32 47.4 37.4 42.8C46.4 43.1 54.6 45 56 50.4A30 30 0 0 1 8 50.4Z', SHIRT],
+      ['M26.4 41.9L37.6 41.9L32 51Z', c], ['M26.4 41.9L32 51L29.4 52.4L24.8 44Z', SHIRT_SHADE], ['M37.6 41.9L32 51L34.6 52.4L39.2 44Z', SHIRT_SHADE],
+      [rrect(40, 50, 6, 1.2, 0.6), '#D9D4C5'], [rrect(42, 47.4, 0.9, 3, 0.45), '#6189A3']]; },   // 實驗袍
+    function (c, d) { return [[TORSO, c], [rrect(26, 41.6, 1.3, 4.5, 0.65), WHITE], [rrect(36.7, 41.6, 1.3, 4.5, 0.65), WHITE],
+      ['M25 45L39 45L40.5 58L23.5 58Z', WHITE], [rrect(29, 51, 6, 3, 1), '#E9E6DA']]; }   // 圍裙
   ];
   var HEADS = [
     function () { return []; },
@@ -165,8 +175,30 @@
       [circ(42, 13.5, 1.9), '#C95F5F']]; },                                                           // 蝴蝶結
     function () { return [[star(40.5, 16.5, 3.2), '#F2C94C']]; },                                    // 星星髮夾
     function (c) { return [['M15.4 29A16.6 16.6 0 0 1 48.6 29L46.4 29A14.4 14.4 0 0 0 17.6 29Z', '#3E4A5A'],
-      [rrect(13, 25, 6.2, 9.4, 2.8), c], [rrect(44.8, 25, 6.2, 9.4, 2.8), c]]; }                     // 耳機
+      [rrect(13, 25, 6.2, 9.4, 2.8), c], [rrect(44.8, 25, 6.2, 9.4, 2.8), c]]; },                    // 耳機
+    // unlocked by badges
+    function () { return [['M21 15L21 21Q32 25 43 21L43 15Q32 19 21 15Z', '#3E4A5A'], ['M13.5 13L32 6L50.5 13L32 20Z', '#2E3440'],
+      [rrect(46.4, 13, 1.2, 9, 0.6), '#E0B84A'], [circ(47, 22.6, 1.7), '#E0B84A']]; },             // 畢業帽
+    function () { return [[rrect(17.5, 18.4, 29, 4.4, 2.2), WHITE], [circ(32, 20.6, 1.7), '#E07A7A'],
+      [tri(45, 19, 50.5, 16.4, 50, 22.4), WHITE]]; },                                                   // 必勝頭帶
+    function () { var g = '#5FA35A'; return [[circ(39.3, 15.3, 1.6), g], [circ(41.9, 15.3, 1.6), g], [circ(39.3, 17.9, 1.6), g],
+      [circ(41.9, 17.9, 1.6), g], [rrect(40.3, 18.6, 0.7, 2.8, 0.35), '#3F7A3B']]; },              // 四葉草髮夾
+    function () { return [['M16.5 24C16.5 12.5 23.5 7.5 32 7.5C40.5 7.5 47.5 12.5 47.5 24Z', '#F2C94C'],
+      [rrect(14.5, 22.4, 35, 3.6, 1.8), '#E0B23A'], [rrect(30.6, 7.6, 2.8, 15, 1.4), '#E0B23A']]; },   // 安全帽
+    function (c, d) { return [['M20 20C20 11 25 8.5 32 8.5C39 8.5 44 11 44 20Z', c], [rrect(20, 17.4, 24, 2.6, 1.3), d],
+      ['M14.5 21.5Q32 17 49.5 21.5L47.5 25Q32 21.5 16.5 25Z', d]]; },                                 // 漁夫帽
+    function () { return [['M21 19L21 9L26.5 14L32 7L37.5 14L43 9L43 19Z', '#F2C94C'], [circ(32, 15, 1.3), '#E07A7A'],
+      [circ(25.6, 16, 1), '#6189A3'], [circ(38.4, 16, 1), '#6189A3']]; }                           // 皇冠
   ];
+  // backgrounds 8–9 are pictures, not colours (unlocked by badges)
+  var BG_PICTURES = [
+    function () { return [[circ(32, 32, 31), '#FFF6E2'],                                            // 彩虹
+      ['M7 46A25 25 0 0 1 57 46L53.5 46A21.5 21.5 0 0 0 10.5 46Z', '#F4A6A0'], ['M10.5 46A21.5 21.5 0 0 1 53.5 46L50 46A18 18 0 0 0 14 46Z', '#F7D58A'],
+      ['M14 46A18 18 0 0 1 50 46L46.5 46A14.5 14.5 0 0 0 17.5 46Z', '#A8D5A2'], ['M17.5 46A14.5 14.5 0 0 1 46.5 46L43 46A11 11 0 0 0 21 46Z', '#9CC3E6']]; },
+    function () { var s = '#F2E6A7'; return [[circ(32, 32, 31), '#2F3B5C'], [circ(14, 15, 4), s], [circ(16, 13.4, 3.8), '#2F3B5C'],   // 星空
+      [star(50, 12, 1.5), s], [star(55, 28, 1.2), s], [star(9, 32, 1.3), s], [star(47, 20, 0.9), s], [star(22, 8, 0.9), s], [star(57, 40, 0.8), s]]; }
+  ];
+  var END_EXTRAS = [5, 6];                                    // drawn last, over hair and clothes (earrings, staff ID)
   // small extras on the cheeks (drawn under the eyes), earrings last
   var EXTRAS = [
     function () { return []; },
@@ -175,7 +207,9 @@
       [circ(41.2, 32.6, 0.6), c], [circ(39.5, 33.6, 0.6), c], [circ(41.6, 34.4, 0.55), c]]; },     // 雀斑
     function () { return [['M38.4 35.2L43.6 32.2L44.7 34.1L39.5 37.1Z', '#F0C27A'], ['M40.4 34.5L41.9 33.6L42.6 34.8L41.1 35.7Z', '#E0A458']]; },   // 膠布
     function () { return [[star(41, 34, 2), '#F2C94C']]; },                                          // 星星貼紙
-    function () { return [[circ(18.6, 34.6, 1.2), '#E0B84A'], [circ(45.4, 34.6, 1.2), '#E0B84A']]; }   // 耳環
+    function () { return [[circ(18.6, 34.6, 1.2), '#E0B84A'], [circ(45.4, 34.6, 1.2), '#E0B84A']]; },   // 耳環
+    function () { return [['M28.5 43L31.2 52L32.8 52L35.5 43L34.2 43L32 50L29.8 43Z', '#6189A3'], [rrect(29, 51.5, 6, 7.5, 1), WHITE],
+      [rrect(30.2, 52.8, 2.2, 2.6, 0.4), '#9AA0A6'], [rrect(30.2, 56.2, 3.6, 0.7, 0.35), '#C9C4B5'], [rrect(33, 53.2, 1.4, 0.7, 0.35), '#C9C4B5']]; }   // 工作證
   ];
   function cleanLook(look) {
     var out = {};
@@ -185,11 +219,12 @@
     });
     return out;
   }
-  // rand: a () => [0,1) function; glasses, headwear and extras are "none" half the time so random looks stay tidy
+  // rand: a () => [0,1) function; glasses, headwear and extras are "none" half the time so random looks stay tidy;
+  // only the options open to everyone (LOOK_BASE) — badge items are the student's to choose
   function randomLook(rand) {
     var out = {};
     LOOK_PARTS.forEach(function (k) {
-      out[k] = (k === 'glasses' || k === 'head' || k === 'extra') && rand() < 0.5 ? 0 : Math.floor(rand() * LOOK[k]);
+      out[k] = (k === 'glasses' || k === 'head' || k === 'extra') && rand() < 0.5 ? 0 : Math.floor(rand() * LOOK_BASE[k]);
     });
     return out;
   }
@@ -199,21 +234,55 @@
     var deep = k.skin >= 4, lip = deep ? '#3A1F16' : '#8A4B3A', inside = deep ? '#3A1414' : '#7A3030';
     function put(list) { list.forEach(function (s) { out.push(s); }); }
     function paint(paths, c) { paths.forEach(function (d) { out.push([d, c]); }); }
-    out.push([circ(32, 32, 31), LOOK_COLOURS.bg[k.bg]]);
+    if (k.bg < LOOK_COLOURS.bg.length) out.push([circ(32, 32, 31), LOOK_COLOURS.bg[k.bg]]);
+    else put(BG_PICTURES[k.bg - LOOK_COLOURS.bg.length]());
     paint(k.hair === 6 && (k.head === 1 || k.head === 2) ? [] : HAIR[k.hair][0], hair);           // a bun hides under a cap or beanie
     if (k.hair === 4) put([[circ(15.5, 27.5, 1.9), '#E07A7A'], [circ(48.5, 27.5, 1.9), '#E07A7A']]);   // pigtail ties
     put([[rrect(28, 37, 8, 10, 3), skin], [ell(32, 39.5, 4, 1.6), shade]]);                           // neck + chin shadow
     put(TOPS[k.top](top, dark));
     put([[ell(19, 29, 2.6, 3.6), skin], [ell(45, 29, 2.6, 3.6), skin], [FACES[k.face], skin], [ell(32, 32.7, 1.2, 0.85), shade]]);
-    if (k.extra !== 5) put(EXTRAS[k.extra](skin));
+    if (END_EXTRAS.indexOf(k.extra) < 0) put(EXTRAS[k.extra](skin));
     put(EYES[k.eyes]);
     paint(BROWS[k.brows], mix(hair, INK, 0.25));
     put(MOUTHS[k.mouth](lip, inside));
     paint(HAIR[k.hair][1], hair);
     put(GLASSES[k.glasses]);
     put(HEADS[k.head](top, dark));
-    if (k.extra === 5) put(EXTRAS[5](skin));
+    if (END_EXTRAS.indexOf(k.extra) >= 0) put(EXTRAS[k.extra](skin));
     return out;
+  }
+
+  /* ---------- badges: earned across games (saved on the device by the screens); each unlocks one avatar item ---------- */
+  var BADGES = ['offer', 'comeback', 'clearing', 'vocational', 'world', 'society', 'firstJob', 'learner', 'boss', 'balanced', 'dream', 'whatIf'];
+  var BALANCED = 55;                                          // 五項均衡: every meter at least this at the end (~1 life in 8)
+  var UNLOCKS = {                                             // badge → the item it unlocks (part + option number)
+    offer: { part: 'head', v: 6 }, comeback: { part: 'head', v: 7 }, clearing: { part: 'head', v: 8 }, vocational: { part: 'head', v: 9 },
+    world: { part: 'head', v: 10 }, dream: { part: 'head', v: 11 }, society: { part: 'top', v: 6 }, learner: { part: 'top', v: 7 },
+    boss: { part: 'top', v: 8 }, firstJob: { part: 'extra', v: 6 }, balanced: { part: 'bg', v: 8 }, whatIf: { part: 'bg', v: 9 }
+  };
+  // the badge an avatar option needs, or null if it is open to everyone
+  function lockedBy(part, v) {
+    for (var i = 0; i < BADGES.length; i++) { var u = UNLOCKS[BADGES[i]]; if (u.part === part && u.v === v) return BADGES[i]; }
+    return null;
+  }
+  // the badges one game earns. story: { offer (a Main Round offer), retake, clearing } from chapter 1; dream: the dream id.
+  // 如果當初 (whatIf) is earned on the summary screen, not here. l may be null (no life played).
+  function badgesFor(l, story, dream) {
+    var got = [];
+    if (story && story.offer) got.push('offer');
+    if (story && story.retake) got.push('comeback');
+    if (story && story.clearing) got.push('clearing');
+    if (!l) return got;
+    var route = l.decisions[0] && l.decisions[0].data.route;
+    if (/^(vtc|dae|subdeg)$/.test(route) && l.creds.some(function (c) { return c.level === 'subdegree' || c.level === 'dae'; })) got.push('vocational');
+    if (L().wentAway(l)) got.push('world');
+    if (l.decisions.some(function (d) { return d.key === 'event' && d.data.id === 'society' && d.data.choice !== 1; })) got.push('society');
+    if (l.log.some(function (e) { return e.key === 'gotJob'; })) got.push('firstJob');
+    if (l.creds.some(function (c) { return c.partTime || c.level === 'masters'; })) got.push('learner');
+    if (l.log.some(function (e) { return e.key === 'bizWin'; })) got.push('boss');
+    if (L().METERS.every(function (k) { return l.meters[k] >= BALANCED; })) got.push('balanced');
+    if (dream && dreamStars(l, dream) === 3) got.push('dream');
+    return got;
   }
   // who: an animal id, or the player's { avatar, look } ("custom" = the student's own design)
   function layersOf(who) {
@@ -308,7 +377,8 @@
 
   window.LifePathsFun = {
     AVATARS: AVATARS, AVATAR_IDS: AVATAR_IDS, avatarSVG: avatarSVG, drawAvatar: drawAvatar,
-    LOOK: LOOK, LOOK_PARTS: LOOK_PARTS, LOOK_COLOURS: LOOK_COLOURS, DEFAULT_LOOK: DEFAULT_LOOK,
+    LOOK: LOOK, LOOK_BASE: LOOK_BASE, LOOK_PARTS: LOOK_PARTS, LOOK_COLOURS: LOOK_COLOURS, DEFAULT_LOOK: DEFAULT_LOOK,
+    BADGES: BADGES, BALANCED: BALANCED, UNLOCKS: UNLOCKS, lockedBy: lockedBy, badgesFor: badgesFor,
     cleanLook: cleanLook, randomLook: randomLook, lookLayers: lookLayers, layersOf: layersOf,
     DREAMS: DREAMS, DREAM_IDS: DREAM_IDS, METER_STARS: METER_STARS, dreamStars: dreamStars,
     PERSONA_IDS: PERSONA_IDS, MOD_IDS: MOD_IDS, persona: persona,

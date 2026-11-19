@@ -233,6 +233,10 @@ async function lifePathsCheck(b) {
     const replaySame=L.replaySame(), wiBtn=q('[data-act="wi"]');
     if (wiBtn) wiBtn.click();
     const whatIf=!!wiBtn && !!(await until(()=>q('#wi-cmp .cmp'))), runs=!!q('.runs');
+    // badges: the new ones show on the summary and are saved on the device (如果當初 too, from the comparison just opened)
+    const kept=JSON.parse(localStorage.getItem('life_paths_badges')||'[]');
+    const badges=!!q('.badges-new .bchip') && kept.includes('firstJob') && kept.includes('whatIf') && kept.includes('offer') &&
+      new RegExp('（'+kept.length+' / 12）').test((q('.endcard details.badges summary')||{}).textContent||'') && document.querySelectorAll('.bgrid .badge.on').length===kept.length;
     const sh=q('[data-act="share"]'); if (sh) sh.click();
     const share=!!sh && !!(await until(()=>{const u=L.shareURL;return u&&/^data:image\\/png;base64,/.test(u.url)&&u.w===1080&&q('.shareimg');},20000));
     // the screens the work route skips: retake year → round 2 (→ Clearing Round) → field picker → a second life
@@ -252,11 +256,15 @@ async function lifePathsCheck(b) {
     const ci=q('#class-code'); ci.value='qa 7b'; ci.dispatchEvent(new Event('input',{bubbles:true})); q('[data-act="start"]').click();
     const classMode=L.state.seed==='class-QA7B' && L.state.classCode==='QA7B' && !!(await until(()=>q('.classpill')));
     // quick start (the character carried over): a ready-made student fills the grades and "suggest" builds the list
+    // a badge's item is now selectable in 自己設計 (工作證 from 第一份全職); one not earned stays locked (皇冠 needs 夢想成真)
+    q('[data-act="lk-tab"][data-k="extra"]').click(); const idOpen=!q('[data-act="lk"][data-k="extra"][data-v="6"]').disabled;
+    q('[data-act="lk-tab"][data-k="head"]').click();
+    const crownLocked=q('[data-act="lk"][data-k="head"][data-v="11"]').disabled && !!q('.lk-opt.locked .lk-lock') && !q('[data-act="lk"][data-k="head"][data-v="6"]').disabled;
     q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
     const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='custom' && JSON.stringify(L.state.me.look)===myLook &&
       JSON.stringify(L.state.me.strengths)===${JSON.stringify(JSON.stringify(QA_STRENGTHS))};
     return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle,
-      stCards, stNeed, stTwo, stSummary, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+      stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -330,6 +338,8 @@ for (const t of PAGES) {
         record(t.page, 'class mode: the class code becomes the shared seed and shows on screen', r.classMode, got);
         record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
           r.meScreen && r.quick, got);
+        record(t.page, 'badges: new ones shown on the summary and saved on the device (如果當初 too); an earned badge\'s item becomes ' +
+          'selectable in 自己設計, an unearned one stays locked', r.badges && r.idOpen && r.crownLocked, got);
         record(t.page, 'strengths: 8 cards; 下一步 waits for exactly two; a third is disabled; the two shape the life (same as the core), ' +
           'show on the summary and are kept for a new game', r.stCards && r.stNeed && r.stTwo && r.stSummary && r.quick, got);
         record(t.page, 'avatar creator (自己設計): 13 parts, options and colours change the look and are saved; the design walks the road, ' +
