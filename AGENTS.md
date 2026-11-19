@@ -92,8 +92,10 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
   (`life-paths*`) is 繁體中文 only, by owner decision (2026-11-18).
 - The game's simulation — `life-paths-core.js` (DSE → August) and `life-paths-life.js` (the years after) — has no
   DOM dependencies and uses seeded, keyed randomness; `life-paths-fun.js` (characters, dreams, end titles, quick start)
-  only reads a finished life and must never change the simulation. Test them with `tools/life-paths-test.mjs` (needs
-  `PO1_STUDENT_PASS`), which also checks that `life-paths-content.js` has text for every id the engine produces.
+  only reads a finished life and must never change the simulation. Main Round offers follow the JUPAS Evaluator's own
+  rules (`jupas-evaluator-analytics.js`, loaded by both pages): editing that file changes the game too. Test them with
+  `tools/life-paths-test.mjs` (needs `PO1_STUDENT_PASS`), which also checks that `life-paths-content.js` has text for
+  every id the engine produces.
   Cited figures live only in `life-paths-stats.js` (source, year and link each); anything else is labelled
   illustrative on the game's 資料來源與假設 page. Bump `MODEL_VERSION` in `life-paths-life.js` whenever a rule change
   would replay an old saved life differently (the "what if" screen relies on it). The game's class code, saves and

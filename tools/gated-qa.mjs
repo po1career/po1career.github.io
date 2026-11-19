@@ -58,7 +58,7 @@ const PROBE = { code: probeProg.jupas_code, score: E.evaluateProgramme(probeProg
 const fmt = (n) => String(+(+n).toFixed(2));
 // DSE Life Paths: the same game computed in node (fixed seed) — the page must reach the same list, offer and life
 win.crypto = webcrypto;
-for (const f of ['jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js'])
+for (const f of ['jupas-evaluator-analytics.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js'])
   if (fs.existsSync(path.join(ROOT, f))) new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(win);
 const LIFE = (() => {
   const L = win.LifePathsCore; if (!L) return null;
@@ -162,7 +162,15 @@ async function lifePathsCheck(b) {
     Object.assign(s.pred,{chi:'4',eng:'4',math:'4',csd:'attained'});
     s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}]; s.cats=[]; s.me.dreamCat=null;
     L.go('list'); L.act('l-suggest'); const list=s.list.slice();
-    const tags=document.querySelectorAll('#slots .pill').length;
+    const tags=document.querySelectorAll('#slots .evp .pill').length>=list.length?document.querySelectorAll('#slots .evp').length:-1;
+    // the list shows the Evaluator's labels: a programme that gave 85%+ of offers to Band A, placed at B4 → 組別錯誤
+    const pg=L.core.toEngineGrades({chi:'4',eng:'4',math:'4',csd:'attained',elect:[{s:'chist',lv:'5'},{s:'econ',lv:'4'}]});
+    const wp=L.db().list.find((p)=>window.JUPASAnalytics.bandPlacementCheck(p,4).verdict==='wrong' &&
+      window.JUPASEngine.evaluateProgramme(p,pg).eligibility.eligible);
+    s.list=list.slice(0,3).concat([wp.jupas_code]); L.go('list');
+    const wrongPill=!!wp && (document.querySelectorAll('#slots .slot')[3]||{textContent:''}).textContent.includes('組別錯誤')
+      && !document.querySelectorAll('#slots .slot')[0].textContent.includes('組別錯誤');
+    s.list=list.slice(); L.go('list');
     // results day: 估一估 first, then the grades start face down (one tap, then 全部揭曉)
     L.act('l-next'); const guessMatch=!!(await until(()=>q('[data-act="guess-match"]')));
     q('[data-act="guess-match"][data-v="2"]').click(); q('[data-act="flip"]').click(); q('[data-act="reveal-all"]').click();
@@ -171,6 +179,7 @@ async function lifePathsCheck(b) {
     L.act('r-next'); q('[data-act="guess-band"][data-v="0"]').click();
     const scan=!!(await until(()=>q('.scanrow'))); q('[data-act="scan-skip"]').click();
     const offerCard=!!(await until(()=>q('.offer-card')));
+    const evCol=document.querySelectorAll('.otable thead th').length===5 && !!q('.otable tbody .pill');
     const offer=s.round.offer?s.round.offer.code:null;
     L.act('o-others'); const routes=document.querySelectorAll('.route').length;
     q('[data-act="route"][data-id="work"]').click();
@@ -202,7 +211,7 @@ async function lifePathsCheck(b) {
     // quick start (the character carried over): a ready-made student fills the grades and "suggest" builds the list
     q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
     const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='fox';
-    return JSON.stringify({list, tags, meScreen, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+    return JSON.stringify({list, tags, wrongPill, evCol, meScreen, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -280,6 +289,8 @@ for (const t of PAGES) {
           r.guessMatch && r.guessRes && r.scan, got);
         record(t.page, 'fun pack: walking character + pay guess in the life; end title, dream stars and guess scorecard',
           r.walk && r.payGuess && r.titleCard && r.dreamCard && r.guesses, got);
+        record(t.page, 'Evaluator rules on screen: a Band-A-only programme placed at B4 shows 組別錯誤; offer details show each choice\'s Evaluator level',
+          r.wrongPill && r.evCol, got);
       }
       else if (t.page === 'jupas-evaluator.html') {
         const r = JSON.parse(got || '{}');

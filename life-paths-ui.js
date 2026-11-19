@@ -325,7 +325,8 @@
         if (r.fewPlaces) notes.push(O.fewPlaces);
         return '<tr class="st-' + r.status + '"><td><span class="chipband b' + C.bandOfSlot(r.i) + '">' + esc(C.slotLabel(r.i)) + '</span></td>' +
           '<td>' + (p ? esc(pname(p)) + '<div class="small muted">' + esc(pinst(p)) + ' · ' + esc(r.code) + '</div>' : esc(r.code)) + '</td>' +
-          '<td>' + esc(fmt(r.score)) + '</td><td>' + esc(O.st[r.status] || '') + (notes.length ? '<div class="small muted">' + esc(notes.join(' ')) + '</div>' : '') + '</td></tr>';
+          '<td>' + esc(fmt(r.score)) + '</td><td>' + (r.tag ? evPills(r, true) : '—') + '</td>' +
+          '<td>' + esc(O.st[r.status] || '') + (notes.length ? '<div class="small muted">' + esc(notes.join(' ')) + '</div>' : '') + '</td></tr>';
       }).join('');
       var detail = round.rows.length ? '<details class="explain"' + (o ? '' : ' open') + '><summary>' + esc(O.detail) + '</summary><div class="tablewrap"><table class="otable"><thead><tr>' +
         O.th.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div></details>' : '';
@@ -841,7 +842,7 @@
       scanTimer = setTimeout(function () {
         var ok = r.status === 'offer';
         el.classList.remove('checking'); el.classList.add(ok ? 'pass' : 'fail');
-        el.querySelector('.scan-st').textContent = ok ? T.reveal.pass : T.reveal.fail;
+        el.querySelector('.scan-st').textContent = ok ? T.reveal.pass : r.status === 'wrongBand' ? T.reveal.wrongBand : T.reveal.fail;
         i++;
         if (ok) {
           for (var k = i; k < els.length; k++) { els[k].classList.add('skipped'); els[k].querySelector('.scan-st').textContent = T.reveal.after; }
@@ -886,15 +887,25 @@
     if (confettiNext) { confettiNext = false; confetti(); }
   }
 
+  /* ---------- the Evaluator's labels (the same rules decide the offers) ---------- */
+  var EV_CLS = { likely: 'p-good', moderate: 'p-mid', risky: 'p-bad', ineligible: 'p-bad', nodata: 'p-unk' };
+  // a: { tag, verdict, chance } — the Chance tag (with the game's chance if asked), or the Band warning
+  function evPills(a, withPct) {
+    var L2 = T.list;
+    if (a.verdict === 'wrong' && a.tag !== 'ineligible') return '<span class="pill p-bad">⚠ ' + esc(L2.band.wrong) + '</span>';
+    return '<span class="pill ' + (EV_CLS[a.tag] || 'p-unk') + '">' + esc(L2.ev[a.tag] || L2.ev.nodata) +
+      (withPct && a.tag !== 'ineligible' && a.chance != null ? ' · ' + Math.round(a.chance * 100) + '%' : '') + '</span>' +
+      (a.verdict === 'caution' && a.tag !== 'ineligible' ? ' <span class="pill p-mid">' + esc(L2.band.caution) + '</span>' : '');
+  }
+
   /* ---------- the JUPAS list (search + 20 slots) ---------- */
   function renderList() {
     var L2 = T.list, pc = predClean();
     $('slots').innerHTML = state.list.length ? state.list.map(function (code, i) {
-      var p = DB.byCode[code], tag = C.slotTagFor(code, i, pc, DB);
-      var tagTxt = tag === 'good' ? L2.tagGood : tag === 'mid' ? L2.tagMid : L2.tagBad;
+      var p = DB.byCode[code], a = C.assessChoice(code, i, pc, DB);
       return '<li class="slot"><span class="chipband b' + C.bandOfSlot(i) + '">' + esc(C.slotLabel(i)) + '</span>' +
         '<span class="sname">' + (p ? esc(pname(p)) + '<span class="small muted"> ' + esc(pinst(p)) + ' · ' + esc(code) + '</span>' : esc(code)) + '</span>' +
-        '<span class="pill p-' + tag + '">' + esc(tagTxt) + '</span>' +
+        '<span class="evp">' + (a ? evPills(a, false) : '<span class="pill p-unk">' + esc(L2.ev.nodata) + '</span>') + '</span>' +
         '<span class="ops"><button type="button" data-act="l-up" data-i="' + i + '" aria-label="上移"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
         '<button type="button" data-act="l-down" data-i="' + i + '" aria-label="下移"' + (i === state.list.length - 1 ? ' disabled' : '') + '>▼</button>' +
         '<button type="button" data-act="l-del" data-i="' + i + '" aria-label="移除">✕</button></span></li>';

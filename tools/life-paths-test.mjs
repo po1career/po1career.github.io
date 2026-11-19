@@ -21,9 +21,9 @@ const key = await webcrypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(j.salt), 
 const LIST = JSON.parse(Buffer.from(await webcrypto.subtle.decrypt({ name: 'AES-GCM', iv: b(j.iv) }, key, b(j.data))));
 
 const window = { crypto: webcrypto };
-for (const f of ['jupas-engine.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js', 'life-paths-fun.js', 'life-paths-content.js'])
+for (const f of ['jupas-engine.js', 'jupas-evaluator-analytics.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js', 'life-paths-fun.js', 'life-paths-content.js'])
   new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(window);
-const C = window.LifePathsCore, L = window.LifePathsLife, DB = C.indexDB(LIST);
+const C = window.LifePathsCore, L = window.LifePathsLife, E = window.JUPASEngine, DB = C.indexDB(LIST);
 
 let failed = 0;
 const check = (name, ok, detail = '') => { console.log(`  ${ok ? '✓' : '✗'} ${name}${!ok && detail ? '  — ' + detail : ''}`); if (!ok) failed++; };
@@ -63,11 +63,16 @@ check('same seed → same results', JSON.stringify(r1) === JSON.stringify(r2));
 
 /* 2. suggestions + Main Round invariants */
 console.log('\nJUPAS list + Main Round');
-let offers = 0, badOffer = 0, notFirst = 0, nan = 0, aOnlyNonA = 0, aOnlyNonAOffers = 0, suggestedLen = 0, suggestedBad = 0, eligibleAny = 0, lowerCleared = 0;
+const A = window.JUPASAnalytics;
+let offers = 0, badOffer = 0, notFirst = 0, nan = 0, suggestedLen = 0, suggestedBad = 0, suggestedWrong = 0, eligibleAny = 0, lowerCleared = 0;
+const offerBand = {};
 for (const st of students) {
   const list = C.suggestList(st, [], DB);
   suggestedLen += list.length;
-  list.forEach((code, i) => { if (C.slotTagFor(code, i, st, DB) === 'bad') suggestedBad++; });
+  list.forEach((code, i) => {
+    if (C.slotTagFor(code, i, st, DB) === 'bad') suggestedBad++;
+    if (A.bandPlacementCheck(DB.byCode[code], i + 1).verdict === 'wrong') suggestedWrong++;
+  });
   const { actual } = C.resultsDay(st, st.seed);
   const res = C.mainRound(list, actual, DB, st.seed);
   if (list.length) eligibleAny++;
@@ -75,50 +80,67 @@ for (const st of students) {
     if (row.score != null && typeof row.score === 'number' && !isFinite(row.score)) nan++;
     if (row.status === 'offer' && !row.eligible) badOffer++;
     if (row.status === 'clearedLower') lowerCleared++;
-    if (row.aOnly && row.i >= 3) { aOnlyNonA++; if (row.cleared) aOnlyNonAOffers++; }
   }
   if (res.offer) {
-    offers++;
+    offers++; const b = C.bandOfSlot(res.offer.i); offerBand[b] = (offerBand[b] || 0) + 1;
     const firstCleared = res.rows.find((r) => r.cleared);
     if (!firstCleared || firstCleared.i !== res.offer.i) notFirst++;
   }
   if (res.rows.filter((r) => r.status === 'offer').length > 1) notFirst++;
 }
 check('suggested lists follow the Finder/Planner slot rules (no red tags)', suggestedBad === 0, `${suggestedBad} red`);
+check('"suggest" never puts a programme in B4–E20 that the Evaluator calls "wrong band"', suggestedWrong === 0, `${suggestedWrong}`);
 check('an offer only ever goes to an eligible choice', badOffer === 0, `${badOffer}`);
-check('exactly one offer, the first choice that clears its line', notFirst === 0, `${notFirst}`);
+check('exactly one offer, the first choice that succeeds', notFirst === 0, `${notFirst}`);
 check('no NaN/Infinity scores', nan === 0, `${nan}`);
-check(`"Band A only" programmes outside Band A stay rare (≤ ~2%: ${aOnlyNonAOffers}/${aOnlyNonA})`, aOnlyNonA === 0 || aOnlyNonAOffers / aOnlyNonA <= 0.03);
+const bandAOfOffers = (offerBand.A || 0) / Math.max(1, offers);
+check(`with suggested lists most offers come from Band A, like the real 2023–25 statistics (~84%; got ${(bandAOfOffers * 100).toFixed(0)}%)`,
+  bandAOfOffers > 0.7 && bandAOfOffers < 0.95);
 const r3 = C.mainRound(C.suggestList(students[5], [], DB), C.resultsDay(students[5], 'x').actual, DB, 'x');
 const r4 = C.mainRound(C.suggestList(students[5], [], DB), C.resultsDay(students[5], 'x').actual, DB, 'x');
 check('same seed → same offers', JSON.stringify(r3.offer && r3.offer.code) === JSON.stringify(r4.offer && r4.offer.code) && JSON.stringify(r3.rows) === JSON.stringify(r4.rows));
-// keyed luck: removing the last choice must not change any line drawn for the others
+// keyed luck: removing the last choice must not change any draw for the others
 const lst = C.suggestList(students[7], [], DB).slice(0, 6);
 if (lst.length >= 2) {
   const act = C.resultsDay(students[7], 'k').actual;
   const full = C.mainRound(lst, act, DB, 'k'), cut = C.mainRound(lst.slice(0, -1), act, DB, 'k');
-  check('one choice changed → the other choices keep the same luck', cut.rows.every((r, i) => r.line === full.rows[i].line));
+  check('one choice changed → the other choices keep the same luck', cut.rows.every((r, i) => r.draw === full.rows[i].draw));
 }
 
-/* 3. the model behaves as approved: a strong A1 almost always gets in, a weak one rarely */
-console.log('\nmodel calibration (Band A placement)');
-const probe = LIST.filter((p) => { const q = C.offerParams(p); return !q.noData && !q.interview; }).slice(0, 120);
-function rate(pos) {
-  let got = 0, n = 0;
-  for (const p of probe) {
-    const q = C.offerParams(p);
-    for (let k = 0; k < 40; k++) {
-      const line = q.centre + q.sigma * C.normal('cal' + k, 'line|' + p.jupas_code);
-      const score = pos === 'LQ' ? q.lq : pos === 'M' ? q.median : q.lq - q.spread;
-      n++; if (score >= line) got++;
-    }
+/* 3. offers follow the teacher JUPAS Evaluator strictly (owner decision 2026-11-19) */
+console.log('\noffers follow the Evaluator (random lists, all levels and bands)');
+const tierN = {}, tierHit = {};
+let wrongRows = 0, wrongOffered = 0, labelMismatch = 0, ineligibleOffered = 0, ruleBroken = 0;
+let rs3 = 31; const r3rand = () => (rs3 = (rs3 * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+for (let k = 0; k < 1200; k++) {
+  const st = students[k % N], actual = C.resultsDay(st, 'ev' + k).actual, grades = C.toEngineGrades(actual);
+  const elig = LIST.filter((p) => E.evaluateProgramme(p, grades).eligibility.eligible).map((p) => p.jupas_code);
+  const extra = LIST.slice((k * 7) % 400, (k * 7) % 400 + 3).map((p) => p.jupas_code);              // a few ineligible ones too
+  const list = [...new Set(elig.sort(() => r3rand() - 0.5).slice(0, 18).concat(extra))].slice(0, 20).sort(() => r3rand() - 0.5);
+  const res = C.mainRound(list, actual, DB, 'ev' + k);
+  for (const row of res.rows) {
+    if (row.status === 'notfound') continue;
+    const prog = DB.byCode[row.code], ev = E.evaluateProgramme(prog, grades);
+    if (row.tier !== A.getSlotRisk(ev, row.i) || row.verdict !== A.bandPlacementCheck(prog, row.i + 1).verdict) labelMismatch++;
+    if (!row.eligible) { if (row.cleared) ineligibleOffered++; continue; }
+    if (row.verdict === 'wrong') { wrongRows++; if (row.cleared || row.status === 'offer') wrongOffered++; continue; }
+    if (row.draw !== C.uniform('ev' + k, 'offer|' + row.code) || row.cleared !== (row.draw < C.OFFER_CHANCE[row.tier])) ruleBroken++;
+    tierN[row.tier] = (tierN[row.tier] || 0) + 1; if (row.cleared) tierHit[row.tier] = (tierHit[row.tier] || 0) + 1;
   }
-  return got / n;
 }
-const atLQ = rate('LQ'), atM = rate('M'), below = rate('below');
-check(`score at LQ → about 84% (got ${(atLQ * 100).toFixed(0)}%)`, atLQ > 0.75 && atLQ < 0.92);
-check(`score at median → about 95%+ (got ${(atM * 100).toFixed(0)}%)`, atM > 0.9);
-check(`score one spread below LQ → about 37% (got ${(below * 100).toFixed(0)}%)`, below > 0.25 && below < 0.5);
+check('every choice carries the Evaluator\'s own Chance level and Band verdict', labelMismatch === 0, `${labelMismatch} differ`);
+check(`a choice the Evaluator calls "wrong band" is NEVER offered (${wrongRows} such choices)`, wrongRows > 100 && wrongOffered === 0, `${wrongOffered} offered`);
+check('a choice the student is not eligible for is never offered', ineligibleOffered === 0);
+check('each choice succeeds exactly when its draw (one per programme per year) is under the chance for its Evaluator level',
+  ruleBroken === 0 && Object.keys(tierN).length >= 5, `${ruleBroken} broken`);
+// the draws are uniform, so in the long run each level is offered as often as its agreed chance
+const uniOk = Object.values(C.OFFER_CHANCE).every((p) => {
+  let h = 0; for (let n = 0; n < 20000; n++) if (C.uniform('u' + n, 'offer|JSX') < p) h++;
+  return Math.abs(h / 20000 - p) < 0.01;
+});
+check('the draws are uniform: 20,000 draws land under each agreed chance (90 · 70 · 40 · 15 · 5 · 30%) as often as they should (±1%)', uniOk);
+console.log('  observed offer rate by level in this sample: ' + Object.keys(C.OFFER_CHANCE).filter((t) => tierN[t])
+  .map((t) => `${t} ${(100 * (tierHit[t] || 0) / tierN[t]).toFixed(1)}% (n=${tierN[t]})`).join(' · '));
 
 /* 4. routes */
 console.log('\nroutes');
@@ -141,9 +163,14 @@ check(`retaken subjects never end lower (best of two sittings): ${better}/1000 i
 check('at most two subjects retaken', tooMany === 0);
 const rk = C.mainRound(C.suggestList(students[3], [], DB), students[3], DB, 'r2', { round: 2, retake: true });
 const r1k = C.mainRound(C.suggestList(students[3], [], DB), students[3], DB, 'r2');
-check('a retake year draws fresh lines (round 2 ≠ round 1)', rk.rows.length === 0 || rk.rows.some((r, i) => r.line !== undefined && r.line !== r1k.rows[i].line));
-const cand = C.clearingCandidates({ chi: '3', eng: '3', math: '2', csd: 'attained', elect: [{ s: 'bio', lv: '3' }, { s: 'econ', lv: '3' }] }, DB, 'cl1', null, []);
-check(`clearing candidates are eligible and within half a spread (${cand.length} shown)`, cand.length <= 6 && cand.every((c) => c.margin >= 0));
+check('a retake year draws fresh luck (round 2 ≠ round 1)', rk.rows.length === 0 || rk.rows.some((r, i) => r.draw !== undefined && r.draw !== r1k.rows[i].draw));
+const clStudent = { chi: '3', eng: '3', math: '2', csd: 'attained', elect: [{ s: 'bio', lv: '3' }, { s: 'econ', lv: '3' }] };
+const cand = C.clearingCandidates(clStudent, DB, 'cl1', null, []), clGrades = C.toEngineGrades(clStudent);
+check(`clearing candidates are eligible and at or above last year's LQ (the Evaluator's near-LQ or better; ${cand.length} shown)`,
+  cand.length > 0 && cand.length <= 6 && cand.every((c) => {
+    const ev = E.evaluateProgramme(DB.byCode[c.code], clGrades);
+    return ev.eligibility.eligible && ['uq', 'med', 'near-med', 'near-lq'].includes(A.getScoreBand(ev));
+  }));
 let cr = 0; for (let i = 0; i < 4000; i++) if (C.clearingResult('JS1000', 'c' + i)) cr++;
 check(`clearing pick succeeds ≈ 60% (got ${(cr / 40).toFixed(1)}%)`, Math.abs(cr / 4000 - 0.6) < 0.03);
 
