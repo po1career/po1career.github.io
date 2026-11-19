@@ -2,8 +2,9 @@
    DSE 人生模擬器 / DSE Life Paths — simulation core (no DOM; testable in node).
    Phase 1: predicted grades → JUPAS list → results day → August Main Round offer → route.
    Design (owner-approved 2026-11-18): private repo docs/dse-life-paths-design.md.
-   Depends on window.JUPASEngine (shared scoring engine) and window.JUPASFinder
-   (effectiveUq / slotTag — the same slot rules the Finder and Planner show).
+   Depends on window.JUPASEngine (shared scoring engine), window.JUPASFinder (effectiveUq / slotTag — the same
+   slot rules the Finder and Planner show) and window.JUPASAnalytics (jupas-evaluator-analytics.js — the teacher
+   JUPAS Evaluator's own Chance and Band rules, which decide Main Round offers since 2026-11-19).
    Exposes window.LifePathsCore.
 
    Randomness is SEEDED and KEYED: every draw is derived from (run seed, purpose, item),
@@ -16,6 +17,7 @@
 
   function E() { return window.JUPASEngine; }
   function F() { return window.JUPASFinder; }
+  function A() { return window.JUPASAnalytics; }
 
   /* ---------- seeded, keyed randomness ---------- */
   function hash32(str) {                                   // FNV-1a
@@ -90,100 +92,101 @@
     return { actual: actual, changes: changes };
   }
 
-  /* ---------- the offer model (owner-approved, design §4) ---------- */
-  var GLOBAL_BAND_A_SHARE = 0.84;          // 2023–25, all programmes: share of offers to Band-A placements
-  var NON_A_CAP_A_ONLY = 0.02;             // "admits from Band A only" programmes outside Band A: ≤ ~2%
+  /* ---------- the offer model v2 — STRICTLY the teacher JUPAS Evaluator's rules (owner decision 2026-11-19) ----------
+     The game loads the Evaluator's own analytics file (jupas-evaluator-analytics.js), so the two cannot drift apart.
+     For each choice, A1 → E20, with the results-day grades:
+       1. not eligible (incl. CSD and extra rules)                                     → never offered;
+       2. the Evaluator's Band check says "wrong band" (≥ 85% of the latest year's offers went to Band A and the
+          choice sits in B4–E20)                                                       → never offered;
+       3. otherwise the Evaluator's Chance level for that slot sets the chance below (ILLUSTRATIVE: the Evaluator
+          shows labels, not odds — owner-approved numbers). One draw per programme per year, shared by everyone
+          with the same seed, so a better level means a better chance on the same luck;
+       4. the first choice that succeeds is the (only) offer — the JUPAS rule.
+     Interviews are not modelled separately (the Evaluator does not); the repeater −5% below still applies. */
+  var OFFER_CHANCE = { safe: 0.90, fair: 0.70, risky: 0.40, 'high-risk': 0.15, unsafe: 0.05, unknown: 0.30 };
+  // the Evaluator's on-screen tag for each level (its Chance column collapses seven levels into five tags)
+  var CHANCE_TAG = { safe: 'likely', fair: 'likely', risky: 'moderate', 'high-risk': 'risky', unsafe: 'risky', blocked: 'ineligible', unknown: 'nodata' };
   function firmNonAcademic(prog) {
     return (prog.non_academic || []).some(function (it) {
       var w = (it && it.when || '').toLowerCase();
       return it && it.type && !/when necessary|if necessary|if required|where necessary/.test(w);
     });
   }
-  function recentOffers(prog) {
-    var a = 0, t = 0;
-    (prog.offer_statistics || []).forEach(function (r) {
-      if (r.Type === 'Offer' && +r.Year >= 2023) { a += +r['Band A'] || 0; t += +r.Total || 0; }
-    });
-    return { bandA: a, total: t };
-  }
-  function offerParams(prog) {
-    var refs = E().refScores(prog);
-    if (refs.median == null) return { noData: true };
-    var M = +refs.median;
-    var LQ = refs.lq != null ? +refs.lq : M - Math.max(0.05 * M, 1);
-    var s = Math.max(M - LQ, 0.05 * M);
-    var quota = parseInt(prog.quota, 10);
-    var sigma = Math.max(0.75 * s, 0.02 * M) * (!isNaN(quota) && quota < 20 ? 1.5 : 1);
-    var off = recentOffers(prog);
-    var dep = off.total >= 5 ? off.bandA / off.total : GLOBAL_BAND_A_SHARE;
-    return {
-      noData: false, median: M, lq: LQ, uq: F().effectiveUq(refs), spread: s, sigma: sigma,
-      centre: LQ - 0.75 * s, nonAPenalty: 4 * dep * dep * s, bandAShare: dep,
-      aOnly: off.total >= 5 && off.bandA === off.total, interview: firmNonAcademic(prog),
-      fewPlaces: !isNaN(quota) && quota < 20
-    };
-  }
-  // the hidden line for this simulated year (same for everyone sharing the seed). Round 2 = the year after a
-  // DSE retake: a fresh year, so fresh lines (keys carry the year).
+  // the year key: round 2 = the year after a DSE retake, a fresh year, so fresh draws
   function yk(opts) { return opts && opts.round === 2 ? 'y2|' : ''; }
-  function lineFor(prog, q, seed, opts) { return q.centre + q.sigma * normal(seed, 'line|' + yk(opts) + prog.jupas_code); }
   // repeaters: programmes whose DB entry states a repeater policy get a flat −5% (ILLUSTRATIVE simplification,
   // design §10b) — the real rules differ by university (e.g. HKU −10% on the retaken subject).
   function retakePenalty(prog, opts) { return opts && opts.retake && prog.retake && (prog.retake.policy_en || prog.retake.penalty) ? 0.95 : 1; }
+  // an engine result with another total score (for the repeater penalty), everything else shared
+  function withScore(ev, total) {
+    var c = {}, calc = {};
+    Object.keys(ev).forEach(function (k) { c[k] = ev[k]; });
+    Object.keys(ev.calculation).forEach(function (k) { calc[k] = ev.calculation[k]; });
+    calc.totalScore = total; c.calculation = calc;
+    return c;
+  }
 
   function bandOfSlot(i) { return i < 3 ? 'A' : i < 6 ? 'B' : i < 10 ? 'C' : i < 15 ? 'D' : 'E'; }
   function slotLabel(i) { return bandOfSlot(i) + (i + 1); }
 
-  // JUPAS Main Round (simplified): walk the list A1 → E20; the FIRST choice where the student meets
-  // the entry requirements and clears this year's line gives the (only) offer. Every choice is still
-  // evaluated so the game can explain each one.
+  // the Evaluator's reading of one choice at slot i (0-based) with these grades:
+  // { ev, eligible, score, tier, tag, verdict, bandAShare, chance, fewPlaces, interview }
+  function assessEval(prog, grades, i, opts) {
+    var ev = E().evaluateProgramme(prog, grades), k = retakePenalty(prog, opts);
+    if (k !== 1) ev = withScore(ev, ev.calculation.totalScore * k);
+    var tier = A().getSlotRisk(ev, i), band = A().bandPlacementCheck(prog, i + 1), quota = parseInt(prog.quota, 10);
+    return {
+      ev: ev, eligible: ev.eligibility.eligible, score: ev.calculation.totalScore, tier: tier, tag: CHANCE_TAG[tier],
+      verdict: band.verdict, bandAShare: band.dependency ? band.dependency.share : null,
+      chance: tier === 'blocked' || band.verdict === 'wrong' ? 0 : OFFER_CHANCE[tier],
+      fewPlaces: !isNaN(quota) && quota <= 20, interview: firmNonAcademic(prog)
+    };
+  }
+  // the same reading for the list screen (predicted grades), without the engine result
+  function assessChoice(code, i, grades, db, opts) {
+    var prog = db.byCode[code]; if (!prog) return null;
+    var a = assessEval(prog, toEngineGrades(grades), i, opts); delete a.ev;
+    return a;
+  }
+
+  // JUPAS Main Round (simplified): walk the list A1 → E20; the FIRST choice that succeeds gives the (only)
+  // offer. Every choice is still read so the game can explain each one.
   function mainRound(codes, actual, db, seed, opts) {
     var grades = toEngineGrades(actual), byCode = db.byCode, rows = [], offer = null, y = yk(opts);
     codes.forEach(function (code, i) {
       var prog = byCode[code];
       if (!prog) { rows.push({ i: i, code: code, status: 'notfound' }); return; }
-      var ev = E().evaluateProgramme(prog, grades), score = ev.calculation.totalScore * retakePenalty(prog, opts);
-      var row = { i: i, code: code, slot: slotLabel(i), band: bandOfSlot(i), score: score, eligible: ev.eligibility.eligible,
-        fails: ev.eligibility.eligible ? [] : ev.eligibility.details.filter(function (d) { return d.pass === false; }) };
-      if (!row.eligible) { row.status = 'ineligible'; rows.push(row); return; }
-      var q = offerParams(prog);
-      if (q.noData) {
-        row.noData = true;
-        row.cleared = uniform(seed, 'nodata|' + y + code) < 0.5;
-      } else {
-        var line = lineFor(prog, q, seed, opts);
-        var luck = q.interview ? 0.5 * q.spread * normal(seed, 'interview|' + y + code) : 0;
-        var eff = score + luck, nonA = i >= 3;
-        row.line = line; row.interview = q.interview; row.interviewLuck = luck; row.effective = eff;
-        row.fewPlaces = q.fewPlaces; row.aOnly = q.aOnly; row.bandAShare = q.bandAShare;
-        if (nonA && q.aOnly) {
-          row.need = line; row.lottery = true;
-          row.cleared = eff >= line && uniform(seed, 'aonly|' + y + code) < NON_A_CAP_A_ONLY;
-        } else {
-          row.need = line + (nonA ? q.nonAPenalty : 0);
-          row.cleared = eff >= row.need;
-        }
-      }
+      var a = assessEval(prog, grades, i, opts);
+      var row = { i: i, code: code, slot: slotLabel(i), band: bandOfSlot(i), score: a.score, eligible: a.eligible,
+        fails: a.eligible ? [] : a.ev.eligibility.details.filter(function (d) { return d.pass === false; }),
+        tier: a.tier, tag: a.tag, verdict: a.verdict, bandAShare: a.bandAShare, chance: a.chance,
+        noData: a.tier === 'unknown', fewPlaces: a.fewPlaces, interview: a.interview };
+      if (!a.eligible) { row.status = 'ineligible'; rows.push(row); return; }
+      if (a.verdict === 'wrong') { row.status = 'wrongBand'; row.cleared = false; rows.push(row); return; }
+      row.draw = uniform(seed, 'offer|' + y + code);
+      row.cleared = row.draw < a.chance;
       row.status = row.cleared ? (offer ? 'clearedLower' : 'offer') : 'notCleared';
-      if (row.cleared && !offer) offer = { i: i, code: code, slot: slotLabel(i), prog: prog, score: score };
+      if (row.cleared && !offer) offer = { i: i, code: code, slot: slotLabel(i), prog: prog, score: a.score };
       rows.push(row);
     });
     return { offer: offer, rows: rows };
   }
 
   /* ---------- Clearing Round (late August; ILLUSTRATIVE, design §10b) ---------- */
-  // Programmes the student is eligible for whose score is within half a spread of this year's line; the
-  // closest-to-the-line first. A pick succeeds with ~60% (a place may still be free).
-  var CLEARING_CHANCE = 0.6;
+  // Programmes the student is eligible for whose score is at or above last year's LQ (the Evaluator's score
+  // position near-LQ or better; bands do not apply in the Clearing Round), the ones closest to their LQ first —
+  // where a spare place is most plausible. A pick succeeds with ~60% (a place may still be free).
+  var CLEARING_CHANCE = 0.6, CLEARING_POS = ['uq', 'med', 'near-med', 'near-lq'];
   function clearingCandidates(actual, db, seed, opts, exclude) {
     var grades = toEngineGrades(actual), out = [];
     db.list.forEach(function (prog) {
       if (exclude && exclude.indexOf(prog.jupas_code) >= 0) return;
-      var q = offerParams(prog); if (q.noData) return;
+      var refs = E().refScores(prog); if (refs.median == null) return;
       var ev = E().evaluateProgramme(prog, grades); if (!ev.eligibility.eligible) return;
-      var score = ev.calculation.totalScore * retakePenalty(prog, opts), line = lineFor(prog, q, seed, opts);
-      var margin = (score - (line - 0.5 * q.spread)) / q.spread;
-      if (margin >= 0) out.push({ code: prog.jupas_code, score: score, margin: margin });
+      var k = retakePenalty(prog, opts); if (k !== 1) ev = withScore(ev, ev.calculation.totalScore * k);
+      if (CLEARING_POS.indexOf(A().getScoreBand(ev)) < 0) return;
+      var M = +refs.median, LQ = refs.lq != null ? +refs.lq : M, s = Math.max(M - LQ, 0.05 * M), score = ev.calculation.totalScore;
+      out.push({ code: prog.jupas_code, score: score, margin: (score - LQ) / s });
     });
     return out.sort(function (a, b) { return a.margin - b.margin; }).slice(0, 6);
   }
@@ -210,7 +213,8 @@
   /* ---------- "suggest for me" (same slot rules as the Finder/Planner, design §2) ---------- */
   // A1 ≥ LQ · A2 ≥ median · A3 ≥ UQ · B4–E20 ≥ UQ+10%. Within a slot rule, the choice nearest to its
   // threshold from above (most ambitious that still meets the rule) comes first. Interest categories
-  // first; widened to all programmes if there aren't enough.
+  // first; widened to all programmes if there aren't enough. Since the Evaluator decides offers, B4–E20
+  // never gets a programme the Evaluator would call "wrong band" there (≥ 85% of offers to Band A).
   function suggestList(pred, cats, db) {
     var grades = toEngineGrades(pred), out = [], used = {};
     var all = db.list.map(function (p) {
@@ -219,6 +223,7 @@
       var M = +refs.median, LQ = refs.lq != null ? +refs.lq : null, UQ = F().effectiveUq(refs);
       var s = Math.max(LQ != null ? M - LQ : 0.05 * M, 0.05 * M);
       return { p: p, ev: ev, score: ev.calculation.totalScore, M: M, LQ: LQ != null ? LQ : M, UQ: UQ, s: s,
+        wrongOutsideA: A().bandPlacementCheck(p, 4).verdict === 'wrong',
         inCats: !cats || !cats.length || (p.categories || []).some(function (c) { return cats.indexOf(c) >= 0; }) };
     }).filter(Boolean);
     function pickFor(threshold, n, pool) {
@@ -230,11 +235,12 @@
       { n: 1, thr: function (r) { return r.LQ; } },
       { n: 1, thr: function (r) { return r.M; } },
       { n: 1, thr: function (r) { return r.UQ; } },
-      { n: 17, thr: function (r) { return r.UQ * 1.10; } }
+      { n: 17, thr: function (r) { return r.UQ * 1.10; }, outsideA: true }
     ];
     rules.forEach(function (rule) {
-      var got = pickFor(rule.thr, rule.n, all.filter(function (r) { return r.inCats; }));
-      if (got.length < rule.n) got = got.concat(pickFor(rule.thr, rule.n - got.length, all.filter(function (r) { return !r.inCats && !used[r.p.jupas_code]; })));
+      var ok = function (r) { return !(rule.outsideA && r.wrongOutsideA); };
+      var got = pickFor(rule.thr, rule.n, all.filter(function (r) { return r.inCats && ok(r); }));
+      if (got.length < rule.n) got = got.concat(pickFor(rule.thr, rule.n - got.length, all.filter(function (r) { return !r.inCats && !used[r.p.jupas_code] && ok(r); })));
       got.forEach(function (r) { used[r.p.jupas_code] = true; out.push(r.p.jupas_code); });
     });
     return out;
@@ -268,10 +274,10 @@
 
   window.LifePathsCore = {
     LEVELS: LEVELS, CORES: CORES, ELECTIVES: ELECTIVES, SUBJ_ZH: SUBJ_ZH, RESULT_RULE: RESULT_RULE,
-    ROUTES: ROUTES, GLOBAL_BAND_A_SHARE: GLOBAL_BAND_A_SHARE, NON_A_CAP_A_ONLY: NON_A_CAP_A_ONLY,
+    ROUTES: ROUTES, OFFER_CHANCE: OFFER_CHANCE, CHANCE_TAG: CHANCE_TAG,
     newSeed: newSeed, uniform: uniform, normal: normal,
     lvIndex: lvIndex, toEngineGrades: toEngineGrades, meets332A: meets332A, meets22222: meets22222,
-    resultsDay: resultsDay, offerParams: offerParams, mainRound: mainRound,
+    resultsDay: resultsDay, assessChoice: assessChoice, mainRound: mainRound,
     clearingCandidates: clearingCandidates, clearingResult: clearingResult, CLEARING_CHANCE: CLEARING_CHANCE,
     retakeResults: retakeResults, RETAKE_RULE: RETAKE_RULE,
     suggestList: suggestList, slotTagFor: slotTagFor, slotLabel: slotLabel, bandOfSlot: bandOfSlot,
