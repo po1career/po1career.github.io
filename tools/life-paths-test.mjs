@@ -217,19 +217,23 @@ const progs = LIST.filter((p) => p.institution !== 'SSSDP').slice(0, 60);
 let lifeOk = 0, lifeErr = [], decisions = 0, maxDec = 0; const pays = {}; const LIVES = 3000;
 const seenBranches = {}, seenLogKeys = new Set();          // collected for the text-coverage checks (section 7)
 // the start context of simulated life i (route overridable for the "what if" checks in section 8)
-function ctxFor(i, route) {
+// every simulated life has two strengths (one in nine has none) and a field a career switch would head for
+const SIDS = L.STRENGTH_IDS;
+function strengthsFor(i) { return i % 9 === 0 ? [] : [SIDS[i % 8], SIDS[(i * 3 + 1 + (i % 8 === (i * 3 + 1) % 8 ? 1 : 0)) % 8]]; }
+function ctxFor(i, route, strengths) {
   const r = route || ROUTES[i % ROUTES.length], mode = i % 2 ? 'long' : 'short', prog = progs[i % progs.length];
   return { seed: 'life' + i, mode, route: r, field: FIELDS[i % FIELDS.length], offer: r === 'degree' ? { code: prog.jupas_code } : null,
-    prog: r === 'degree' ? prog : null, actual: students[i % N], startAge: i % 7 === 0 ? 19 : 18 };
+    prog: r === 'degree' ? prog : null, actual: students[i % N], startAge: i % 7 === 0 ? 19 : 18,
+    strengths: strengths || strengthsFor(i), wish: FIELDS[(i + 3) % FIELDS.length] };
 }
-function playLife(i, pick) {
-  const ctx = ctxFor(i), r = ctx.route, mode = ctx.mode;
+function playLife(i, pick, strengths) {
+  const ctx = ctxFor(i, null, strengths), r = ctx.route, mode = ctx.mode;
   const l = L.start(ctx);
   let n = 0, lastAge = l.age;
   while (l.pend.type !== 'end' && n < 200) {
     n++;
     if (l.pend.type === 'focus') { const o = L.focusOptions(l); L.chooseFocus(l, o[pick(i, n, o.length)]); }
-    else if (l.pend.type === 'event') L.chooseEvent(l, pick(i, n, L.eventById(l.pend.id).choices.length));
+    else if (l.pend.type === 'event') { const oc = L.openChoices(l, l.pend.id); L.chooseEvent(l, oc[pick(i, n, oc.length)]); }
     else {
       const seen = (seenBranches[l.pend.id] ||= new Set());
       l.pend.options.forEach((o) => seen.add(o));
@@ -275,6 +279,113 @@ if (hd) {
 }
 const med = (a) => { a = a.slice().sort((x, y) => x - y); return a[a.length >> 1]; };
 console.log('  final monthly pay by highest qualification (median): ' + Object.entries(pays).sort().map(([k, v]) => `${k} HK$${med(v)} (n=${v.length})`).join(' · '));
+
+/* 6b. strengths (pick 2) + more decisions (owner-approved 2026-11-19) */
+console.log('\nstrengths + more decisions');
+{
+  const FN = window.LifePathsFun, base = { seed: 'st', mode: 'long', route: 'vtc', field: 'Business', offer: null, prog: null, actual: students[0], startAge: 18 };
+  const l0 = L.start({ ...base, strengths: [] }), l1 = L.start({ ...base, strengths: ['learner', 'leader'] });
+  check('a strength gives its head start (好學不倦 學業 +5 · 領導才能 人脈 +3, 能力經驗 +1); only two valid ones count',
+    l1.meters.study - l0.meters.study === 5 && l1.meters.connections - l0.meters.connections === 3 && l1.meters.skills - l0.meters.skills === 1 &&
+    L.cleanStrengths(['leader', 'leader', 'nope', 'maker', 'people']).join() === 'leader,maker' && L.cleanStrengths(null).length === 0);
+  const fxL = L.focusFx(L.start({ ...base, strengths: ['learner'] }), 'study', { study: 8, wellbeing: -3 });
+  const fxN = L.focusFx(L.start({ ...base, strengths: ['maker'] }), 'study', { study: 8, wellbeing: -3 });
+  const lr = L.start({ ...base, strengths: ['resilient'] }), ln = L.start({ ...base, strengths: [] });
+  const w0 = [lr.meters.wellbeing, ln.meters.wellbeing]; L.addFx(lr, { wellbeing: -10 }); L.addFx(ln, { wellbeing: -10 });
+  const w1 = [lr.meters.wellbeing, ln.meters.wellbeing]; L.addFx(lr, { wellbeing: 6 });
+  check('a strength\'s two focus choices gain 25% more (costs unchanged); 堅毅樂觀 makes 身心 losses 30% smaller (gains unchanged)',
+    fxL.study === 10 && fxL.wellbeing === -3 && fxN.study === 8 && w0[0] - w1[0] === 7 && w0[1] - w1[1] === 10 && lr.meters.wellbeing === w1[0] + 6);
+  // each strength opens exactly one special choice, only for students with it
+  const needs = [];
+  L.EVENTS.forEach((e) => e.choices.forEach((c, j) => { if (c.need) needs.push({ id: e.id, j, need: c.need }); }));
+  let gateBad = 0;
+  needs.forEach(({ id, j, need }) => {
+    const without = L.start({ ...base, seed: 'g' + id, strengths: SIDS.filter((s) => s !== need).slice(0, 2) });
+    const withIt = L.start({ ...base, seed: 'g' + id, strengths: [need] });
+    if (L.openChoices(without, id).includes(j) || !L.openChoices(withIt, id).includes(j)) gateBad++;
+    without.pend = { type: 'event', id }; without.queue = [id];
+    try { L.chooseEvent(without, j); gateBad++; } catch (e) { /* refused, as it should be */ }
+  });
+  check(`every strength opens exactly one special choice (${needs.length}); without the strength it is neither shown nor accepted`,
+    needs.length === 8 && new Set(needs.map((x) => x.need)).size === 8 && gateBad === 0, `${gateBad} wrong`);
+  // a batch of lives: once-only events, the new events all reachable, working holiday, the kept-on internship, decisions per life
+  const ONCE = L.EVENTS.filter((e) => e.once).map((e) => e.id), NEWEV = ['hall', 'society', 'minor', 'sports', 'moveOut', 'certificate', 'careerSwitch', 'sideBiz', 'posting'];
+  const seenEv = {}, dec = { short: [], long: [] };
+  let dup = 0, whsN = 0, whsOk = 0, keptN = 0, keptOk = 0, awayBad = 0;
+  for (let i = 0; i < 3000; i++) {
+    const { l, n, mode } = playLife(i, (a, b, k) => Math.floor(C.uniform('mix' + a, 'p' + b) * k));
+    dec[mode].push(n);
+    const evs = l.log.filter((e) => e.key === 'event').map((e) => e.data.id);
+    evs.forEach((id) => { seenEv[id] = (seenEv[id] || 0) + 1; });
+    ONCE.forEach((id) => { if (evs.filter((x) => x === id).length > 1) dup++; });
+    const ws = l.log.findIndex((e) => e.key === 'whsStart');
+    if (ws >= 0) {
+      whsN++;
+      const wd = l.log.findIndex((e, k) => k > ws && e.key === 'whsDone'), nx = l.log.find((e, k) => k > wd && (e.key === 'gotJob' || e.key === 'noJobYet'));
+      if (wd > ws && nx && l.log[wd].age === l.log[ws].age + 1) whsOk++;
+    }
+    const ri = l.log.findIndex((e) => e.key === 'event' && e.data.id === 'internship' && e.data.choice === 2);
+    if (ri >= 0) {
+      const nx = l.log.find((e, k) => k > ri && (e.key === 'gotJob' || e.key === 'noJobYet'));
+      if (nx) { keptN++; if (nx.key === 'gotJob' && nx.data.kept) keptOk++; }
+    }
+    const away = l.decisions.some((d) => (d.key === 'route' && /mainland|overseas/.test(d.data.route)) || (d.key === 'branch' && d.data.opt === 'whs') ||
+      (d.key === 'event' && ((d.data.id === 'exchange' && d.data.choice !== 1) || (d.data.id === 'posting' && d.data.choice === 0))));
+    if (away !== L.wentAway(l)) awayBad++;
+  }
+  const missingEv = NEWEV.filter((id) => !seenEv[id]);
+  check(`the 9 new events all happen (per 100 lives: ${NEWEV.map((id) => id + ' ' + Math.round((seenEv[id] || 0) / 30)).join(' · ')}); once-only events never repeat`,
+    missingEv.length === 0 && dup === 0, 'missing: ' + missingEv.join() + ` · repeats ${dup}`);
+  check(`working holiday (${whsN} lives): one year away, then a job search`, whsN > 20 && whsOk === whsN, `${whsOk}/${whsN}`);
+  check(`動手實幹 kept on after the internship: the next job search always succeeds (${keptOk}/${keptN})`, keptN > 5 && keptOk === keptN);
+  check('看世界 counts study outside HK, any exchange, a posting abroad and a working holiday', awayBad === 0, `${awayBad} differ`);
+  const avgN = (a) => (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1);
+  console.log(`  decisions per life now: short ${avgN(dec.short)} · long ${avgN(dec.long)} (focus + events with a choice + turning points)`);
+  // the outcome of the new specials
+  const runEvent = (l, id, idx) => { l.pend = { type: 'event', id }; l.queue = [id]; L.chooseEvent(l, idx); return l; };
+  let win = 0, shop = 0; const NB = 4000;
+  for (let k = 0; k < NB; k++) {
+    if (runEvent(L.start({ ...base, seed: 'b' + k, route: 'work', strengths: [] }), 'sideBiz', 0).log.some((e) => e.key === 'bizWin')) win++;
+    if (runEvent(L.start({ ...base, seed: 'b' + k, route: 'work', strengths: ['creative'] }), 'sideBiz', 2).log.some((e) => e.key === 'bizWin')) shop++;
+  }
+  check(`副業: about ${Math.round(L.BIZ_WIN * 100)}% make money (got ${(win / NB * 100).toFixed(1)}%); 創意無限's online shop about ${Math.round(L.BIZ_WIN_SHOP * 100)}% (got ${(shop / NB * 100).toFixed(1)}%)`,
+    Math.abs(win / NB - L.BIZ_WIN) < 0.025 && Math.abs(shop / NB - L.BIZ_WIN_SHOP) < 0.025);
+  let jl = null;
+  for (let k = 0; k < 50 && !(jl && jl.job); k++) jl = L.start({ ...base, seed: 'cs' + k, route: 'work', strengths: [], wish: 'Design' });
+  const p0 = jl.job.monthly, js = JSON.parse(JSON.stringify(jl)), jp = JSON.parse(JSON.stringify(jl));
+  runEvent(jl, 'careerSwitch', 0); runEvent(jp, 'posting', 0);
+  const grow = (x) => x * (1 + 0.015);
+  check(`轉行 heads for the dream/interest field with pay −8%; 外派 pays +12% (then a year's normal growth)`,
+    jl.field === 'Design' && jl.job.field === 'Design' && jl.log.some((e) => e.key === 'switchedField') &&
+    Math.abs(jl.job.monthly / grow(p0 * 0.92) - 1) < 0.01 && Math.abs(jp.job.monthly / grow(p0 * 1.12) - 1) < 0.01 && js.field !== 'Design');
+  // balance (owner decision 2026-11-19, "trim them"): across all 28 pairs, the gap in average final pay is about 5% at 25 and
+  // 12% at 30 (pay grows with 能力經驗 and 人脈, so the strengths built on them earn a little more); every strength helps a dream
+  const DR = FN.DREAM_IDS, NL = 1200;
+  const sample = (strengths) => {
+    const pay = { short: [0, 0], long: [0, 0] }, stars = Object.fromEntries(DR.map((d) => [d, 0]));
+    for (let i = 0; i < NL; i++) {
+      const { l, mode } = playLife(i, (a, b, k) => Math.floor(C.uniform('bal' + a, 'p' + b) * k), strengths);
+      if (l.job) { pay[mode][0] += l.job.monthly; pay[mode][1]++; }
+      DR.forEach((d) => { stars[d] += FN.dreamStars(l, d) / NL; });
+    }
+    return { short: pay.short[0] / pay.short[1], long: pay.long[0] / pay.long[1], stars };
+  };
+  const none = sample([]), singles = {}, pairs = [];
+  SIDS.forEach((s) => { singles[s] = sample([s]); });
+  SIDS.forEach((a, x) => SIDS.slice(x + 1).forEach((b) => pairs.push({ k: a + '+' + b, r: sample([a, b]) })));
+  const gap = (m) => { const v = pairs.map((p) => p.r[m]); return { g: Math.max(...v) / Math.min(...v) - 1, hi: pairs.find((p) => p.r[m] === Math.max(...v)).k,
+    lo: pairs.find((p) => p.r[m] === Math.min(...v)).k }; };
+  const g25 = gap('short'), g30 = gap('long');
+  console.log(`  average final pay across the 28 pairs — at 25: ${g25.lo} lowest, ${g25.hi} highest, gap ${(g25.g * 100).toFixed(1)}% · ` +
+    `at 30: ${g30.lo} lowest, ${g30.hi} highest, gap ${(g30.g * 100).toFixed(1)}%`);
+  console.log('  one strength vs none (pay at 25 / 30): ' + SIDS.map((s) => `${s} ${((singles[s].short / none.short - 1) * 100).toFixed(1)}% / ` +
+    `${((singles[s].long / none.long - 1) * 100).toFixed(1)}%`).join(' · '));
+  check('balance: the gap in average final pay between any two pairs of strengths is about 5% at 25 and 12% at 30 (at most 6.5% / 14%)',
+    g25.g <= 0.065 && g30.g <= 0.14, `${(g25.g * 100).toFixed(1)}% / ${(g30.g * 100).toFixed(1)}%`);
+  const helps = SIDS.map((s) => ({ s, best: DR.map((d) => ({ d, up: singles[s].stars[d] - none.stars[d] })).sort((a, b) => b.up - a.up)[0] }));
+  console.log('  each strength\'s biggest dream boost (stars per life): ' + helps.map((h) => `${h.s} ${h.best.d} +${h.best.up.toFixed(2)}`).join(' · '));
+  check('balance: every strength helps at least one of the nine dreams', helps.every((h) => h.best.up >= 0.02));
+}
 
 /* 7. every id the engine can produce has player-facing text (catches a missing label after an edit) */
 console.log('\ngame text covers the engine');
@@ -324,7 +435,7 @@ for (let i = 0; i < WI; i++) {
       const d = l.decisions[idx]; wi.prefixN++;
       const change = d.key === 'branch'
         ? { key: 'branch', id: d.data.id, age: d.age, opt: L.BRANCHES[d.data.id].find((o) => o !== d.data.opt) }
-        : { key: 'event', id: d.data.id, age: d.age, choice: (d.data.choice + 1) % L.eventById(d.data.id).choices.length };
+        : { key: 'event', id: d.data.id, age: d.age, choice: ((oc) => oc[(oc.indexOf(d.data.choice) + 1) % oc.length])(L.openChoices(l, d.data.id)) };
       const a = L.replay(ctx, l, change), ad = a.decisions[idx];
       const before = (x) => JSON.stringify(x.decisions.slice(0, idx));
       if (before(a) === before(l) && ad && ad.key === d.key && JSON.stringify(ad.data) !== JSON.stringify(d.data) &&

@@ -252,9 +252,8 @@
     var d = DREAMS[id]; if (!d) return 0;
     if (d.meter) { var v = l.meters[d.meter]; return METER_STARS.filter(function (t) { return v >= t; }).length; }
     if (d.world) {
-      var away = l.decisions.some(function (x) { return x.key === 'route' && (x.data.route === 'mainland' || x.data.route === 'overseas'); }) ||
-        l.decisions.some(function (x) { return x.key === 'event' && x.data.id === 'exchange' && x.data.choice === 0; });
-      return Math.min(3, (away ? 2 : 0) + (l.meters.connections >= 60 ? 1 : 0));
+      // study outside HK, an exchange, a posting abroad or a working holiday
+      return Math.min(3, (L().wentAway(l) ? 2 : 0) + (l.meters.connections >= 60 ? 1 : 0));
     }
     var R = L().CRED_RANK, inField = function (f) { return d.fields.indexOf(f) >= 0; };
     var cred = l.creds.some(function (c) { return inField(c.field) && R[c.level] >= R[d.level]; });
@@ -278,7 +277,8 @@
     var id = !total ? 'balanced' : n[top] / total < 0.4 ? 'allround' : top;
     var mod = story && story.retake ? 'comeback' : story && story.clearing ? 'clearing'
       : l.log.some(function (e) { return e.key === 'partTimeDone'; }) ? 'parttime'
-      : l.decisions.some(function (d) { return d.key === 'event' && d.data.id === 'exchange' && d.data.choice === 0; }) ? 'exchange'
+      : l.decisions.some(function (d) { return d.key === 'event' && /^(exchange|posting)$/.test(d.data.id) && L().wentAway({ decisions: [d] }); }) ||
+        l.decisions.some(function (d) { return d.key === 'branch' && d.data.opt === 'whs'; }) ? 'exchange'
       : L().topCred(l) === 'masters' ? 'masters' : null;
     return { id: id, mod: mod };
   }

@@ -13,10 +13,36 @@
   function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
   var METERS = ['study', 'skills', 'wellbeing', 'connections', 'money'];
 
+  /* ---------- strengths: pick 2 at the start (owner-approved 2026-11-19; ILLUSTRATIVE) ---------- */
+  // start: a head start on the meters · boost: focus choices whose GAINS are bigger (by, else 25%) · soften: losses on
+  // that meter are 30% smaller · events: chance multipliers · job: a better chance in every job search. Each strength also
+  // opens one special choice in an event (choices with need: <strength>). They never touch DSE results or JUPAS offers.
+  // Balance (owner decision 2026-11-19, "trim them"): 能力經驗 and 人脈 feed promotions, job offers and starting pay, so
+  // the strengths built on them are trimmed — the biggest gap in average final pay between two pairs of strengths is
+  // about 5% at 25 and 12% at 30 (tools/life-paths-test.mjs checks it).
+  var STRENGTHS = {
+    learner: { start: { study: 5 }, boost: ['study', 'learn'] },
+    maker: { start: { skills: 4 }, boost: ['experience', 'perform'], by: 1.15 },
+    people: { start: { connections: 5 }, boost: ['explore', 'network'] },
+    resilient: { start: { wellbeing: 5 }, soften: 'wellbeing' },
+    saver: { start: { money: 5 }, boost: ['parttime', 'save'] },
+    creative: { start: { skills: 2, connections: 3 }, events: { award: 1.5 } },
+    languages: { start: { study: 2, connections: 3 }, events: { exchange: 1.5, posting: 1.3 }, job: 0.03 },
+    leader: { start: { connections: 3, skills: 1 }, events: { society: 1.5, promotion: 1.15 } }
+  };
+  var STRENGTH_IDS = Object.keys(STRENGTHS), BOOST = 1.25, SOFTEN = 0.7;
+  function cleanStrengths(list) {
+    var out = [];
+    (Array.isArray(list) ? list : []).forEach(function (id) { if (STRENGTHS[id] && out.indexOf(id) < 0 && out.length < 2) out.push(id); });
+    return out;
+  }
+  function has(l, id) { return !!l.strengths && l.strengths.indexOf(id) >= 0; }
+
   /* ---------- tracks ---------- */
   var TRACKS = {
     ugc: { kind: 'study', years: 4, cred: 'degree' }, selffin: { kind: 'study', years: 4, cred: 'degree', fee: 3 },
     mainland: { kind: 'study', years: 4, cred: 'degree', fee: 2 }, overseas: { kind: 'study', years: 3, cred: 'degree', fee: 6 },
+    whs: { kind: 'work', years: 1 },                                  // a working-holiday year after a degree, then job search
     subdeg: { kind: 'study', years: 2, cred: 'subdegree', fee: 2 }, vtc: { kind: 'study', years: 2, cred: 'subdegree', fee: 1 },
     dae: { kind: 'study', years: 1, cred: 'dae', fee: 1 }, senior: { kind: 'study', years: 2, cred: 'degree' },
     topup: { kind: 'study', years: 2, cred: 'degree', fee: 3 }, masters: { kind: 'study', years: 1, cred: 'masters', fee: 5 },
@@ -46,26 +72,29 @@
     { id: 'scholarship', when: function (l) { return onStudy(l) && l.meters.study >= 68; }, p: function (l) { return 0.12 + (l.meters.study - 68) / 120; },
       choices: [{ fx: { money: 10, study: 2, wellbeing: 3 } }] },
     { id: 'exchange', when: function (l) { return onStudy(l) && /ugc|selffin|senior|topup|mainland|overseas/.test(l.track.id) && l.meters.connections >= 35; }, p: function () { return 0.16; },
-      choices: [{ fx: { connections: 8, skills: 5, money: -8, wellbeing: 3 } }, { fx: { study: 3 } }] },
+      choices: [{ fx: { connections: 8, skills: 5, money: -8, wellbeing: 3 }, away: true }, { fx: { study: 3 } },
+        { need: 'languages', fx: { connections: 10, skills: 6, money: -8, wellbeing: 3 }, away: true }] },
     { id: 'internship', when: function (l) { return onStudy(l) && l.meters.skills >= 40; }, p: function (l) { return 0.18 + (l.meters.skills - 40) / 200; },
-      choices: [{ fx: { skills: 10, connections: 4, wellbeing: -2 }, flag: 'internship' }, { fx: { study: 4 } }] },
+      choices: [{ fx: { skills: 10, connections: 4, wellbeing: -2 }, flag: 'internship' }, { fx: { study: 4 } },
+        { need: 'maker', fx: { skills: 12, connections: 4, wellbeing: -3 }, flag: ['internship', 'returnOffer'] }] },
     { id: 'award', when: function (l) { return onStudy(l) && (l.meters.skills >= 55 || l.meters.study >= 65); }, p: function () { return 0.12; },
       choices: [{ fx: { skills: 4, connections: 4, wellbeing: 3 } }] },
     { id: 'mentor', when: function (l) { return l.meters.connections >= 50; }, p: function () { return 0.12; },
-      choices: [{ fx: { connections: 6, skills: 3 } }, { fx: {} }] },
+      choices: [{ fx: { connections: 6, skills: 3 } }, { fx: {} }, { need: 'people', fx: { connections: 6, skills: 5 }, flag: 'internship' }] },
     { id: 'volunteer', when: function () { return true; }, p: function () { return 0.12; },
       choices: [{ fx: { connections: 4, wellbeing: 4, money: -1 } }, { fx: {} }] },
     { id: 'switchField', when: function (l) { return onStudy(l) && l.track.yearsLeft >= 2 && l.meters.wellbeing < 45 && l.track.id !== 'dae'; }, p: function () { return 0.25; },
       choices: [{ fx: { wellbeing: 8, study: -2 }, special: 'switchField' }, { fx: { study: 3, wellbeing: -2 } }] },
     { id: 'familyMoney', when: function (l) { return l.meters.money < 50; }, p: function () { return 0.10; },
-      choices: [{ fx: { money: 10, wellbeing: -4, study: -3 } }, { fx: { money: 6, wellbeing: -1 } }] },
+      choices: [{ fx: { money: 10, wellbeing: -4, study: -3 } }, { fx: { money: 6, wellbeing: -1 } }, { need: 'saver', fx: { money: 9, wellbeing: -1 } }] },
     { id: 'familyCare', when: function () { return true; }, p: function () { return 0.06; },
       choices: [{ fx: { wellbeing: -3, connections: 2, study: -2, skills: -1 } }, { fx: { wellbeing: -1 } }] },
     { id: 'moveHome', when: function () { return true; }, p: function () { return 0.05; }, choices: [{ fx: { wellbeing: -2 } }] },
     { id: 'friendPath', when: function (l) { return l.age <= 21; }, p: function () { return 0.12; },
       choices: [{ fx: { connections: 4 } }, { fx: { connections: -2, study: 1 } }] },
     { id: 'overwhelmed', when: function (l) { return l.meters.wellbeing < 35; }, p: function () { return 0.6; },
-      choices: [{ fx: { wellbeing: 12, study: -3, skills: -2 } }, { fx: { wellbeing: 10, connections: 3 } }] },
+      choices: [{ fx: { wellbeing: 12, study: -3, skills: -2 } }, { fx: { wellbeing: 10, connections: 3 } },
+        { need: 'resilient', fx: { wellbeing: 14, connections: 2, study: -1 } }] },
     { id: 'promotion', when: function (l) { return l.track.id === 'work' && l.meters.skills >= 58; }, p: function (l) { return 0.15 + (l.meters.skills - 58) / 160; },
       choices: [{ fx: { skills: 2, wellbeing: 2 }, special: 'promotion' }] },
     { id: 'jobOffer', when: function (l) { return l.track.id === 'work' && (l.meters.connections >= 55 || l.lastFocus === 'network'); }, p: function () { return 0.22; },
@@ -73,14 +102,72 @@
     { id: 'crunch', when: function (l) { return l.track.id === 'work'; }, p: function () { return 0.14; },
       choices: [{ fx: { skills: 4, wellbeing: -6 }, special: 'crunch' }, { fx: { wellbeing: -1, connections: 2 } }] },
     { id: 'masters', when: function (l) { return l.track.id === 'work' && l.age >= 23 && topCred(l) === 'degree' && l.meters.study >= 50 && !l.flags.mastersPT; }, p: function () { return 0.12; },
-      choices: [{ fx: { study: 6, money: -8, wellbeing: -2 }, special: 'mastersPT' }, { fx: {} }] }
+      choices: [{ fx: { study: 6, money: -8, wellbeing: -2 }, special: 'mastersPT' }, { fx: {} }] },
+    // more decisions (owner-approved 2026-11-19; ILLUSTRATIVE chances). once: at most once in a life
+    { id: 'hall', once: true, when: function (l) { return /^(ugc|selffin)$/.test(l.track.id) && l.track.year === 1; }, p: function () { return 0.9; },
+      choices: [{ fx: { connections: 6, wellbeing: 3, money: -4 } }, { fx: { money: 3, study: 2 } }] },
+    { id: 'society', once: true, when: function (l) { return onStudy(l) && l.meters.connections >= 35; }, p: function () { return 0.18; },
+      choices: [{ fx: { connections: 6, skills: 4, study: -3, wellbeing: -2 } }, { fx: { study: 3 } },
+        { need: 'leader', fx: { connections: 9, skills: 6, study: -4, wellbeing: -3 }, flag: 'leader' }] },
+    { id: 'minor', once: true, when: function (l) { return DEGREE_RE.test(l.track.id) && l.track.year >= 2 && l.track.yearsLeft >= 1 && l.meters.study >= 50; },
+      p: function () { return 0.3; },
+      choices: [{ fx: { study: 2, skills: 3, wellbeing: -3 }, flag: 'minor' }, { fx: { wellbeing: 2, study: 1 } },
+        { need: 'learner', fx: { study: 5, skills: 4, wellbeing: -5 }, flag: 'doubleMajor' }] },
+    { id: 'sports', once: true, when: function (l) { return onStudy(l); }, p: function (l) { return l.meters.wellbeing < 55 ? 0.3 : 0.12; },
+      choices: [{ fx: { wellbeing: 6, connections: 3, study: -2 } }, { fx: { study: 1 } }] },
+    { id: 'moveOut', once: true, when: function (l) { return l.track.id === 'work' && l.age >= 23 && l.meters.money >= 50; }, p: function () { return 0.25; },
+      choices: [{ fx: { wellbeing: 4, connections: 2, money: -8 }, flag: 'ownPlace' }, { fx: { money: 5 } }] },
+    { id: 'certificate', once: true, when: function (l) { return l.track.id === 'work' && l.meters.skills < 75; }, p: function () { return 0.15; },
+      choices: [{ fx: { skills: 5, money: -3, wellbeing: -2 }, special: 'certificate' }, { fx: { wellbeing: 2 } }] },
+    { id: 'careerSwitch', once: true, when: function (l) { return l.track.id === 'work' && l.age >= 23 && (l.meters.wellbeing < 50 || (!!l.wish && l.wish !== l.field)); },
+      p: function () { return 0.15; },
+      choices: [{ fx: { wellbeing: 8, skills: -3 }, special: 'careerSwitch' }, { fx: { skills: 2, wellbeing: -1 } }] },
+    { id: 'sideBiz', once: true, when: function (l) { return l.track.id === 'work' && l.meters.skills >= 50; }, p: function () { return 0.12; },
+      choices: [{ fx: { skills: 5 }, special: 'sideBiz' }, { fx: { wellbeing: 1 } }, { need: 'creative', fx: { skills: 6, connections: 2 }, special: 'sideBizShop' }] },
+    { id: 'posting', once: true, when: function (l) { return l.track.id === 'work' && l.meters.skills >= 60 && l.meters.connections >= 50; }, p: function () { return 0.12; },
+      choices: [{ fx: { connections: 5, wellbeing: -3 }, special: 'posting', away: true }, { fx: { wellbeing: 3 } }] }
   ];
+  var DEGREE_RE = /^(ugc|selffin|mainland|overseas|senior|topup)$/;
+  // a special choice is open only to a student with its strength
+  function choiceOpen(l, ch) { return !!ch && (!ch.need || has(l, ch.need)); }
+  function openChoices(l, id) {
+    var e = eventById(id);
+    return e ? e.choices.map(function (c, i) { return choiceOpen(l, c) ? i : -1; }).filter(function (i) { return i >= 0; }) : [];
+  }
+  function eventMult(l, id) {
+    var m = 1;
+    (l.strengths || []).forEach(function (s) { var ev = STRENGTHS[s].events; if (ev && ev[id]) m *= ev[id]; });
+    return m;
+  }
   function eventById(id) { for (var i = 0; i < EVENTS.length; i++) if (EVENTS[i].id === id) return EVENTS[i]; return null; }
 
   /* ---------- helpers ---------- */
   function topCred(l) { var best = 'dse'; l.creds.forEach(function (c) { if (CRED_RANK[c.level] > CRED_RANK[best]) best = c.level; }); return best; }
   function addFx(l, fx, scale) {
-    Object.keys(fx || {}).forEach(function (k) { if (l.meters[k] != null) l.meters[k] = clamp(Math.round(l.meters[k] + fx[k] * (scale || 1)), 0, 100); });
+    Object.keys(fx || {}).forEach(function (k) {
+      if (l.meters[k] == null) return;
+      var d = fx[k] * (scale || 1);
+      if (d < 0 && (l.strengths || []).some(function (s) { return STRENGTHS[s].soften === k; })) d *= SOFTEN;   // 堅毅樂觀: smaller losses
+      l.meters[k] = clamp(Math.round(l.meters[k] + d), 0, 100);
+    });
+  }
+  // a focus choice's effects for this student: the gains (not the costs) of a strength's two focus choices are 25% bigger
+  function focusFx(l, focusId, fx) {
+    var by = 1;                                                 // the strength's own size (by), else BOOST
+    (l.strengths || []).forEach(function (s) { if ((STRENGTHS[s].boost || []).indexOf(focusId) >= 0) by = Math.max(by, STRENGTHS[s].by || BOOST); });
+    if (by === 1) return fx;
+    var out = {};
+    Object.keys(fx).forEach(function (k) { out[k] = fx[k] > 0 ? fx[k] * by : fx[k]; });
+    return out;
+  }
+  // for the 看世界 dream and the 「看過世界的」 title: studied outside HK, went on exchange, took a posting abroad or a working holiday
+  function wentAway(l) {
+    return l.decisions.some(function (x) {
+      if (x.key === 'route') return x.data.route === 'mainland' || x.data.route === 'overseas';
+      if (x.key === 'branch') return x.data.opt === 'whs';
+      if (x.key === 'event') { var e = eventById(x.data.id), c = e && e.choices[x.data.choice]; return !!(c && c.away); }
+      return false;
+    });
   }
   function log(l, key, data, tone) { l.log.push({ age: l.age, key: key, data: data || {}, tone: tone || 'info' }); }
   function decide(l, key, data) { l.decisions.push({ age: l.age, key: key, data: data || {} }); }
@@ -141,13 +228,17 @@
   var JOB_BASE = { masters: 0.9, degree: 0.9, subdegree: 0.85, dae: 0.85, dse: 0.85 };
   function jobSearch(l) {
     var level = topCred(l);
-    var p = clamp(JOB_BASE[level] + (l.meters.skills - 50) / 250 + (l.meters.connections - 50) / 400 +
-      (l.flags.internship ? 0.08 : 0) + 0.10 * (l.searchTries || 0), 0.55, 0.98);
+    var bonus = (l.flags.internship ? 0.08 : 0) + (l.flags.minor ? 0.03 : 0) + (l.flags.doubleMajor ? 0.05 : 0) + (l.flags.leader ? 0.04 : 0) +
+      (l.strengths || []).reduce(function (a, s) { return a + (STRENGTHS[s].job || 0); }, 0);
+    var p = clamp(JOB_BASE[level] + (l.meters.skills - 50) / 250 + (l.meters.connections - 50) / 400 + bonus + 0.10 * (l.searchTries || 0), 0.55, 0.98);
     var u = C().uniform(l.seed, 'job|' + l.age + '|' + (l.searchTries || 0));
-    if (u < p) {
+    // 動手實幹: the internship company kept a place, so the first job search after it always succeeds
+    var kept = !!l.flags.returnOffer && !l.flags.returnUsed;
+    if (kept) l.flags.returnUsed = true;
+    if (kept || u < p) {
       l.job = { monthly: startingPay(l, level), level: level, field: l.field, since: l.age };
       l.searchTries = 0; startTrack(l, 'work');
-      log(l, 'gotJob', { monthly: l.job.monthly, level: level, field: l.field }, 'good');
+      log(l, 'gotJob', { monthly: l.job.monthly, level: level, field: l.field, kept: kept || undefined }, 'good');
     } else {
       l.searchTries = (l.searchTries || 0) + 1; startTrack(l, 'jobsearch');
       addFx(l, { money: -3, wellbeing: -2 });
@@ -157,7 +248,7 @@
 
   /* ---------- graduation & branches ---------- */
   // the choice offered at each turning point (options in screen order)
-  var BRANCHES = { afterDegree: ['work', 'masters'], afterSub: ['senior', 'topup', 'work'], afterSeniorNo: ['topup', 'work'],
+  var BRANCHES = { afterDegree: ['work', 'masters', 'whs'], afterSub: ['senior', 'topup', 'work'], afterSeniorNo: ['topup', 'work'],
     afterDae: ['subdeg', 'vtc', 'work'] };
   function branch(id) { return { type: 'branch', id: id, options: BRANCHES[id].slice() }; }
   function graduate(l) {
@@ -173,7 +264,11 @@
     var b = l.pend; if (!b || b.type !== 'branch' || b.options.indexOf(opt) < 0) throw new Error('not a valid option');
     decide(l, 'branch', { id: b.id, opt: opt }); l.pend = null;
     if (opt === 'work') jobSearch(l);
-    else if (opt === 'senior') {
+    else if (opt === 'whs') {                                   // a working holiday: one year abroad, then job search
+      startTrack(l, 'whs', { years: 1 }); l.flags.whs = true;
+      addFx(l, { connections: 6, skills: 4, wellbeing: 6, money: -2 });
+      log(l, 'whsStart', {}, 'good');
+    } else if (opt === 'senior') {
       var p = clamp(0.45 + (l.meters.study - 55) / 100, 0.15, 0.85);
       if (C().uniform(l.seed, 'senior|' + l.age) < p) { startTrack(l, 'senior'); log(l, 'seniorYes', { p: p }, 'good'); }
       else { log(l, 'seniorNo', { p: p }, 'warn'); l.pend = branch('afterSeniorNo'); return; }
@@ -185,14 +280,14 @@
   // years this turn covers: the mode's step, cut short by the study years left and by the final age
   function turnYears(l) {
     var dt = l.step;
-    if (TRACKS[l.track.id].kind === 'study') dt = Math.min(dt, l.track.yearsLeft);
+    if (TRACKS[l.track.id].kind === 'study' || l.track.id === 'whs') dt = Math.min(dt, l.track.yearsLeft);
     return Math.max(1, Math.min(dt, l.endAge - l.age));
   }
   function drawEvents(l) {
     var picked = [];
     EVENTS.forEach(function (e) {
-      if (!e.when(l)) return;
-      var pYear = clamp(e.p(l), 0, 0.95), p = 1 - Math.pow(1 - pYear, turnYears(l));
+      if ((e.once && l.flags['ev_' + e.id]) || !e.when(l)) return;
+      var pYear = clamp(e.p(l) * eventMult(l, e.id), 0, 0.95), p = 1 - Math.pow(1 - pYear, turnYears(l));
       var u = C().uniform(l.seed, 'ev|' + l.age + '|' + e.id);
       if (u < p) picked.push({ id: e.id, u: u / p });
     });
@@ -203,7 +298,7 @@
     if (!l.pend || l.pend.type !== 'focus') throw new Error('not choosing a focus now');
     var kind = TRACKS[l.track.id].kind, f = FOCUS[kind].filter(function (x) { return x.id === focusId; })[0];
     if (!f) throw new Error('unknown focus');
-    addFx(l, f.fx, turnYears(l) === 2 ? 1.6 : 1);                 // a 2-year turn = 1.6 × one year's effect
+    addFx(l, focusFx(l, focusId, f.fx), turnYears(l) === 2 ? 1.6 : 1);   // a 2-year turn = 1.6 × one year's effect
     l.lastFocus = focusId; decide(l, 'focus', { id: focusId, track: l.track.id });
     l.queue = drawEvents(l);
     l.pend = l.queue.length ? { type: 'event', id: l.queue[0] } : null;
@@ -211,22 +306,39 @@
   }
   function chooseEvent(l, idx) {
     if (!l.pend || l.pend.type !== 'event') throw new Error('no event now');
-    var e = eventById(l.pend.id), ch = e.choices[idx]; if (!ch) throw new Error('bad choice');
+    var e = eventById(l.pend.id), ch = e.choices[idx]; if (!choiceOpen(l, ch)) throw new Error('bad choice');
     addFx(l, ch.fx, 1);
-    if (ch.flag) l.flags[ch.flag] = true;
-    special(l, ch.special);
-    log(l, 'event', { id: e.id, choice: idx }, ch.special === 'promotion' || ch.special === 'changeJob' ? 'good' : 'info');
-    if (e.choices.length > 1) decide(l, 'event', { id: e.id, choice: idx });
+    if (ch.flag) [].concat(ch.flag).forEach(function (f) { l.flags[f] = true; });
+    if (e.once) l.flags['ev_' + e.id] = true;
+    log(l, 'event', { id: e.id, choice: idx }, ch.special === 'promotion' || ch.special === 'changeJob' || ch.special === 'posting' ? 'good' : 'info');
+    special(l, ch.special);                                    // after the event line, so an outcome (e.g. 副業) reads in order
+    if (openChoices(l, e.id).length > 1) decide(l, 'event', { id: e.id, choice: idx });
     l.queue.shift();
     l.pend = l.queue.length ? { type: 'event', id: l.queue[0] } : null;
     if (!l.pend) advance(l);
   }
+  var SWITCH_TO = ['Business', 'SocialSciences', 'Science', 'Arts', 'Engineering', 'Education', 'Computing', 'Design'];
+  var BIZ_WIN = 0.55, BIZ_WIN_SHOP = 0.70;                       // a small business's chance of making money (ILLUSTRATIVE)
   function special(l, sp) {
     if (!sp) return;
     if (sp === 'promotion' && l.job) l.job.monthly = Math.round(l.job.monthly * 1.10 / 100) * 100;
     if (sp === 'changeJob' && l.job) l.job.monthly = Math.round(l.job.monthly * (1.08 + 0.07 * C().uniform(l.seed, 'chg|' + l.age)) / 100) * 100;
     if (sp === 'crunch' && l.job) l.job.monthly = Math.round(l.job.monthly * 1.03 / 100) * 100;
     if (sp === 'mastersPT') { l.flags.mastersPT = true; l.mastersLeft = 2; }
+    if (sp === 'certificate' && l.job) l.job.monthly = Math.round(l.job.monthly * 1.03 / 100) * 100;
+    if (sp === 'posting' && l.job) l.job.monthly = Math.round(l.job.monthly * 1.12 / 100) * 100;
+    if (sp === 'careerSwitch') {                               // to the dream / interest field, else another field (keyed draw)
+      var others = SWITCH_TO.filter(function (f) { return f !== l.field; });
+      var to = l.wish && l.wish !== l.field ? l.wish : others[Math.floor(C().uniform(l.seed, 'cs|' + l.age) * others.length)];
+      l.field = to;
+      if (l.job) { l.job.field = to; l.job.monthly = Math.round(l.job.monthly * 0.92 / 100) * 100; }
+      log(l, 'switchedField', { field: to }, 'info');
+    }
+    if (sp === 'sideBiz' || sp === 'sideBizShop') {            // a small business: luck decides (創意無限's online shop: better odds)
+      var win = C().uniform(l.seed, 'biz|' + l.age) < (sp === 'sideBizShop' ? BIZ_WIN_SHOP : BIZ_WIN);
+      addFx(l, win ? { money: 10, connections: 3 } : { money: -6 });
+      log(l, win ? 'bizWin' : 'bizLoss', {}, win ? 'good' : 'warn');
+    }
     if (sp === 'switchField') {
       var fields = ['Business', 'SocialSciences', 'Science', 'Arts', 'Engineering', 'Education', 'Computing'];
       var nf = fields.filter(function (f) { return f !== l.track.field; })[Math.floor(C().uniform(l.seed, 'sw|' + l.age) * 6)];
@@ -242,7 +354,11 @@
       if (l.track.yearsLeft <= 0) { graduate(l); if (l.pend && l.age >= l.endAge) autoResolve(l); }
     } else {
       if (l.track.id === 'jobsearch') jobSearch(l);
-      else if (l.job) {
+      else if (l.track.id === 'whs') {
+        l.track.yearsLeft -= dt;
+        if (l.track.yearsLeft <= 0) { log(l, 'whsDone', {}, 'info'); jobSearch(l); }
+      } else if (l.job) {
+        if (l.flags.ownPlace) addFx(l, { money: -2 * dt });          // rent, every year after moving out
         var g = Math.pow(1 + GROWTH[topCred(l)] + (l.lastFocus === 'perform' ? 0.02 : 0), dt);
         l.job.monthly = Math.round(l.job.monthly * g / 100) * 100;
         if (l.lastFocus === 'learn') partTime(l, dt);
@@ -276,8 +392,8 @@
   /* ---------- start ---------- */
   // Rule version stamped on every life. BUMP IT whenever a rule change would replay an old saved life differently
   // (the "what if" screen then asks for a new game instead of comparing old rules with new ones).
-  // 2 = Phase 3 (one personal pay factor per life).
-  var MODEL_VERSION = 2;
+  // 2 = Phase 3 (one personal pay factor per life). 3 = strengths + more decisions + working holiday (2026-11-19).
+  var MODEL_VERSION = 3;
   // ctx: { seed, mode:'short'|'long', route, field, offer:{code}|null, prog (offer programme)|null, actual, startAge }
   function start(ctx) {
     var lv = [ctx.actual.chi, ctx.actual.eng, ctx.actual.math].concat((ctx.actual.elect || []).map(function (e) { return e.lv; }))
@@ -287,7 +403,12 @@
     var l = { v: 1, model: MODEL_VERSION, seed: ctx.seed, mode: long ? 'long' : 'short', step: long ? 1 : 2, endAge: long ? 30 : 25,
       age: ctx.startAge || 18, field: ctx.field || 'Business',
       meters: { study: clamp(Math.round(25 + 8 * avg), 0, 100), skills: 30, wellbeing: 65, connections: 40, money: 40 },
-      creds: [{ level: 'dse', age: ctx.startAge || 18 }], job: null, track: null, pend: null, queue: [], log: [], decisions: [], flags: {} };
+      creds: [{ level: 'dse', age: ctx.startAge || 18 }], job: null, track: null, pend: null, queue: [], log: [], decisions: [], flags: {},
+      strengths: cleanStrengths(ctx.strengths), wish: ctx.wish === 'Medicine' ? 'Health' : ctx.wish || null };
+    l.strengths.forEach(function (id) {                          // each strength's head start
+      var s = STRENGTHS[id].start;
+      Object.keys(s).forEach(function (k) { l.meters[k] = clamp(l.meters[k] + s[k], 0, 100); });
+    });
     var r = ctx.route;
     decide(l, 'route', { route: r, code: ctx.offer && ctx.offer.code, field: l.field });
     if (r === 'degree') {
@@ -338,7 +459,8 @@
       else if (p.type === 'event') {
         var k = p.id + '|' + l.age, ch = change.key === 'event' && change.id === p.id && change.age === l.age ? change.choice
           : k in evAt ? evAt[k] : p.id in evAny ? evAny[p.id] : 0;
-        chooseEvent(l, Math.min(ch, eventById(p.id).choices.length - 1));
+        var idx = Math.min(ch, eventById(p.id).choices.length - 1);
+        chooseEvent(l, choiceOpen(l, eventById(p.id).choices[idx]) ? idx : 0);
       } else {
         var o = change.key === 'branch' && change.id === p.id && change.age === l.age ? change.opt : brAny[p.id];
         chooseBranch(l, p.options.indexOf(o) >= 0 ? o : p.options[0]);
@@ -350,6 +472,8 @@
   window.LifePathsLife = {
     METERS: METERS, TRACKS: TRACKS, EVENTS: EVENTS, FOCUS: FOCUS, CRED_RANK: CRED_RANK, HEALTH_SHARE: HEALTH_SHARE,
     BRANCHES: BRANCHES, FOCUS_TWIN: FOCUS_TWIN, MODEL_VERSION: MODEL_VERSION,
+    STRENGTHS: STRENGTHS, STRENGTH_IDS: STRENGTH_IDS, BOOST: BOOST, SOFTEN: SOFTEN, BIZ_WIN: BIZ_WIN, BIZ_WIN_SHOP: BIZ_WIN_SHOP,
+    cleanStrengths: cleanStrengths, choiceOpen: choiceOpen, openChoices: openChoices, wentAway: wentAway, focusFx: focusFx, addFx: addFx,
     start: start, chooseFocus: chooseFocus, chooseEvent: chooseEvent, chooseBranch: chooseBranch, turnYears: turnYears,
     replay: replay, programmeYears: programmeYears, isSubDegree: isSubDegree,
     focusOptions: focusOptions, trackKind: trackKind, topCred: topCred, referencePay: referencePay, eventById: eventById

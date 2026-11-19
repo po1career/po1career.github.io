@@ -60,6 +60,7 @@ const fmt = (n) => String(+(+n).toFixed(2));
 win.crypto = webcrypto;
 for (const f of ['jupas-evaluator-analytics.js', 'jupas-finder-core.js', 'life-paths-core.js', 'life-paths-stats.js', 'life-paths-life.js'])
   if (fs.existsSync(path.join(ROOT, f))) new Function('window', fs.readFileSync(path.join(ROOT, f), 'utf8'))(win);
+const QA_STRENGTHS = ['learner', 'leader'];                 // the two strengths the page test picks
 const LIFE = (() => {
   const L = win.LifePathsCore; if (!L) return null;
   const db = L.indexDB(DB), seed = 'qa-seed', pred = { chi: '4', eng: '4', math: '4', csd: 'attained', elect: PROFILE.elect };
@@ -67,7 +68,8 @@ const LIFE = (() => {
   // chapter 2: the "work" route in short mode, always taking the first option (what the page test clicks)
   let life = null; const LL = win.LifePathsLife;
   if (LL) {
-    const l = LL.start({ seed, mode: 'short', route: 'work', field: 'Business', offer: round.offer, prog: null, actual, startAge: 18 });
+    const l = LL.start({ seed, mode: 'short', route: 'work', field: 'Business', offer: round.offer, prog: null, actual, startAge: 18,
+      strengths: QA_STRENGTHS, wish: null });
     for (let n = 0; n < 120 && l.pend.type !== 'end'; n++) {
       if (l.pend.type === 'focus') LL.chooseFocus(l, LL.focusOptions(l)[0]);
       else if (l.pend.type === 'event') LL.chooseEvent(l, 0);
@@ -168,6 +170,11 @@ async function lifePathsCheck(b) {
       document.querySelectorAll('.lk-opts.sw .lk-sw').length===0 && JSON.parse(localStorage.getItem('life_paths_state')).me.look.head===1;
     const myLook=JSON.stringify(s.me.look), myLayers=window.LifePathsFun.lookLayers(s.me.look).length;
     q('[data-act="dr"][data-id="engineer"]').click();
+    // strengths: 8 cards; 下一步 needs exactly two; once two are picked the other six are disabled
+    const stCards=document.querySelectorAll('.stpick').length===8;
+    q('[data-act="me-next"]').click(); const stNeed=L.state.step==='me' && /兩個強項/.test((q('#st-err')||{}).textContent||'');
+    ${JSON.stringify(QA_STRENGTHS)}.forEach((id)=>q('[data-act="st"][data-id="'+id+'"]').click());
+    const stTwo=JSON.stringify(s.me.strengths)===${JSON.stringify(JSON.stringify(QA_STRENGTHS))} && document.querySelectorAll('.stpick:disabled').length===6;
     Object.assign(s.pred,{chi:'4',eng:'4',math:'4',csd:'attained'});
     s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}]; s.cats=[]; s.me.dreamCat=null;
     L.go('list'); L.act('l-suggest'); const list=s.list.slice();
@@ -221,6 +228,7 @@ async function lifePathsCheck(b) {
     const end=await play(), life=s.life?{age:s.life.age,monthly:s.life.job?s.life.job.monthly:null}:null, dataPage=!!q('.datapage');
     const titleCard=!!q('.titlecard .ptitle'), dreamCard=!!q('.dreamcard .stars'), guesses=!!q('.guesses');
     const avTitle=!!q('.titlecard svg') && q('.titlecard svg').querySelectorAll('path').length===myLayers && q('.titlecard svg').getAttribute('aria-label')==='自己設計';
+    const stSummary=[...document.querySelectorAll('.endcard .summary dt')].some((dt)=>dt.textContent==='強項') && q('.endcard .summary').textContent.includes('好學不倦');
     // Phase 3 on the summary: "what if" (nothing changed = the same life; one change = a comparison), share image, runs
     const replaySame=L.replaySame(), wiBtn=q('[data-act="wi"]');
     if (wiBtn) wiBtn.click();
@@ -245,8 +253,10 @@ async function lifePathsCheck(b) {
     const classMode=L.state.seed==='class-QA7B' && L.state.classCode==='QA7B' && !!(await until(()=>q('.classpill')));
     // quick start (the character carried over): a ready-made student fills the grades and "suggest" builds the list
     q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
-    const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='custom' && JSON.stringify(L.state.me.look)===myLook;
-    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+    const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='custom' && JSON.stringify(L.state.me.look)===myLook &&
+      JSON.stringify(L.state.me.strengths)===${JSON.stringify(JSON.stringify(QA_STRENGTHS))};
+    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle,
+      stCards, stNeed, stTwo, stSummary, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -320,6 +330,8 @@ for (const t of PAGES) {
         record(t.page, 'class mode: the class code becomes the shared seed and shows on screen', r.classMode, got);
         record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
           r.meScreen && r.quick, got);
+        record(t.page, 'strengths: 8 cards; 下一步 waits for exactly two; a third is disabled; the two shape the life (same as the core), ' +
+          'show on the summary and are kept for a new game', r.stCards && r.stNeed && r.stTwo && r.stSummary && r.quick, got);
         record(t.page, 'avatar creator (自己設計): 13 parts, options and colours change the look and are saved; the design walks the road, ' +
           'heads the end card and the share image, and is kept for a new game', r.creatorOpen && r.designed && r.avWalk && r.avTitle && r.share && r.quick, got);
         record(t.page, 'fun pack: guess before results, grades turned over, Band guess + scan of the choices',
