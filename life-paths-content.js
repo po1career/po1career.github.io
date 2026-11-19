@@ -432,14 +432,36 @@
         brows: ['自然', '粗眉', '彎眉', '無'],
         mouth: ['微笑', '大笑', '抿嘴', '驚訝', '吐舌'],
         glasses: ['無', '圓框眼鏡', '方框眼鏡', '太陽眼鏡'],
-        head: ['無', '鴨舌帽', '冷帽', '蝴蝶結', '星星髮夾', '耳機'],
-        top: ['校服', 'T 恤', '衛衣', '冷衫', '西裝外套', '運動衫'],
+        // the items after the first six headwear / six tops / six extras / eight backgrounds are unlocked by badges
+        head: ['無', '鴨舌帽', '冷帽', '蝴蝶結', '星星髮夾', '耳機', '畢業帽', '必勝頭帶', '四葉草髮夾', '安全帽', '漁夫帽', '皇冠'],
+        top: ['校服', 'T 恤', '衛衣', '冷衫', '西裝外套', '運動衫', '學會外套', '實驗袍', '圍裙'],
         topCol: ['金色', '綠色', '藍色', '紅色', '紫色', '深藍色', '黃色', '橙啡色'],
-        extra: ['無', '腮紅', '雀斑', '膠布', '星星貼紙', '耳環'],
-        bg: ['米色', '淺綠色', '淺藍色', '淺粉紅色', '淺紫色', '淺橙色', '淺黃色', '淺灰藍色']
+        extra: ['無', '腮紅', '雀斑', '膠布', '星星貼紙', '耳環', '工作證'],
+        bg: ['米色', '淺綠色', '淺藍色', '淺粉紅色', '淺紫色', '淺橙色', '淺黃色', '淺灰藍色', '彩虹', '星空']
       },
+      locked: function (badge) { return '🔒 獲得「' + badge + '」徽章後解鎖'; },
       topColNote: '校服的話，這是領呔的顏色。',
       random: '🎲 隨機', reset: '↺ 重設'
+    },
+    // badges: earned across games, saved only on this device; each unlocks one item in 「自己設計」 (LifePathsFun.UNLOCKS)
+    badges: {
+      heading: '🏅 我的徽章', fresh: '🎉 新徽章！', unlock: '解鎖',
+      note: '徽章只儲存在這部裝置上。每個徽章會在「自己設計」解鎖一件角色配件。',
+      use: '下一局在「角色」頁選「自己設計」，就可以換上新配件。',
+      list: {
+        offer: { icon: '🎓', name: '首個取錄', how: '在聯招主要輪次獲得取錄', item: '畢業帽' },
+        comeback: { icon: '🔁', name: '捲土重來', how: '選擇重考文憑試', item: '必勝頭帶' },
+        clearing: { icon: '🍀', name: '補選逆轉', how: '在補選中獲得學位', item: '四葉草髮夾' },
+        vocational: { icon: '🛠️', name: '職專之路', how: '完成副學位、高級文憑或應用教育文憑', item: '安全帽' },
+        world: { icon: '🌏', name: '看世界', how: '到外地讀書、交流、外派，或去工作假期', item: '漁夫帽' },
+        society: { icon: '🎪', name: '學會幹事', how: '參選學會幹事或主席', item: '學會外套' },
+        firstJob: { icon: '💼', name: '第一份全職', how: '找到第一份全職工作', item: '工作證' },
+        learner: { icon: '📜', name: '終身學習', how: '兼讀完成一個學歷，或讀碩士', item: '實驗袍' },
+        boss: { icon: '💡', name: '小老闆', how: '副業成功賺到錢', item: '圍裙' },
+        balanced: { icon: '💚', name: '五項均衡', how: '人生終點時五項指標都達到 55 或以上', item: '彩虹背景' },
+        dream: { icon: '⭐', name: '夢想成真', how: '夢想得到三粒星', item: '皇冠' },
+        whatIf: { icon: '🔀', name: '如果當初', how: '在總結用「如果當初」比較另一個選擇', item: '星空背景' }
+      }
     },
     // strengths: pick 2 on the character screen (the effects are LifePathsLife.STRENGTHS; keep the two in step)
     strengths: {

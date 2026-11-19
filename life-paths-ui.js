@@ -17,7 +17,7 @@
   'use strict';
   var C = window.LifePathsCore, L = window.LifePathsLife, ST = window.LifePathsStats, T = window.LifePathsText, F = window.LifePathsFun;
   var PBKDF2_ITER = 150000, LS_PASS = 'jupas_pass', ENC_URL = 'jupas-finder-db.enc.json';
-  var LS_STATE = 'life_paths_state', LS_RUNS = 'life_paths_runs', LS_BIG = 'life_paths_big';
+  var LS_STATE = 'life_paths_state', LS_RUNS = 'life_paths_runs', LS_BIG = 'life_paths_big', LS_BADGES = 'life_paths_badges';
   var LEVELS = ['5**', '5*', '5', '4', '3', '2', '1', 'U'];
   var DB = null, encBlob = null, state = null, resumeStep = null, lastMsg = null;
   var codeDraft = null, shareURL = null;           // the class code being typed on the intro; the last share image {url, w, h}
@@ -192,17 +192,23 @@
       var on = lookTab === k;
       return '<button type="button" class="lk-tab' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="lk-tab" data-k="' + k + '">' + esc(K.parts[k]) + '</button>';
     }).join('');
+    var have = loadBadges();
     for (var v = 0; v < F.LOOK[lookTab]; v++) {
-      var on = look[lookTab] === v, name = K.options[lookTab][v], attrs = ' aria-pressed="' + on + '" data-act="lk" data-k="' + lookTab + '" data-v="' + v + '"';
-      if (colours) {
+      // badge items show as a locked preview until the badge is earned on this device
+      var need = F.lockedBy(lookTab, v), locked = !!need && have.indexOf(need) < 0;
+      var on = look[lookTab] === v, name = K.options[lookTab][v], lockTxt = locked ? K.locked(T.badges.list[need].name) : '';
+      var attrs = ' aria-pressed="' + on + '" data-act="lk" data-k="' + lookTab + '" data-v="' + v + '"' + (locked ? ' disabled' : '');
+      if (colours && v < colours.length) {
         opts += '<button type="button" class="lk-sw' + (on ? ' on' : '') + '"' + attrs + ' aria-label="' + esc(name) + '" title="' + esc(name) +
           '" style="background:' + colours[v] + '"></button>';
       } else {
         var alt = {};
         F.LOOK_PARTS.forEach(function (p) { alt[p] = look[p]; });
         alt[lookTab] = v;
-        opts += '<button type="button" class="lk-opt' + (on ? ' on' : '') + '"' + attrs + '>' +
-          F.avatarSVG({ avatar: 'custom', look: alt }, 52, '', LOOK_VIEW[lookTab]) + '<span>' + esc(name) + '</span></button>';
+        opts += '<button type="button" class="lk-opt' + (on ? ' on' : '') + (locked ? ' locked' : '') + '"' + attrs +
+          (locked ? ' aria-label="' + esc(name + '：' + lockTxt) + '" title="' + esc(lockTxt) + '"' : '') + '>' +
+          F.avatarSVG({ avatar: 'custom', look: alt }, 52, '', LOOK_VIEW[lookTab]) + '<span>' + esc(name) + '</span>' +
+          (locked ? '<span class="lk-lock">🔒 ' + esc(T.badges.list[need].name) + '</span>' : (need ? '<span class="lk-new">🏅</span>' : '')) + '</button>';
       }
     }
     return '<div class="creator"><div class="cr-prev">' + F.avatarSVG({ avatar: 'custom', look: look }, 132, esc(K.name)) +
@@ -518,6 +524,7 @@
     },
 
     end: function () {
+      awardBadges();                                           // idempotent: only badges not yet on this device are added
       var X = T.end, LE = T.lifeEnd, res = state.results, ro = curRound() && curRound().offer, l = state.life;
       var predTxt = res.changes.map(function (c) { return shortSubj(c.key) + ' ' + c.from; }).join('、');
       var act = curActual();
@@ -547,12 +554,12 @@
           (l.strengths && l.strengths.length ? '<dt>' + esc(LE.strengths) + '</dt><dd>' + esc(strengthNames(l.strengths, true)) + '</dd>' : '') + '</dl>' +
           '<p class="small muted">' + esc(LE.compare(l.age)) + '</p><h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
           (choices ? '<h3 class="sub">' + esc(LE.keyChoices) + '</h3><ol class="tl">' + choices + '</ol>' : '') +
-          guessSummary() + reflectBox('end') + whatIfSection() + shareSection() +
+          guessSummary() + badgeSection() + reflectBox('end') + whatIfSection() + shareSection() +
           '<details class="explain"><summary>' + esc(LE.chapter1) + '</summary>' + ch1 + '</details>' +
           '<details class="explain timeline"><summary>' + esc(T.life.timeline) + '</summary><ol class="tl">' +
           l.log.map(function (e) { return '<li class="' + e.tone + '"><span class="tl-age">' + esc(T.life.age(e.age)) + '</span>' + esc(logText(e)) + '</li>'; }).join('') + '</ol></details>';
       } else {
-        body = '<h2>📘 ' + esc(X.heading) + '</h2>' + ch1;
+        body = '<h2>📘 ' + esc(X.heading) + '</h2>' + ch1 + badgeSection();
       }
       // class mode keeps the class luck: no "new luck" replay, and editing grades or the list keeps the same seed
       return '<div class="panel endcard">' + body + dataPage() + runsSection() +
@@ -857,7 +864,38 @@
   }
 
   /* ---------- fun pack: the end title and the dream ---------- */
-  function storyFlags() { var ro = curRound() && curRound().offer; return { retake: !!state.retake, clearing: !!(ro && ro.clearing) }; }
+  function storyFlags() { var ro = curRound() && curRound().offer; return { offer: !!(ro && !ro.clearing), retake: !!state.retake, clearing: !!(ro && ro.clearing) }; }
+
+  /* ---------- badges: earned across games, saved only on this device (each unlocks an avatar item) ---------- */
+  function loadBadges() {
+    try {
+      var a = JSON.parse(localStorage.getItem(LS_BADGES) || '[]');
+      return Array.isArray(a) ? a.filter(function (b, i) { return F.BADGES.indexOf(b) >= 0 && a.indexOf(b) === i; }) : [];
+    } catch (e) { return []; }
+  }
+  function saveBadges(list) { try { localStorage.setItem(LS_BADGES, JSON.stringify(list)); } catch (e) {} }
+  // add what this game has earned (extra: badges earned on a screen, e.g. 如果當初); new ones are shown on the summary
+  function awardBadges(extra) {
+    var earned = F.badgesFor(state.life, storyFlags(), state.me.dream).concat(extra || []);
+    var have = loadBadges(), fresh = earned.filter(function (b, i) { return have.indexOf(b) < 0 && earned.indexOf(b) === i; });
+    if (!fresh.length) return;
+    saveBadges(have.concat(fresh));
+    state.newBadges = (state.newBadges || []).concat(fresh); save();
+    confettiNext = true;
+  }
+  function badgeSection() {
+    var B = T.badges, have = loadBadges(), fresh = state.newBadges || [];
+    var cards = F.BADGES.map(function (id) {
+      var b = B.list[id], on = have.indexOf(id) >= 0;
+      return '<li class="badge' + (on ? ' on' : '') + '"><span class="b-icon" aria-hidden="true">' + (on ? b.icon : '🔒') + '</span>' +
+        '<b>' + esc(b.name) + '</b><span class="small">' + esc(on ? B.unlock + '：' + b.item : b.how) + '</span></li>';
+    }).join('');
+    var news = fresh.length ? '<div class="badges-new" role="status"><b>' + esc(B.fresh) + '</b><div class="bchips">' + fresh.map(function (id) {
+      var b = B.list[id]; return '<span class="bchip">' + b.icon + ' ' + esc(b.name) + ' → ' + esc(B.unlock) + '「' + esc(b.item) + '」</span>';
+    }).join('') + '</div><p class="small muted">' + esc(B.use) + '</p></div>' : '';
+    return news + '<details class="explain badges"' + (fresh.length ? ' open' : '') + '><summary>' + esc(B.heading) + '（' + have.length + ' / ' +
+      F.BADGES.length + '）</summary><p class="small muted">' + esc(B.note) + '</p><ul class="bgrid">' + cards + '</ul></details>';
+  }
   function lifeTitle(l) {
     var pz = F.persona(l, storyFlags()), P = T.personas[pz.id];
     return { icon: P.icon, name: (pz.mod ? T.mods[pz.mod] : '') + P.name, desc: P.desc };
@@ -1422,7 +1460,7 @@
     'e-again': function () { if (!state.classCode) state.seed = C.newSeed(); ACT['l-next'](); },
     'e-edit': function () { if (!state.classCode) state.seed = C.newSeed(); go('grades'); },
     wi: function (b) {
-      state.whatIf = { n: +b.getAttribute('data-n'), j: +b.getAttribute('data-j') }; save(); render();
+      state.whatIf = { n: +b.getAttribute('data-n'), j: +b.getAttribute('data-j') }; awardBadges(['whatIf']); save(); render();
       var h = document.querySelector('#wi-cmp h4');
       if (h) { h.scrollIntoView({ block: 'nearest' }); try { h.focus({ preventScroll: true }); } catch (e) {} }
     },

@@ -91,7 +91,7 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
 - Every user-facing string is bilingual (English + 繁體中文); add both. **Exception:** the DSE Life Paths game
   (`life-paths*`) is 繁體中文 only, by owner decision (2026-11-18).
 - The game's simulation — `life-paths-core.js` (DSE → August) and `life-paths-life.js` (the years after) — has no
-  DOM dependencies and uses seeded, keyed randomness; `life-paths-fun.js` (characters and the 自己設計 avatar creator, dreams, end titles, quick start)
+  DOM dependencies and uses seeded, keyed randomness; `life-paths-fun.js` (characters and the 自己設計 avatar creator, badges, dreams, end titles, quick start)
   only reads a finished life and must never change the simulation. Main Round offers follow the JUPAS Evaluator's own
   rules (`jupas-evaluator-analytics.js`, loaded by both pages): editing that file changes the game too. Test them with
   `tools/life-paths-test.mjs` (needs `PO1_STUDENT_PASS`), which also checks that `life-paths-content.js` has text for
@@ -100,6 +100,6 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
   change a strength's numbers only together with its card text, and re-run the test.
   Cited figures live only in `life-paths-stats.js` (source, year and link each); anything else is labelled
   illustrative on the game's 資料來源與假設 page. Bump `MODEL_VERSION` in `life-paths-life.js` whenever a rule change
-  would replay an old saved life differently (the "what if" screen relies on it). The game's class code, saves and
-  share image never leave the device — keep it that way.
+  would replay an old saved life differently (the "what if" screen relies on it). The game's class code, saves, badges
+  and share image never leave the device — keep it that way.
 - The scoring engine has **no DOM dependencies** — keep it that way so it stays testable in node/JSC.
