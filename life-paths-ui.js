@@ -37,7 +37,7 @@
   function shortSubj(k) { return C.SUBJ_ZH[k].replace(/（.*）/, ''); }
   function btn(act, label, opts) {
     opts = opts || {};
-    return '<button type="button" class="btn' + (opts.ghost ? ' btn-ghost' : '') + (opts.small ? ' small' : '') + '" data-act="' + act + '"' +
+    return '<button type="button" class="btn' + (opts.ghost ? ' btn-ghost' : '') + (opts.small ? ' small' : '') + (opts.cls ? ' ' + opts.cls : '') + '" data-act="' + act + '"' +
       (opts.data ? Object.keys(opts.data).map(function (k) { return ' data-' + k + '="' + esc(opts.data[k]) + '"'; }).join('') : '') +
       (opts.disabled ? ' disabled' : '') + '>' + esc(label) + '</button>';
   }
@@ -48,7 +48,7 @@
   }
   function blank(mode, classCode) {
     return { v: 1, seed: classCode ? classSeed(classCode) : C.newSeed(), classCode: classCode || null, step: 'me',
-      mode: mode || 'short', me: { avatar: F.AVATAR_IDS[0], look: null, dream: null, dreamCat: null }, pred: blankPred(), cats: [], list: [],
+      mode: mode || 'short', me: { avatar: F.AVATAR_IDS[0], look: null, strengths: [], dream: null, dreamCat: null }, pred: blankPred(), cats: [], list: [],
       guesses: {}, revealed: {}, results: null, round: null, clearing: null, retake: null,
       retakePick: [], route: null, field: null, life: null, lifeFrom: null, whatIf: null };
   }
@@ -68,7 +68,7 @@
     var me = old && old.me;
     if (me && me.avatar) {
       var cat = me.dream && F.DREAMS[me.dream] && F.DREAMS[me.dream].cat;
-      s.me = { avatar: me.avatar, look: me.look || null, dream: me.dream || null, dreamCat: cat || null };
+      s.me = { avatar: me.avatar, look: me.look || null, strengths: L.cleanStrengths(me.strengths), dream: me.dream || null, dreamCat: cat || null };
       if (cat) s.cats = [cat];
     }
     return s;
@@ -95,7 +95,7 @@
       if (s && s.v === 1 && s.pred) {
         if (!s.mode) s.mode = 'short'; if (!s.retakePick) s.retakePick = [];
         // saves from before the fun pack: a default character, no guesses, and anything already seen stays revealed
-        if (!s.me) s.me = { avatar: F.AVATAR_IDS[0], look: null, dream: null, dreamCat: null };
+        if (!s.me) s.me = { avatar: F.AVATAR_IDS[0], look: null, strengths: [], dream: null, dreamCat: null };
         if (!s.guesses) s.guesses = {};
         if (!s.revealed) s.revealed = { results: true, offers: true, results2: true, offers2: true };
         return s;
@@ -154,6 +154,30 @@
   function backBtn() { return backTarget() ? btn('back', '← ' + T.common.back, { ghost: true }) : '<span></span>'; }
   function navRow(nextAct, nextLabel, extra) {
     return '<div class="navrow">' + backBtn() + (extra || '') + (nextAct ? btn(nextAct, nextLabel + ' →') : '') + '</div>';
+  }
+
+  /* ---------- strengths: pick 2 on the character screen (the effects live in LifePathsLife.STRENGTHS) ---------- */
+  function strengthPicker() {
+    var S2 = T.strengths, mine = L.cleanStrengths(state.me.strengths), full = mine.length >= 2;
+    var cards = L.STRENGTH_IDS.map(function (id) {
+      var s = S2.list[id], on = mine.indexOf(id) >= 0;
+      return '<button type="button" class="stpick' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="st" data-id="' + id + '"' + (full && !on ? ' disabled' : '') + '>' +
+        '<span class="st-head"><span class="st-icon" aria-hidden="true">' + s.icon + '</span><b>' + esc(s.name) + '</b></span>' +
+        '<span class="st-desc">' + esc(s.desc) + '</span><span class="st-unlock">🔓 ' + esc(S2.unlock) + '：' + esc(s.unlock) + '</span></button>';
+    }).join('');
+    return '<h3 class="sub">' + esc(S2.heading) + ' <span class="pill ' + (full ? 'p-good' : 'p-unk') + '">' + esc(S2.count(mine.length)) + '</span></h3>' +
+      '<p class="hint">' + esc(S2.hint) + '</p><div class="stgrid" role="group" aria-label="' + esc(S2.heading) + '">' + cards + '</div>' +
+      '<div class="row wrapping st-row">' + btn('st-rand', S2.random, { ghost: true, small: true }) +
+      (full ? '<span class="small muted">' + esc(S2.full) + '</span>' : '') + '</div><div id="st-err" class="err" role="alert"></div>';
+  }
+  function strengthNames(list, icons) {
+    return L.cleanStrengths(list).map(function (id) { var s = T.strengths.list[id]; return (icons ? s.icon + ' ' : '') + s.name; }).join('、');
+  }
+  // an event choice as shown: a strength's special choice carries its icon and name
+  function choiceLabel(ch, text) {
+    if (!ch || !ch.need) return text;
+    var s = T.strengths.list[ch.need];
+    return s.icon + ' ' + s.name + '：' + text;
   }
 
   /* ---------- the avatar creator ("自己設計") on the character screen ---------- */
@@ -227,7 +251,7 @@
       }).join('') + '<button type="button" class="drpick' + (me.dream ? '' : ' on') + '" aria-pressed="' + !me.dream + '" data-act="dr" data-id="">' +
         '<span class="dr-icon" aria-hidden="true">🤔</span><b>' + esc(M.noDream) + '</b></button>';
       return '<div class="panel"><h2>' + esc(M.heading) + '</h2><h3 class="sub">' + esc(M.avatar) + '</h3><p class="hint">' + esc(M.avatarHint) + '</p>' +
-        '<div class="avgrid" role="group" aria-label="' + esc(M.avatar) + '">' + avs + '</div>' + (me.avatar === 'custom' ? creator() : '') +
+        '<div class="avgrid" role="group" aria-label="' + esc(M.avatar) + '">' + avs + '</div>' + (me.avatar === 'custom' ? creator() : '') + strengthPicker() +
         '<h3 class="sub">' + esc(M.dream) + '</h3><p class="hint">' + esc(M.dreamHint) + '</p>' +
         '<div class="drgrid" role="group" aria-label="' + esc(M.dream) + '">' + drs + '</div>' + navRow('me-next', M.next) + '</div>';
     },
@@ -467,10 +491,16 @@
           return '<button type="button" class="fcard" data-act="focus" data-id="' + id + '"><b>' + esc(f.name) + '</b><span>' + esc(f.desc) + '</span></button>';
         }).join('') + '</div>';
       } else if (p.type === 'event') {
-        var ev = T.events[p.id];
+        // only the choices open to this student; a strength's special choice is marked with the strength
+        var ev = T.events[p.id], evDef = L.eventById(p.id), first = true;
         card += '<div class="event"><span class="pill p-mid">' + esc(LT.eventTag) + '</span><h3>' + esc(ev.title) + '</h3><p>' + esc(ev.body) + '</p>' +
           (ev.support ? '<p class="small support">' + esc(LT.support) + '</p>' : '') + '<div class="row wrapping">' +
-          ev.choices.map(function (c, i) { return btn('evc', c, { ghost: i > 0, data: { i: i } }); }).join('') + '</div></div>';
+          ev.choices.map(function (c, i) {
+            var ch = evDef.choices[i];
+            if (!L.choiceOpen(l, ch)) return '';
+            var h = btn('evc', choiceLabel(ch, c), { ghost: !first, data: { i: i }, cls: ch.need ? 'st-choice' : '' });
+            first = false; return h;
+          }).join('') + '</div></div>';
       } else if (p.type === 'branch') {
         var b = T.branches[p.id];
         card += '<div class="event"><h3>' + esc(b.title) + '</h3>' + (b.note ? '<p class="small">' + esc(b.note) + '</p>' : '') + '<div class="row wrapping">' +
@@ -513,7 +543,8 @@
         body = art() + '<h2>🌟 ' + esc(LE.heading(l.age)) + '</h2>' + titleCard(l) + dreamCard(l) +
           '<dl class="summary"><dt>' + esc(LE.status) + '</dt><dd>' + esc(status) + '</dd>' +
           '<dt>' + esc(LE.cred) + '</dt><dd>' + esc(T.creds[L.topCred(l)]) + '</dd>' +
-          (topFocus ? '<dt>' + esc(LE.topFocus) + '</dt><dd>' + esc(topFocus) + '</dd>' : '') + '</dl>' +
+          (topFocus ? '<dt>' + esc(LE.topFocus) + '</dt><dd>' + esc(topFocus) + '</dd>' : '') +
+          (l.strengths && l.strengths.length ? '<dt>' + esc(LE.strengths) + '</dt><dd>' + esc(strengthNames(l.strengths, true)) + '</dd>' : '') + '</dl>' +
           '<p class="small muted">' + esc(LE.compare(l.age)) + '</p><h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
           (choices ? '<h3 class="sub">' + esc(LE.keyChoices) + '</h3><ol class="tl">' + choices + '</ol>' : '') +
           guessSummary() + reflectBox('end') + whatIfSection() + shareSection() +
@@ -541,8 +572,12 @@
       return G.startTrack(T.tracks[d.route] || '', catZh(d.field));
     }
     if (e.key === 'graduated') return G.graduated(T.creds[d.cred]);
-    if (e.key === 'gotJob') return G.gotJob(d.level === 'degree' || d.level === 'masters' || d.level === 'subdegree' ? catZh(d.field) : '', d.monthly);
-    if (e.key === 'event') return evTitle(d.id) + '：' + T.events[d.id].results[d.choice];
+    if (e.key === 'gotJob') {
+      var jf = d.level === 'degree' || d.level === 'masters' || d.level === 'subdegree' ? catZh(d.field) : '';
+      return d.kept ? G.keptOn(jf, d.monthly) : G.gotJob(jf, d.monthly);
+    }
+    if (e.key === 'switchedField') return G.switchedField(catZh(d.field));
+    if (e.key === 'event') return evTitle(d.id) + '：' + (T.events[d.id].results[d.choice] || '');
     if (e.key === 'partTimeDone') return G.partTimeDone(T.creds[d.level]);
     return typeof G[e.key] === 'string' ? G[e.key] : '';
   }
@@ -550,7 +585,7 @@
   function decisionText(d) {
     if (d.key === 'route') return T.life.chose + (T.routeInfo[d.data.route] || {}).name;
     if (d.key === 'branch') { var b = T.branches[d.data.id]; return b.short + '：' + b.options[d.data.opt]; }
-    if (d.key === 'event') return evTitle(d.data.id) + '：' + T.events[d.data.id].choices[d.data.choice];
+    if (d.key === 'event') return evTitle(d.data.id) + '：' + choiceLabel(L.eventById(d.data.id).choices[d.data.choice], T.events[d.data.id].choices[d.data.choice]);
     return '';
   }
   function dataPage() {
@@ -595,6 +630,7 @@
       else if (e.key === 'gotJob' && !job) { job = true; t = P.job(money(d.monthly)); }
       else if (e.key === 'partTimeDone') t = P.partTime(T.creds[d.level]);
       else if (e.key === 'mastersDone') t = P.masters;
+      else if (e.key === 'whsStart') t = P.whs;
       if (t) out.push({ age: e.age, text: t });
     });
     return out;
@@ -617,8 +653,9 @@
           if (o !== d.data.opt) alts.push({ change: { key: 'branch', id: d.data.id, age: d.age, opt: o }, text: T.branches[d.data.id].options[o] });
         });
       } else if (d.key === 'event') {
+        var def = L.eventById(d.data.id);                        // only the choices this student could take
         T.events[d.data.id].choices.forEach(function (c, j) {
-          if (j !== d.data.choice) alts.push({ change: { key: 'event', id: d.data.id, age: d.age, choice: j }, text: c });
+          if (j !== d.data.choice && L.choiceOpen(l, def.choices[j])) alts.push({ change: { key: 'event', id: d.data.id, age: d.age, choice: j }, text: choiceLabel(def.choices[j], c) });
         });
       }
       if (alts.length) out.push({ d: d, alts: alts });
@@ -693,10 +730,11 @@
     var steps = pathSteps(l).slice(0, 7), lt = lifeTitle(l), dream = state.me.dream;
     var dreamTxt = dream ? T.dreamEnd.heading + '：' + T.dreams[dream].name + '　' + stars(F.dreamStars(l, dream)) : '';
     // 1080 wide; the height follows the number of milestones (and the dream line) so there is no empty band
-    var S = T.share, W = 1080, H = 1060 + 58 * Math.max(2, steps.length) + (dreamTxt ? 52 : 0);
+    var stTxt = l.strengths && l.strengths.length ? T.lifeEnd.strengths + '：' + strengthNames(l.strengths) : '';
+    var S = T.share, W = 1080, H = 1060 + 58 * Math.max(2, steps.length) + (dreamTxt ? 52 : 0) + (stTxt ? 52 : 0);
     var FONT = '"Noto Sans TC", "PingFang HK", "Microsoft JhengHei", sans-serif';
     var title = S.title(l.age), now = S.now + lifeStatus(l), cred = S.cred + T.creds[L.topCred(l)];
-    var all = [T.title, title, lt.name, now, cred, dreamTxt, S.foot1, S.foot2].concat(steps.map(function (s) { return T.life.age(s.age) + s.text; }))
+    var all = [T.title, title, lt.name, now, cred, dreamTxt, stTxt, S.foot1, S.foot2].concat(steps.map(function (s) { return T.life.age(s.age) + s.text; }))
       .concat(L.METERS.map(function (k) { return T.meters[k]; })).join('') + '0123456789HK$,.…★☆';
     var ready = document.fonts && document.fonts.load
       ? Promise.all(['800', '700', '500'].map(function (w) { return document.fonts.load(w + ' 40px "Noto Sans TC"', all); })) : Promise.resolve();
@@ -753,8 +791,9 @@
       x.fillStyle = '#5B3A24'; fitText(x, now, PX, y, W - 2 * PX, '800', 40, FONT);
       x.fillStyle = '#8a6f59'; fitText(x, cred, PX, y + 52, W - 2 * PX, '700', 34, FONT);
       if (dreamTxt) { x.fillStyle = '#A9842F'; fitText(x, dreamTxt, PX, y + 104, W - 2 * PX, '700', 34, FONT); }
+      if (stTxt) { x.fillStyle = '#5f7f5b'; fitText(x, stTxt, PX, y + 104 + (dreamTxt ? 52 : 0), W - 2 * PX, '700', 34, FONT); }
       // the five meters (two columns)
-      var my = y + 110 + (dreamTxt ? 52 : 0), colW = (W - 2 * PX - 40) / 2;
+      var my = y + 110 + (dreamTxt ? 52 : 0) + (stTxt ? 52 : 0), colW = (W - 2 * PX - 40) / 2;
       L.METERS.forEach(function (k, n) {
         var cx = PX + (n % 2) * (colW + 40), cy = my + Math.floor(n / 2) * 56, v = l.meters[k];
         x.fillStyle = '#5B3A24'; fitText(x, T.meters[k], cx, cy, 150, '700', 30, FONT);
@@ -1153,8 +1192,11 @@
     var o = curRound() && curRound().offer, prog = route === 'degree' && o ? DB.byCode[o.code] : null;
     var f = prog ? (prog.categories && prog.categories[0]) || 'Business' : field || state.field || state.cats[0] || 'Business';
     if (!prog && f === 'Medicine') f = 'Health';
+    // strengths + the field a career switch would head for (the dream's, else the first interest); a "what if" reuses the life's own
     return { seed: state.seed, mode: state.life ? state.life.mode : state.mode, route: route, field: f, offer: o, prog: prog,
-      actual: curActual(), startAge: state.retake ? 19 : 18 };
+      actual: curActual(), startAge: state.retake ? 19 : 18,
+      strengths: state.life ? state.life.strengths : L.cleanStrengths(state.me.strengths),
+      wish: state.life ? state.life.wish : state.me.dreamCat || state.cats[0] || null };
   }
   function startLife() {
     state.lifeFrom = state.step; state.whatIf = null; state.life = null;
@@ -1219,7 +1261,26 @@
       if (cat && state.cats.indexOf(cat) < 0) { state.cats.unshift(cat); me.dreamCat = cat; }   // the dream's field becomes an interest
       save(); render();
     },
-    'me-next': function () { go('grades'); },
+    // two strengths are needed before the grades (🎲 picks them for the undecided)
+    'me-next': function () {
+      if (L.cleanStrengths(state.me.strengths).length !== 2) {
+        var err = $('st-err'), g = $('screen').querySelector('.stgrid');
+        if (err) err.textContent = T.strengths.need;
+        if (g && g.scrollIntoView) g.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+        return;
+      }
+      go('grades');
+    },
+    st: function (b) {
+      var id = b.getAttribute('data-id'), mine = L.cleanStrengths(state.me.strengths), i = mine.indexOf(id);
+      if (i >= 0) mine.splice(i, 1); else if (mine.length < 2) mine.push(id); else return;
+      state.me.strengths = mine; save(); render(); refocus('[data-act="st"][data-id="' + id + '"]');
+    },
+    'st-rand': function () {
+      var pool = L.STRENGTH_IDS.slice(), pick = [];
+      while (pick.length < 2) pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      state.me.strengths = pick; save(); render(); refocus('[data-act="st-rand"]');
+    },
     // quick start: a ready-made (or random) student fills the grades and interests, then "suggest" builds the list
     sample: function (b) {
       var id = b.getAttribute('data-id'), s = id === 'random' ? F.randomStudent(Math.random) : F.SAMPLES[id];
