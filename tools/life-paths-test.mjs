@@ -142,6 +142,41 @@ check('the draws are uniform: 20,000 draws land under each agreed chance (90 · 
 console.log('  observed offer rate by level in this sample: ' + Object.keys(C.OFFER_CHANCE).filter((t) => tierN[t])
   .map((t) => `${t} ${(100 * (tierHit[t] || 0) / tierN[t]).toFixed(1)}% (n=${tierN[t]})`).join(' · '));
 
+/* 3b. the list page: a picker grouped like the Finder+, and moving choices (drag-and-drop, ▲▼) */
+console.log('\nprogramme picker + moving choices');
+{
+  const F = window.JUPASFinder;
+  let rows = 0, wrong = 0, notInGroup = 0, nodataBad = 0;
+  for (let k = 0; k < 300; k++) {
+    const st = students[k], grades = C.toEngineGrades(st);
+    const list = C.browseList(st, DB);
+    if (list.length !== LIST.length) wrong++;
+    list.forEach((r, n) => {
+      rows++;
+      const p = LIST[n], ev = E.evaluateProgramme(p, grades);
+      const expect = !ev.eligibility.eligible ? 'inelig' : F.scoreBucket(ev, p, true) || 'nodata';
+      if (r.code !== p.jupas_code || r.group !== expect || r.eligible !== ev.eligibility.eligible || r.score !== ev.calculation.totalScore) wrong++;
+      if (!C.GROUPS.includes(r.group)) notInGroup++;
+      if (r.group === 'nodata' && E.refScores(p).median != null) nodataBad++;
+    });
+  }
+  check(`every programme lands in the Finder's own score group for the student's grades (${rows} programme × student pairs)`, wrong === 0, `${wrong} differ`);
+  check('every programme can be found in exactly one group: ≥UQ / ≥median / ≥LQ / <LQ / no median to compare / not eligible',
+    notInGroup === 0 && nodataBad === 0, `${notInGroup} without a group, ${nodataBad} wrongly "no data"`);
+  const base = ['a', 'b', 'c', 'd', 'e'], mv = (f, t) => C.moveChoice(base, f, t).join('');
+  check('moving a choice: first → third, last → first, onto itself, out of range',
+    mv(0, 2) === 'bcade' && mv(4, 0) === 'eabcd' && mv(2, 2) === 'abcde' && mv(1, 99) === 'acdeb' && mv(9, 0) === 'abcde' &&
+    base.join('') === 'abcde');
+  let lost = 0, ms = 77;                                      // own random sequence: later sections keep their samples
+  const mrand = () => (ms = (ms * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let k = 0; k < 2000; k++) {
+    const l = C.suggestList(students[k % N], [], DB); if (l.length < 2) continue;
+    const f = Math.floor(mrand() * l.length), t = Math.floor(mrand() * l.length), m = C.moveChoice(l, f, t);
+    if (m.length !== l.length || [...m].sort().join() !== [...l].sort().join() || m[t] !== l[f]) lost++;
+  }
+  check('random moves keep every choice exactly once and put it where it was dropped', lost === 0, `${lost} broken`);
+}
+
 /* 4. routes */
 console.log('\nroutes');
 const weak = { chi: '1', eng: '1', math: '1', csd: 'attained', elect: [{ s: 'bio', lv: '1' }] };
@@ -266,6 +301,15 @@ for (const k of ['startDegree', 'startTrack', 'startWork']) if (typeof T.logs[k]
 check(`every event, choice, focus, track, credential, meter, route, field, branch and log line has text ` +
   `(${L.EVENTS.length} events, ${Object.keys(seenBranches).length} branches, ${seenLogKeys.size} log kinds seen)`, miss.length === 0, miss.slice(0, 8).join(', '));
 check('the step bar has the 9 steps the screens use', T.steps.map((x) => x.id).join() === 'me,grades,interests,list,results,offers,routes,life,end');
+{
+  const provs = new Set(LIST.map((p) => p.institution !== 'SSSDP' ? p.institution : ((/Offered by ([^:]+):/.exec(p.name_en || '') || [])[1] || 'SSSDP').trim()));
+  const gap = C.GROUPS.filter((g) => !T.list.groups[g] || !T.list.groupHint[g]);
+  const stale = Object.keys(T.list.instShort).filter((k) => !provs.has(k)), unnamed = [...provs].filter((k) => !T.list.instShort[k]);
+  check('the picker has a label and a hint for every score group, and a heading for every Band', gap.length === 0 &&
+    ['A', 'B', 'C', 'D', 'E'].every((b) => T.list.bandSep[b]), gap.join());
+  check(`every institution in the database has a short chip name, and no chip name is stale (${provs.size} institutions)`,
+    stale.length === 0 && unnamed.length === 0, 'stale: ' + stale.join() + ' · unnamed: ' + unnamed.join());
+}
 
 /* 8. "what if" (Phase 3): the same luck with ONE decision changed — L.replay */
 console.log('\n"what if" replays');
