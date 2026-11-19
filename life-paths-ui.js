@@ -48,7 +48,7 @@
   }
   function blank(mode, classCode) {
     return { v: 1, seed: classCode ? classSeed(classCode) : C.newSeed(), classCode: classCode || null, step: 'me',
-      mode: mode || 'short', me: { avatar: F.AVATAR_IDS[0], dream: null, dreamCat: null }, pred: blankPred(), cats: [], list: [],
+      mode: mode || 'short', me: { avatar: F.AVATAR_IDS[0], look: null, dream: null, dreamCat: null }, pred: blankPred(), cats: [], list: [],
       guesses: {}, revealed: {}, results: null, round: null, clearing: null, retake: null,
       retakePick: [], route: null, field: null, life: null, lifeFrom: null, whatIf: null };
   }
@@ -68,7 +68,7 @@
     var me = old && old.me;
     if (me && me.avatar) {
       var cat = me.dream && F.DREAMS[me.dream] && F.DREAMS[me.dream].cat;
-      s.me = { avatar: me.avatar, dream: me.dream || null, dreamCat: cat || null };
+      s.me = { avatar: me.avatar, look: me.look || null, dream: me.dream || null, dreamCat: cat || null };
       if (cat) s.cats = [cat];
     }
     return s;
@@ -95,7 +95,7 @@
       if (s && s.v === 1 && s.pred) {
         if (!s.mode) s.mode = 'short'; if (!s.retakePick) s.retakePick = [];
         // saves from before the fun pack: a default character, no guesses, and anything already seen stays revealed
-        if (!s.me) s.me = { avatar: F.AVATAR_IDS[0], dream: null, dreamCat: null };
+        if (!s.me) s.me = { avatar: F.AVATAR_IDS[0], look: null, dream: null, dreamCat: null };
         if (!s.guesses) s.guesses = {};
         if (!s.revealed) s.revealed = { results: true, offers: true, results2: true, offers2: true };
         return s;
@@ -156,6 +156,39 @@
     return '<div class="navrow">' + backBtn() + (extra || '') + (nextAct ? btn(nextAct, nextLabel + ' →') : '') + '</div>';
   }
 
+  /* ---------- the avatar creator ("自己設計") on the character screen ---------- */
+  var lookTab = 'hair';                                      // the part being edited (this visit only)
+  // each option's thumbnail zooms in on the part that changes (viewBox on the 64×64 board)
+  var LOOK_VIEW = { face: '12 8 40 40', hair: '4 0 56 56', eyes: '17 19 30 22', brows: '17 17 30 20', mouth: '22 27 20 16',
+    glasses: '16 19 32 22', head: '4 0 56 56', top: '4 34 56 30', extra: '13 22 38 26' };
+  function avatarName() { return state.me.avatar === 'custom' ? T.look.name : T.avatars[state.me.avatar] || ''; }
+  function creator() {
+    var K = T.look, look = F.cleanLook(state.me.look), colours = F.LOOK_COLOURS[lookTab], opts = '';
+    var tabs = F.LOOK_PARTS.map(function (k) {
+      var on = lookTab === k;
+      return '<button type="button" class="lk-tab' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="lk-tab" data-k="' + k + '">' + esc(K.parts[k]) + '</button>';
+    }).join('');
+    for (var v = 0; v < F.LOOK[lookTab]; v++) {
+      var on = look[lookTab] === v, name = K.options[lookTab][v], attrs = ' aria-pressed="' + on + '" data-act="lk" data-k="' + lookTab + '" data-v="' + v + '"';
+      if (colours) {
+        opts += '<button type="button" class="lk-sw' + (on ? ' on' : '') + '"' + attrs + ' aria-label="' + esc(name) + '" title="' + esc(name) +
+          '" style="background:' + colours[v] + '"></button>';
+      } else {
+        var alt = {};
+        F.LOOK_PARTS.forEach(function (p) { alt[p] = look[p]; });
+        alt[lookTab] = v;
+        opts += '<button type="button" class="lk-opt' + (on ? ' on' : '') + '"' + attrs + '>' +
+          F.avatarSVG({ avatar: 'custom', look: alt }, 52, '', LOOK_VIEW[lookTab]) + '<span>' + esc(name) + '</span></button>';
+      }
+    }
+    return '<div class="creator"><div class="cr-prev">' + F.avatarSVG({ avatar: 'custom', look: look }, 132, esc(K.name)) +
+      '<div class="row">' + btn('lk-rand', K.random, { ghost: true, small: true }) + btn('lk-reset', K.reset, { ghost: true, small: true }) + '</div></div>' +
+      '<div class="cr-main"><h3 class="sub">' + esc(K.heading) + '</h3><p class="hint small">' + esc(K.hint) + '</p>' +
+      '<div class="lk-tabs" role="group" aria-label="' + esc(K.heading) + '">' + tabs + '</div>' +
+      '<div class="lk-opts' + (colours ? ' sw' : '') + '" role="group" aria-label="' + esc(K.parts[lookTab]) + '">' + opts + '</div>' +
+      (lookTab === 'topCol' ? '<p class="hint small">' + esc(K.topColNote) + '</p>' : '') + '</div></div>';
+  }
+
   /* ---------- screens ---------- */
   var SCREENS = {
     intro: function () {
@@ -185,7 +218,8 @@
         var on = me.avatar === id;
         return '<button type="button" class="avpick' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="av" data-id="' + id + '">' +
           F.avatarSVG(id, 56) + '<span>' + esc(T.avatars[id]) + '</span></button>';
-      }).join('');
+      }).join('') + '<button type="button" class="avpick avcustom' + (me.avatar === 'custom' ? ' on' : '') + '" aria-pressed="' + (me.avatar === 'custom') +
+        '" data-act="av" data-id="custom">' + F.avatarSVG({ avatar: 'custom', look: me.look }, 56) + '<span>✏️ ' + esc(T.look.pick) + '</span></button>';
       var drs = F.DREAM_IDS.map(function (id) {
         var on = me.dream === id, d = T.dreams[id];
         return '<button type="button" class="drpick' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="dr" data-id="' + id + '">' +
@@ -193,7 +227,7 @@
       }).join('') + '<button type="button" class="drpick' + (me.dream ? '' : ' on') + '" aria-pressed="' + !me.dream + '" data-act="dr" data-id="">' +
         '<span class="dr-icon" aria-hidden="true">🤔</span><b>' + esc(M.noDream) + '</b></button>';
       return '<div class="panel"><h2>' + esc(M.heading) + '</h2><h3 class="sub">' + esc(M.avatar) + '</h3><p class="hint">' + esc(M.avatarHint) + '</p>' +
-        '<div class="avgrid" role="group" aria-label="' + esc(M.avatar) + '">' + avs + '</div>' +
+        '<div class="avgrid" role="group" aria-label="' + esc(M.avatar) + '">' + avs + '</div>' + (me.avatar === 'custom' ? creator() : '') +
         '<h3 class="sub">' + esc(M.dream) + '</h3><p class="hint">' + esc(M.dreamHint) + '</p>' +
         '<div class="drgrid" role="group" aria-label="' + esc(M.dream) + '">' + drs + '</div>' + navRow('me-next', M.next) + '</div>';
     },
@@ -684,7 +718,7 @@
       x.fillStyle = '#936c1f'; fitText(x, T.title, PX, 150, TW, '800', 34, FONT);
       x.fillStyle = '#5B3A24'; fitText(x, title, PX, 226, TW, '800', 58, FONT);
       x.fillStyle = '#A9842F'; fitText(x, lt.name, PX, 284, TW, '800', 38, FONT);
-      F.drawAvatar(x, state.me.avatar, W - PX - 168, 104, 168);
+      F.drawAvatar(x, state.me, W - PX - 168, 104, 168);
       // art: hills and a dashed road with a dot for every milestone
       var top = 318, hgt = 150, left = PX, right = W - PX;
       x.save(); roundRect(x, left, top, right - left, hgt, 22); x.clip();
@@ -791,8 +825,8 @@
   }
   function stars(s) { return new Array(s + 1).join('★') + new Array(4 - s).join('☆'); }
   function titleCard(l) {
-    var t = lifeTitle(l), av = state.me.avatar;
-    return '<div class="titlecard">' + F.avatarSVG(av, 76, esc(T.avatars[av])) + '<div><span class="small muted">' + esc(T.titleHeading) + '</span>' +
+    var t = lifeTitle(l);
+    return '<div class="titlecard">' + F.avatarSVG(state.me, 76, esc(avatarName())) + '<div><span class="small muted">' + esc(T.titleHeading) + '</span>' +
       '<b class="ptitle">' + t.icon + ' ' + esc(t.name) + '</b><span>' + esc(t.desc) + '</span></div></div>';
   }
   function dreamCard(l) {
@@ -821,7 +855,7 @@
       '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#E8DCC2" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>' +
       '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#C9A24B" stroke-width="2" stroke-dasharray="6 8"/></svg>' +
       marks + '<span class="wmark" style="left:' + flag.left + ';top:' + flag.top + '">🏁</span>' +
-      '<div class="walker" style="left:' + me.left + ';top:' + me.top + '">' + F.avatarSVG(state.me.avatar, 40) + '</div>' +
+      '<div class="walker" style="left:' + me.left + ';top:' + me.top + '">' + F.avatarSVG(state.me, 40) + '</div>' +
       '<div class="ages"><span>' + esc(T.life.age(l.log[0].age)) + '</span><span>' + esc(T.life.age(l.endAge)) + '</span></div></div>';
   }
 
@@ -1162,7 +1196,21 @@
       if (code && !validCode(code)) { $('class-err').textContent = T.classMode.invalid; return; }
       state = keepMe(state, blank(state && state.mode, code || null)); resumeStep = null; codeDraft = null; go('me');
     },
-    av: function (b) { state.me.avatar = b.getAttribute('data-id'); save(); render(); },
+    av: function (b) {
+      var id = b.getAttribute('data-id');
+      state.me.avatar = id;
+      if (id === 'custom') state.me.look = F.cleanLook(state.me.look);
+      save(); render(); refocus('[data-act="av"][data-id="' + id + '"]');
+    },
+    // the avatar creator: a part's option, the part tabs, random, reset
+    lk: function (b) {
+      var k = b.getAttribute('data-k'), v = +b.getAttribute('data-v'), look = F.cleanLook(state.me.look);
+      look[k] = v; state.me.look = look; save(); render();
+      refocus('[data-act="lk"][data-k="' + k + '"][data-v="' + v + '"]');
+    },
+    'lk-tab': function (b) { lookTab = b.getAttribute('data-k'); render(); refocus('[data-act="lk-tab"][data-k="' + lookTab + '"]'); },
+    'lk-rand': function () { state.me.look = F.randomLook(Math.random); save(); render(); refocus('[data-act="lk-rand"]'); },
+    'lk-reset': function () { state.me.look = F.cleanLook(null); save(); render(); refocus('[data-act="lk-reset"]'); },
     dr: function (b) {
       var id = b.getAttribute('data-id') || null, me = state.me;
       if (me.dreamCat) state.cats = state.cats.filter(function (k) { return k !== me.dreamCat; });   // undo the last dream's interest

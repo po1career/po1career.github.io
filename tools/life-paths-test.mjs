@@ -345,9 +345,34 @@ check(`another route at the start → a valid life to the same final age (${wi.r
 /* 9. fun pack: characters, dreams, end titles, quick start (life-paths-fun.js) */
 console.log('\nfun pack (characters, dreams, titles, quick start)');
 const F = window.LifePathsFun;
-const pathOk = (d) => /^[MLQAaZz0-9 .\-]+$/.test(d) && d.length > 10;
+const pathOk = (d) => /^[MLQCAaZz0-9 .\-]+$/.test(d) && d.length > 10 && !/NaN|Infinity/.test(d);
+const shapesOk = (layers) => Array.isArray(layers) && layers.length >= 6 && layers.every(([d, c]) => pathOk(d) && /^#[0-9A-Fa-f]{6}$/.test(c));
 check(`${F.AVATAR_IDS.length} characters drawn from valid shapes, each with a name`, F.AVATAR_IDS.length >= 8 &&
-  F.AVATAR_IDS.every((id) => F.AVATARS[id].length >= 6 && F.AVATARS[id].every(([d, c]) => pathOk(d) && /^#[0-9A-Fa-f]{6}$/.test(c)) && T.avatars[id]));
+  F.AVATAR_IDS.every((id) => shapesOk(F.AVATARS[id]) && T.avatars[id]));
+{
+  // "自己設計": every option of every part (one at a time), and 300 random looks, draw from valid shapes
+  const bad = [];
+  for (const k of F.LOOK_PARTS) for (let v = 0; v < F.LOOK[k]; v++) {
+    const look = { ...F.DEFAULT_LOOK, [k]: v };
+    if (!shapesOk(F.lookLayers(look))) bad.push(k + '=' + v);
+  }
+  let ls = 11; const lrand = () => (ls = (ls * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const randoms = Array.from({ length: 300 }, () => F.randomLook(lrand));
+  const inRange = (l) => F.LOOK_PARTS.every((k) => Number.isInteger(l[k]) && l[k] >= 0 && l[k] < F.LOOK[k]);
+  check(`the avatar creator: all ${F.LOOK_PARTS.reduce((a, k) => a + F.LOOK[k], 0)} options of ${F.LOOK_PARTS.length} parts and 300 random looks draw from valid shapes`,
+    bad.length === 0 && randoms.every((l) => inRange(l) && shapesOk(F.lookLayers(l))), bad.slice(0, 6).join(', '));
+  const junk = F.cleanLook({ face: 99, skin: -1, hair: 2.5, eyes: '1', bg: 3 });
+  check('a damaged or missing design falls back to the default, part by part (a valid part is kept)',
+    JSON.stringify(F.cleanLook(null)) === JSON.stringify(F.DEFAULT_LOOK) && junk.bg === 3 && junk.face === F.DEFAULT_LOOK.face &&
+    junk.skin === F.DEFAULT_LOOK.skin && junk.hair === F.DEFAULT_LOOK.hair && junk.eyes === F.DEFAULT_LOOK.eyes && inRange(junk));
+  check('the page, the walking character and the share image all draw from the same layers (animal or own design)',
+    F.layersOf('fox') === F.AVATARS.fox && F.layersOf({ avatar: 'panda' }) === F.AVATARS.panda &&
+    JSON.stringify(F.layersOf({ avatar: 'custom', look: randoms[0] })) === JSON.stringify(F.lookLayers(randoms[0])) &&
+    /<svg viewBox="0 0 64 64"/.test(F.avatarSVG({ avatar: 'custom', look: randoms[1] }, 40)));
+  const K = T.look, noText = F.LOOK_PARTS.filter((k) => !K.parts[k] || !Array.isArray(K.options[k]) || K.options[k].length !== F.LOOK[k] ||
+    K.options[k].some((x) => !x) || (F.LOOK_COLOURS[k] && F.LOOK_COLOURS[k].length !== F.LOOK[k]));
+  check('every part and option of the creator has a name (and every colour part has its colours)', noText.length === 0 && !!K.name, noText.join());
+}
 const validPred = (p) => [p.chi, p.eng, p.math].every((x) => C.LEVELS.includes(x)) && ['attained', 'notattained'].includes(p.csd) &&
   p.elect.length >= 2 && p.elect.every((e) => C.ELECTIVES.includes(e.s) && C.LEVELS.includes(e.lv)) && new Set(p.elect.map((e) => e.s)).size === p.elect.length;
 const catOk = (k) => T.categories.some((c) => c.key === k);

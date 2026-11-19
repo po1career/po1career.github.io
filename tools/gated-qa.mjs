@@ -157,8 +157,17 @@ async function lifePathsCheck(b) {
     await until(()=>q('[data-act="start"],[data-act="resume"]'));
     L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)}; s.mode='short';
     // fun pack: the character + dream screen comes first
-    const meScreen=document.querySelectorAll('.avpick').length===8 && document.querySelectorAll('.drpick').length===10;
-    q('[data-act="av"][data-id="fox"]').click(); q('[data-act="dr"][data-id="engineer"]').click();
+    const meScreen=document.querySelectorAll('.avpick').length===9 && document.querySelectorAll('.drpick').length===10;
+    // 自己設計: the creator opens, an option changes the look (and the big preview), a colour swatch too
+    q('[data-act="av"][data-id="custom"]').click();
+    const creatorOpen=!!q('.creator') && document.querySelectorAll('.lk-tab').length===13 && document.querySelectorAll('.lk-opts .lk-opt').length===10;
+    const prev0=q('.cr-prev svg').innerHTML; q('[data-act="lk"][data-k="hair"][data-v="3"]').click();
+    q('[data-act="lk-tab"][data-k="skin"]').click(); q('[data-act="lk"][data-k="skin"][data-v="4"]').click();
+    q('[data-act="lk-tab"][data-k="head"]').click(); q('[data-act="lk"][data-k="head"][data-v="1"]').click();
+    const designed=s.me.avatar==='custom' && s.me.look.hair===3 && s.me.look.skin===4 && s.me.look.head===1 && q('.cr-prev svg').innerHTML!==prev0 &&
+      document.querySelectorAll('.lk-opts.sw .lk-sw').length===0 && JSON.parse(localStorage.getItem('life_paths_state')).me.look.head===1;
+    const myLook=JSON.stringify(s.me.look), myLayers=window.LifePathsFun.lookLayers(s.me.look).length;
+    q('[data-act="dr"][data-id="engineer"]').click();
     Object.assign(s.pred,{chi:'4',eng:'4',math:'4',csd:'attained'});
     s.pred.elect=[{s:'chist',lv:'5'},{s:'econ',lv:'4'},{s:'',lv:''},{s:'',lv:''}]; s.cats=[]; s.me.dreamCat=null;
     L.go('list'); L.act('l-suggest'); const list=s.list.slice();
@@ -208,8 +217,10 @@ async function lifePathsCheck(b) {
     L.act('o-others'); const routes=document.querySelectorAll('.route').length;
     q('[data-act="route"][data-id="work"]').click();
     const meters=document.querySelectorAll('.lifepanel .meter').length, walk=!!q('.walk .walker svg'), payGuess=!!q('[data-act="guess-pay"]');
+    const avWalk=walk && q('.walk .walker svg').querySelectorAll('path').length===myLayers;
     const end=await play(), life=s.life?{age:s.life.age,monthly:s.life.job?s.life.job.monthly:null}:null, dataPage=!!q('.datapage');
     const titleCard=!!q('.titlecard .ptitle'), dreamCard=!!q('.dreamcard .stars'), guesses=!!q('.guesses');
+    const avTitle=!!q('.titlecard svg') && q('.titlecard svg').querySelectorAll('path').length===myLayers && q('.titlecard svg').getAttribute('aria-label')==='自己設計';
     // Phase 3 on the summary: "what if" (nothing changed = the same life; one change = a comparison), share image, runs
     const replaySame=L.replaySame(), wiBtn=q('[data-act="wi"]');
     if (wiBtn) wiBtn.click();
@@ -234,8 +245,8 @@ async function lifePathsCheck(b) {
     const classMode=L.state.seed==='class-QA7B' && L.state.classCode==='QA7B' && !!(await until(()=>q('.classpill')));
     // quick start (the character carried over): a ready-made student fills the grades and "suggest" builds the list
     q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
-    const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='fox';
-    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+    const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='custom' && JSON.stringify(L.state.me.look)===myLook;
+    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -309,6 +320,8 @@ for (const t of PAGES) {
         record(t.page, 'class mode: the class code becomes the shared seed and shows on screen', r.classMode, got);
         record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
           r.meScreen && r.quick, got);
+        record(t.page, 'avatar creator (自己設計): 13 parts, options and colours change the look and are saved; the design walks the road, ' +
+          'heads the end card and the share image, and is kept for a new game', r.creatorOpen && r.designed && r.avWalk && r.avTitle && r.share && r.quick, got);
         record(t.page, 'fun pack: guess before results, grades turned over, Band guess + scan of the choices',
           r.guessMatch && r.guessRes && r.scan, got);
         record(t.page, 'fun pack: walking character + pay guess in the life; end title, dream stars and guess scorecard',
