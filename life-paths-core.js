@@ -245,6 +245,30 @@
     });
     return out;
   }
+  /* ---------- the programme picker (grouped like the Finder+, design §2) ---------- */
+  // every programme scored with these grades, using the same engine as the offers. group: 'uq' | 'median' | 'lq' |
+  // 'belowlq' (the Finder's score buckets vs last year's UQ / median / LQ) · 'nodata' (eligible, but no median to
+  // compare with — the Evaluator says 沒有資料 too) · 'inelig' (entry requirements not met). Every programme is in one.
+  var GROUPS = ['uq', 'median', 'lq', 'belowlq', 'nodata', 'inelig'];
+  function browseList(pred, db) {
+    var grades = toEngineGrades(pred);
+    return db.list.map(function (p) {
+      var ev = E().evaluateProgramme(p, grades), eligible = ev.eligibility.eligible;
+      var med = ev.comparisons.filter(function (x) { return x.key === 'median'; })[0] ||
+        ev.comparisons.filter(function (x) { return x.key === 'mean' || x.key === 'expected_score'; })[0];
+      return { code: p.jupas_code, eligible: eligible, score: ev.calculation.totalScore,
+        group: !eligible ? 'inelig' : F().scoreBucket(ev, p, true) || 'nodata',
+        medScore: med ? med.score : null, medPct: med ? med.percent : null };
+    });
+  }
+  // move the choice at `from` so that it ends up at index `to` (drag-and-drop, ▲▼); returns a new list
+  function moveChoice(list, from, to) {
+    var out = list.slice();
+    if (from < 0 || from >= out.length) return out;
+    var code = out.splice(from, 1)[0];
+    out.splice(Math.max(0, Math.min(to, out.length)), 0, code);
+    return out;
+  }
   // the Finder/Planner slot tag for one choice with the PREDICTED grades: 'good' | 'mid' | 'bad'
   function slotTagFor(code, i, pred, db) {
     var prog = db.byCode[code]; if (!prog) return 'bad';
@@ -281,6 +305,7 @@
     clearingCandidates: clearingCandidates, clearingResult: clearingResult, CLEARING_CHANCE: CLEARING_CHANCE,
     retakeResults: retakeResults, RETAKE_RULE: RETAKE_RULE,
     suggestList: suggestList, slotTagFor: slotTagFor, slotLabel: slotLabel, bandOfSlot: bandOfSlot,
+    GROUPS: GROUPS, browseList: browseList, moveChoice: moveChoice,
     routeOptions: routeOptions, indexDB: indexDB
   };
 })();

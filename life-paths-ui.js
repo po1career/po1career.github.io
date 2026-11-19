@@ -235,14 +235,23 @@
         navRow('i-next', I.next, btn('i-skip', I.skip, { ghost: true })) + '</div>';
     },
 
+    // the JUPAS list: a picker grouped like the Finder+ (search, subject + institution chips, score groups),
+    // then the 20 banded slots (drag ⠿ or ▲▼ to reorder)
     list: function () {
-      var L2 = T.list;
+      var L2 = T.list, P = pickState();
       return '<div class="panel"><h2>' + esc(L2.heading) + '</h2><p class="hint">' + esc(L2.hint) + '</p>' +
-        '<div class="row">' + btn('l-suggest', '✨ ' + L2.suggest) + btn('l-clear', L2.clear, { ghost: true }) + '</div>' +
+        '<div class="row wrapping">' + btn('l-suggest', '✨ ' + L2.suggest) + btn('l-clear', L2.clear, { ghost: true }) + '</div>' +
         '<div id="l-msg" class="note" role="status" hidden></div>' +
-        '<div class="search"><input type="text" id="l-q" autocomplete="off" placeholder="' + esc(L2.searchPh) + '" aria-label="' + esc(L2.searchPh) + '">' +
-        '<div id="l-res" class="results"></div></div>' +
-        '<ol id="slots" class="slots"></ol><p class="hint small">' + esc(L2.tagNote) + '</p>' +
+        '<section class="picker" aria-labelledby="l-pick-h"><h3 class="sub" id="l-pick-h">' + esc(L2.pick) + '</h3>' +
+        '<p class="hint small">' + esc(L2.pickHint) + '</p>' +
+        '<input type="text" id="l-q" autocomplete="off" value="' + esc(P.q) + '" placeholder="' + esc(L2.searchPh) + '" aria-label="' + esc(L2.searchPh) + '">' +
+        '<div class="flabel">' + esc(L2.catLabel) + '</div><div class="chips sm" id="l-cats"></div>' +
+        '<div class="flabel">' + esc(L2.instLabel) + '</div><div class="chips sm" id="l-insts"></div>' +
+        '<div class="flabel">' + esc(L2.groupLabel) + '</div><div class="groups" id="l-groups" role="group" aria-label="' + esc(L2.groupLabel) + '"></div>' +
+        '<p class="hint small ghint" id="l-ghint"></p><div id="l-res"></div></section>' +
+        '<section class="mylist" id="mylist" aria-labelledby="l-mine-h"><h3 class="sub" id="l-mine-h">' + esc(L2.mine) +
+        ' <span class="pill p-unk" id="l-count"></span></h3><p class="hint small">' + esc(L2.dragHint) + '</p>' +
+        '<ol id="slots" class="slots"></ol><p class="hint small">' + esc(L2.tagNote) + '</p></section>' +
         '<div id="l-nav"></div></div>';
     },
 
@@ -898,34 +907,207 @@
       (a.verdict === 'caution' && a.tag !== 'ineligible' ? ' <span class="pill p-mid">' + esc(L2.band.caution) + '</span>' : '');
   }
 
-  /* ---------- the JUPAS list (search + 20 slots) ---------- */
-  function renderList() {
-    var L2 = T.list, pc = predClean();
-    $('slots').innerHTML = state.list.length ? state.list.map(function (code, i) {
-      var p = DB.byCode[code], a = C.assessChoice(code, i, pc, DB);
-      return '<li class="slot"><span class="chipband b' + C.bandOfSlot(i) + '">' + esc(C.slotLabel(i)) + '</span>' +
-        '<span class="sname">' + (p ? esc(pname(p)) + '<span class="small muted"> ' + esc(pinst(p)) + ' · ' + esc(code) + '</span>' : esc(code)) + '</span>' +
-        '<span class="evp">' + (a ? evPills(a, false) : '<span class="pill p-unk">' + esc(L2.ev.nodata) + '</span>') + '</span>' +
-        '<span class="ops"><button type="button" data-act="l-up" data-i="' + i + '" aria-label="上移"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-        '<button type="button" data-act="l-down" data-i="' + i + '" aria-label="下移"' + (i === state.list.length - 1 ? ' disabled' : '') + '>▼</button>' +
-        '<button type="button" data-act="l-del" data-i="' + i + '" aria-label="移除">✕</button></span></li>';
-    }).join('') : '<li class="empty">' + esc(L2.empty) + '</li>';
-    $('l-nav').innerHTML = navRow('l-next', state.list.length ? L2.next : L2.nextEmpty);
-    renderSearch();
+  /* ---------- the JUPAS list: a picker grouped like the Finder+, then 20 banded slots with drag-and-drop ---------- */
+  var PICK_PAGE = 12, pick = null, browseCache = { key: null }, hayCache = {};
+  // the picker's filters last for this visit only (not saved) and start from the interests picked a step earlier
+  function pickState() {
+    var from = state.seed + '#' + state.cats.join('|');
+    if (!pick || pick.from !== from) pick = { from: from, cats: state.cats.slice(), insts: [], group: null, q: '', shown: PICK_PAGE };
+    return pick;
   }
-  function renderSearch() {
-    var L2 = T.list, box = $('l-res'), q = ($('l-q').value || '').trim().toLowerCase();
-    if (!q) { box.innerHTML = ''; return; }
-    var hits = DB.list.filter(function (p) {
-      return [p.jupas_code, p.name_zh, p.name_en, p.institution_zh, p.institution].some(function (f) { return String(f || '').toLowerCase().indexOf(q) >= 0; });
-    }).slice(0, 8);
-    var full = state.list.length >= 20;
-    box.innerHTML = hits.length ? hits.map(function (p) {
-      var inList = state.list.indexOf(p.jupas_code) >= 0;
-      return '<div class="hit"><span><b>' + esc(p.jupas_code) + '</b> ' + esc(pname(p)) + '<span class="small muted"> ' + esc(pinst(p)) + '</span></span>' +
-        '<button type="button" class="btn small" data-act="l-add" data-code="' + esc(p.jupas_code) + '"' + (inList || full ? ' disabled' : '') + '>' +
-        (inList ? '✓' : full ? esc(L2.full) : '＋') + '</button></div>';
-    }).join('') : '<div class="hit muted">' + esc(L2.noResult) + '</div>';
+  // every programme scored with the predicted grades (cached until the grades change)
+  function browse() {
+    var pc = predClean(), k = JSON.stringify(pc);
+    if (browseCache.key !== k) {
+      var rows = C.browseList(pc, DB), map = {};
+      rows.forEach(function (r) { map[r.code] = r; });
+      browseCache = { key: k, rows: rows, map: map };
+    }
+    return browseCache;
+  }
+  // the real provider, as in the Finder: self-financed (SSSDP) programmes name it in "Offered by X:"
+  function provider(p) {
+    if (p.institution !== 'SSSDP') return p.institution;
+    var m = /Offered by ([^:]+):/.exec(p.name_en || '');
+    return m ? m[1].trim() : 'SSSDP';
+  }
+  function instLabel(k) {
+    if (T.list.instShort[k]) return T.list.instShort[k];
+    var p = DB.list.filter(function (x) { return provider(x) === k; })[0];
+    return (p && p.institution_zh) || k;
+  }
+  function instKeys() {
+    var have = {};
+    DB.list.forEach(function (p) { have[provider(p)] = true; });
+    var known = Object.keys(T.list.instShort).filter(function (k) { return have[k]; });
+    return known.concat(Object.keys(have).filter(function (k) { return known.indexOf(k) < 0; }).sort());
+  }
+  function hay(p) {
+    var c = p.jupas_code;
+    if (!hayCache[c]) hayCache[c] = [c, p.name_zh, p.name_en, p.institution_zh, provider(p), instLabel(provider(p)), p.tags,
+      (p.categories || []).map(catZh).join(' ')].join(' ').toLowerCase();
+    return hayCache[c];
+  }
+  function chipBtn(act, k, label, on) {
+    return '<button type="button" class="chip' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="' + act + '" data-k="' + esc(k) + '">' + esc(label) + '</button>';
+  }
+  // after a re-render, put keyboard focus back on the control just used
+  function refocus(sel) {
+    var el = $('screen').querySelector(sel);
+    if (el && !el.disabled) { try { el.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function scrollToList() {
+    var m = $('mylist');
+    if (m && m.scrollIntoView) m.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function renderList() {
+    renderSlots(); renderPicker();
+    $('l-nav').innerHTML = navRow('l-next', state.list.length ? T.list.next : T.list.nextEmpty);
+  }
+  function renderPicker() {
+    var L2 = T.list, P = pickState(), B = browse(), q = P.q.trim().toLowerCase();
+    $('l-cats').innerHTML = T.categories.map(function (c) { return chipBtn('l-pcat', c.key, c.zh, P.cats.indexOf(c.key) >= 0); }).join('');
+    $('l-insts').innerHTML = instKeys().map(function (k) { return chipBtn('l-pinst', k, instLabel(k), P.insts.indexOf(k) >= 0); }).join('');
+    var match = B.rows.filter(function (r) {
+      var p = DB.byCode[r.code];
+      return (!P.cats.length || (p.categories || []).some(function (c) { return P.cats.indexOf(c) >= 0; })) &&
+        (!P.insts.length || P.insts.indexOf(provider(p)) >= 0) && (!q || hay(p).indexOf(q) >= 0);
+    });
+    var counts = {};
+    C.GROUPS.forEach(function (g) { counts[g] = 0; });
+    match.forEach(function (r) { if (r.group) counts[r.group]++; });
+    if (!P.group) P.group = C.GROUPS.filter(function (g) { return counts[g]; })[0] || C.GROUPS[0];
+    $('l-groups').innerHTML = C.GROUPS.map(function (g) {
+      var on = P.group === g;
+      return '<button type="button" class="gtab g-' + g + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="l-pgrp" data-g="' + g + '">' +
+        esc(L2.groups[g]) + ' <span class="n">' + counts[g] + '</span></button>';
+    }).join('');
+    var filtered = !!(P.cats.length || P.insts.length || q);
+    $('l-ghint').innerHTML = esc(L2.groupHint[P.group]) +
+      (filtered ? ' <button type="button" class="linkbtn" data-act="l-pclear">' + esc(L2.clearFilters) + '</button>' : '');
+    // within a group: furthest above last year's median first (as in the Finder), then by score
+    var list = match.filter(function (r) { return r.group === P.group; }).sort(function (x, y) {
+      var a = x.medPct == null ? -1e9 : x.medPct, b = y.medPct == null ? -1e9 : y.medPct;
+      return b - a || (y.score || 0) - (x.score || 0) || (x.code < y.code ? -1 : 1);
+    });
+    $('l-res').innerHTML = list.length ? '<div class="pgrid">' + list.slice(0, P.shown).map(pcard).join('') + '</div>' +
+      (list.length > P.shown ? '<div class="more">' + btn('l-more', L2.more(Math.min(24, list.length - P.shown)), { ghost: true }) + '</div>' : '')
+      : '<div class="empty">' + esc(L2.noneFit) + '</div>';
+  }
+  function pcard(r) {
+    var L2 = T.list, p = DB.byCode[r.code], at = state.list.indexOf(r.code), full = state.list.length >= 20, name = pname(p);
+    var gap = r.medPct != null ? ' <span class="' + (r.medPct >= 0 ? 'gpos' : 'gneg') + '">' + (r.medPct >= 0 ? '+' : '−') + Math.abs(Math.round(r.medPct)) + '%</span>' : '';
+    var line = r.eligible && r.score != null ? '<div class="small">' + esc(L2.yourScore) + ' <b>' + esc(fmt(r.score)) + '</b>' +
+      (r.medScore != null ? '<span class="muted"> · ' + esc(L2.median) + ' ' + esc(fmt(r.medScore)) + '</span>' + gap : '') + '</div>' : '';
+    var add = at >= 0
+      ? '<button type="button" class="addbtn on" data-act="l-add" data-code="' + esc(r.code) + '" aria-pressed="true" aria-label="' +
+        esc(L2.removeAria(name, C.slotLabel(at))) + '">✓ ' + esc(C.slotLabel(at)) + '</button>'
+      : '<button type="button" class="addbtn" data-act="l-add" data-code="' + esc(r.code) + '" aria-pressed="false" aria-label="' +
+        esc(L2.addAria(name)) + '"' + (full ? ' disabled' : '') + '>' + esc(full ? L2.fullBtn : L2.add) + '</button>';
+    return '<div class="pcard' + (r.group === 'inelig' ? ' inelig' : '') + (at >= 0 ? ' in' : '') + '"><div class="pc-top"><b class="code">' + esc(r.code) + '</b>' +
+      '<span class="small muted pc-inst" title="' + esc(pinst(p)) + '">' + esc(instLabel(provider(p))) + '</span>' + add + '</div><div class="pc-name">' + esc(name) + '</div>' + line +
+      '<div class="ptags">' + (p.categories || []).map(function (c) { return '<span class="ptag">' + esc(catZh(c)) + '</span>'; }).join('') + '</div></div>';
+  }
+  var BAND_AT = { 0: 'A', 3: 'B', 6: 'C', 10: 'D', 15: 'E' };          // the slot that opens each band
+  function renderSlots() {
+    var L2 = T.list, pc = predClean(), B = browse(), n = state.list.length;
+    $('l-count').textContent = L2.count(n);
+    $('slots').innerHTML = n ? state.list.map(function (code, i) {
+      var p = DB.byCode[code], a = C.assessChoice(code, i, pc, DB), r = B.map[code], b = C.bandOfSlot(i), lab = C.slotLabel(i);
+      var score = r && r.eligible && r.score != null ? '<span class="sscore small">' + esc(L2.yourScore) + ' <b>' + esc(fmt(r.score)) + '</b>' +
+        (r.group ? ' · ' + esc(L2.groups[r.group]) : '') + '</span>' : '';
+      return (BAND_AT[i] ? '<li class="bandsep b' + b + '" data-at="' + i + '">' + esc(L2.bandSep[b]) + '</li>' : '') +
+        '<li class="slot b' + b + '" draggable="true" data-i="' + i + '" data-code="' + esc(code) + '">' +
+        '<span class="drag" title="' + esc(L2.dragTitle) + '" aria-hidden="true">⠿</span>' +
+        '<span class="chipband b' + b + '">' + esc(lab) + '</span>' +
+        '<span class="sname">' + (p ? esc(pname(p)) + '<span class="small muted"> ' + esc(pinst(p)) + ' · ' + esc(code) + '</span>' : esc(code)) + score + '</span>' +
+        '<span class="evp">' + (a ? evPills(a, false) : '<span class="pill p-unk">' + esc(L2.ev.nodata) + '</span>') + '</span>' +
+        '<span class="ops"><button type="button" data-act="l-up" data-i="' + i + '" aria-label="' + esc(L2.up(lab)) + '"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+        '<button type="button" data-act="l-down" data-i="' + i + '" aria-label="' + esc(L2.down(lab)) + '"' + (i === n - 1 ? ' disabled' : '') + '>▼</button>' +
+        '<button type="button" data-act="l-del" data-i="' + i + '" aria-label="' + esc(L2.del(lab)) + '">✕</button></span></li>';
+    }).join('') : '<li class="empty">' + esc(L2.empty) + '</li>';
+    wireDrag();
+  }
+  function flashSlot(i) { var li = $('slots').querySelector('.slot[data-i="' + i + '"]'); if (li) li.classList.add('flash'); }
+
+  /* drag-and-drop: the whole row with a mouse (HTML5 drag events), the ⠿ handle on a touch screen */
+  var drag = null, dragScroll = null;
+  // where a choice dragged over element `el` at screen height y would land: before slot index `to`
+  function dropAt(el, y) {
+    var ol = $('slots');
+    if (!el || !el.closest || !ol || !ol.contains(el)) return null;
+    var sep = el.closest('.bandsep');
+    if (sep) return { to: +sep.getAttribute('data-at'), el: sep, after: false };
+    var li = el.closest('.slot');
+    if (!li) {                                                  // below the last row: the end of the list
+      var all = ol.querySelectorAll('.slot'), last = all[all.length - 1];
+      return last && y >= last.getBoundingClientRect().bottom ? { to: all.length, el: last, after: true } : null;
+    }
+    var i = +li.getAttribute('data-i'), r = li.getBoundingClientRect(), after = y > r.top + r.height / 2;
+    return { to: after ? i + 1 : i, el: li, after: after };
+  }
+  function markDrop(t) {
+    $('slots').querySelectorAll('.drop-before,.drop-after').forEach(function (x) { x.classList.remove('drop-before', 'drop-after'); });
+    if (t) t.el.classList.add(t.after ? 'drop-after' : 'drop-before');
+    if (drag) drag.target = t;
+  }
+  function endDrag(t) {
+    var d = drag, ol = $('slots');
+    drag = null; clearInterval(dragScroll); dragScroll = null;
+    if (ol) ol.querySelectorAll('.dragging,.drop-before,.drop-after').forEach(function (x) { x.classList.remove('dragging', 'drop-before', 'drop-after'); });
+    if (!d || !t) return;
+    var to = d.from < t.to ? t.to - 1 : t.to;
+    if (to === d.from) return;
+    var code = state.list[d.from], p = DB.byCode[code];
+    state.list = C.moveChoice(state.list, d.from, to); save(); renderList();
+    listMsg(T.list.moved(p ? pname(p) : code, C.slotLabel(to)));
+    flashSlot(to);
+  }
+  function touchOver() { if (drag) markDrop(dropAt(document.elementFromPoint(drag.x, drag.y), drag.y)); }
+  function wireDrag() {
+    var ol = $('slots');
+    if (!ol || ol.getAttribute('data-wired')) return;
+    ol.setAttribute('data-wired', '1');
+    ol.addEventListener('dragstart', function (e) {
+      if (drag && drag.touch) { e.preventDefault(); return; }     // a touch drag by the handle is already running
+      var li = e.target.closest && e.target.closest('.slot');
+      if (!li) return;
+      drag = { from: +li.getAttribute('data-i') }; li.classList.add('dragging');
+      try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', li.getAttribute('data-code')); } catch (x) {}
+    });
+    ol.addEventListener('dragover', function (e) {
+      if (!drag || drag.touch) return;
+      var t = dropAt(e.target, e.clientY);
+      if (!t) return;
+      e.preventDefault();
+      try { e.dataTransfer.dropEffect = 'move'; } catch (x) {}
+      markDrop(t);
+    });
+    ol.addEventListener('drop', function (e) {
+      if (!drag || drag.touch) return;
+      e.preventDefault(); endDrag(dropAt(e.target, e.clientY) || drag.target);
+    });
+    ol.addEventListener('dragend', function () { if (drag && !drag.touch) endDrag(null); });
+    ol.addEventListener('touchstart', function (e) {
+      var h = e.target.closest && e.target.closest('.drag');
+      if (!h || e.touches.length !== 1) return;
+      var li = h.closest('.slot'), t0 = e.touches[0];
+      drag = { from: +li.getAttribute('data-i'), touch: true, x: t0.clientX, y: t0.clientY }; li.classList.add('dragging');
+      clearInterval(dragScroll);
+      dragScroll = setInterval(function () {                    // scroll while the finger rests near the top or bottom edge
+        if (!drag) return;
+        var v = drag.y < 70 ? -14 : drag.y > window.innerHeight - 70 ? 14 : 0;
+        if (v) { window.scrollBy(0, v); touchOver(); }
+      }, 30);
+    }, { passive: true });
+    ol.addEventListener('touchmove', function (e) {
+      if (!drag || !drag.touch || e.touches.length !== 1) return;
+      e.preventDefault();
+      drag.x = e.touches[0].clientX; drag.y = e.touches[0].clientY; touchOver();
+    }, { passive: false });
+    ol.addEventListener('touchend', function () { if (drag && drag.touch) endDrag(drag.target); });
+    ol.addEventListener('touchcancel', function () { if (drag && drag.touch) endDrag(null); });
   }
   function listMsg(txt) { var m = $('l-msg'); if (!m) return; m.textContent = txt || ''; m.hidden = !txt; }
 
@@ -1042,15 +1224,37 @@
     'l-suggest': function () {
       state.list = C.suggestList(predClean(), state.cats, DB); save(); renderList();
       listMsg(state.list.length ? T.list.suggested : T.list.noneEligible);
+      if (state.list.length) scrollToList();
     },
     'l-clear': function () { state.list = []; save(); renderList(); listMsg(''); },
+    // a picker card's button adds the programme at the end of the list, or takes it out again
     'l-add': function (b) {
-      var c = b.getAttribute('data-code');
-      if (state.list.indexOf(c) < 0 && state.list.length < 20) { state.list.push(c); save(); renderList(); }
+      var c = b.getAttribute('data-code'), at = state.list.indexOf(c);
+      if (at >= 0) state.list.splice(at, 1);
+      else if (state.list.length < 20) state.list.push(c);
+      else return;
+      save(); renderList(); refocus('[data-act="l-add"][data-code="' + c + '"]');
+      if (at < 0) flashSlot(state.list.length - 1);
+    },
+    'l-pcat': function (b) { var k = b.getAttribute('data-k'); togglePick('cats', k); refocus('[data-act="l-pcat"][data-k="' + k + '"]'); },
+    'l-pinst': function (b) { var k = b.getAttribute('data-k'); togglePick('insts', k); refocus('[data-act="l-pinst"][data-k="' + k + '"]'); },
+    'l-pgrp': function (b) {
+      var P = pickState(); P.group = b.getAttribute('data-g'); P.shown = PICK_PAGE; renderPicker();
+      refocus('[data-act="l-pgrp"][data-g="' + P.group + '"]');
+    },
+    'l-more': function () { pickState().shown += 24; renderPicker(); },
+    'l-pclear': function () {
+      var P = pickState(), inp = $('l-q');
+      P.cats = []; P.insts = []; P.q = ''; P.shown = PICK_PAGE; if (inp) inp.value = '';
+      renderPicker(); if (inp) inp.focus();
     },
     'l-up': function (b) { move(+b.getAttribute('data-i'), -1); },
     'l-down': function (b) { move(+b.getAttribute('data-i'), 1); },
-    'l-del': function (b) { state.list.splice(+b.getAttribute('data-i'), 1); save(); renderList(); },
+    'l-del': function (b) {
+      var i = +b.getAttribute('data-i');
+      state.list.splice(i, 1); save(); renderList();
+      if (state.list.length) refocus('[data-act="l-del"][data-i="' + Math.min(i, state.list.length - 1) + '"]');
+    },
     'l-next': function () {
       state.results = C.resultsDay(predClean(), state.seed);
       state.guesses = {}; state.revealed = {}; flips = {};
@@ -1125,9 +1329,19 @@
       }).catch(function () { b.disabled = false; b.textContent = T.share.failed; });
     }
   };
+  // ▲▼: swap with the neighbour, then keep focus on the moved row's arrow (the other arrow at either end)
   function move(i, d) {
-    var j = i + d; if (j < 0 || j >= state.list.length) return;
-    var t = state.list[i]; state.list[i] = state.list[j]; state.list[j] = t; save(); renderList();
+    var j = i + d, n = state.list.length;
+    if (j < 0 || j >= n) return;
+    state.list = C.moveChoice(state.list, i, j); save(); renderList();
+    var act = d < 0 ? (j === 0 ? 'l-down' : 'l-up') : (j === n - 1 ? 'l-up' : 'l-down');
+    refocus('[data-act="' + act + '"][data-i="' + j + '"]');
+    flashSlot(j);
+  }
+  function togglePick(key, k) {
+    var P = pickState(), a = P[key], n = a.indexOf(k);
+    if (n >= 0) a.splice(n, 1); else a.push(k);
+    P.shown = PICK_PAGE; renderPicker();
   }
   function wireScreen() {
     var scr = $('screen');
@@ -1144,7 +1358,7 @@
       else if (t.id === 'big-text') setBig(t.checked);
     });
     scr.addEventListener('input', function (e) {
-      if (e.target.id === 'l-q') renderSearch();
+      if (e.target.id === 'l-q') { var P = pickState(); P.q = e.target.value; P.shown = PICK_PAGE; renderPicker(); }
       else if (e.target.id === 'class-code') { codeDraft = e.target.value; $('class-err').textContent = ''; }
     });
   }

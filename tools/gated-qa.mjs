@@ -170,6 +170,30 @@ async function lifePathsCheck(b) {
     s.list=list.slice(0,3).concat([wp.jupas_code]); L.go('list');
     const wrongPill=!!wp && (document.querySelectorAll('#slots .slot')[3]||{textContent:''}).textContent.includes('組別錯誤')
       && !document.querySelectorAll('#slots .slot')[0].textContent.includes('組別錯誤');
+    // the list page (Finder+-style): the picker groups programmes; a card adds one; search; drag-and-drop and ▲ reorder
+    s.list=[]; L.go('list');
+    const picker=document.querySelectorAll('#l-groups .gtab').length===6 && document.querySelectorAll('#l-res .pcard').length>0 &&
+      document.querySelectorAll('#l-cats .chip').length===11 && document.querySelectorAll('#l-insts .chip').length>=10;
+    for (let k=0;k<4;k++) q('#l-res .addbtn:not(.on)').click();          // re-query: each click re-renders the cards
+    const added=s.list.length===4 && document.querySelectorAll('#slots .slot').length===4 && /A1/.test((q('#l-res .addbtn.on')||{}).textContent||'');
+    const qi=q('#l-q'); qi.value=s.list[0]; qi.dispatchEvent(new Event('input',{bubbles:true}));
+    const search=[...document.querySelectorAll('#l-groups .gtab .n')].reduce((a,n)=>a+(+n.textContent),0)===1;
+    q('#l-ghint .linkbtn').click(); q('#slots').scrollIntoView({block:'center'}); await w(30);
+    const d0=s.list.slice(), rw=[...document.querySelectorAll('#slots .slot')], dt=new DataTransfer(), r2=rw[2].getBoundingClientRect(), y2=r2.top+r2.height*0.75;
+    rw[0].dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:dt}));
+    rw[2].dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:dt,clientY:y2}));
+    rw[2].dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt,clientY:y2}));
+    const mouseDrag=JSON.stringify(s.list)===JSON.stringify([d0[1],d0[2],d0[0],d0[3]]);
+    q('#slots').scrollIntoView({block:'center'}); await w(30);
+    const d1=s.list.slice(), hd=document.querySelectorAll('#slots .slot')[3].querySelector('.drag'), hr=hd.getBoundingClientRect();
+    const top=document.querySelectorAll('#slots .slot')[0].getBoundingClientRect(), tx=top.left+top.width/2, ty=top.top+top.height*0.25;
+    const tc=(x,y)=>new Touch({identifier:1,target:hd,clientX:x,clientY:y});
+    hd.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,cancelable:true,touches:[tc(hr.left+4,hr.top+4)],changedTouches:[tc(hr.left+4,hr.top+4)]}));
+    hd.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,cancelable:true,touches:[tc(tx,ty)],changedTouches:[tc(tx,ty)]}));
+    hd.dispatchEvent(new TouchEvent('touchend',{bubbles:true,cancelable:true,touches:[],changedTouches:[tc(tx,ty)]}));
+    const touchDrag=JSON.stringify(s.list)===JSON.stringify([d1[3],d1[0],d1[1],d1[2]]);
+    const d2=s.list.slice(); q('#slots [data-act="l-up"][data-i="1"]').click();
+    const arrows=JSON.stringify(s.list)===JSON.stringify([d2[1],d2[0],d2[2],d2[3]]);
     s.list=list.slice(); L.go('list');
     // results day: 估一估 first, then the grades start face down (one tap, then 全部揭曉)
     L.act('l-next'); const guessMatch=!!(await until(()=>q('[data-act="guess-match"]')));
@@ -211,7 +235,7 @@ async function lifePathsCheck(b) {
     // quick start (the character carried over): a ready-made student fills the grades and "suggest" builds the list
     q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
     const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='fox';
-    return JSON.stringify({list, tags, wrongPill, evCol, meScreen, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -291,6 +315,9 @@ for (const t of PAGES) {
           r.walk && r.payGuess && r.titleCard && r.dreamCard && r.guesses, got);
         record(t.page, 'Evaluator rules on screen: a Band-A-only programme placed at B4 shows 組別錯誤; offer details show each choice\'s Evaluator level',
           r.wrongPill && r.evCol, got);
+        record(t.page, 'list page like the Finder+: score-group tabs, subject + institution chips, cards add choices, search narrows',
+          r.picker && r.added && r.search, got);
+        record(t.page, 'reordering choices: mouse drag-and-drop, touch drag by the ⠿ handle, and ▲▼', r.mouseDrag && r.touchDrag && r.arrows, got);
       }
       else if (t.page === 'jupas-evaluator.html') {
         const r = JSON.parse(got || '{}');

@@ -50,15 +50,46 @@
     list: {
       heading: '你的大學聯招志願（最多 20 個）',
       hint: '真實的聯招按 Band A（1–3）、B（4–6）、C（7–10）、D（11–15）、E（16–20）排列。大部分課程主要取錄放在 Band A 的申請人。',
-      suggest: '幫我建議志願', clear: '清空', searchPh: '搜尋課程編號、課程或院校名稱',
-      noResult: '找不到相符的課程', full: '已填滿 20 個志願',
+      suggest: '幫我建議志願', clear: '清空', full: '已填滿 20 個志願',
+      // the programme picker (grouped like the Finder+)
+      pick: '🔎 揀選課程',
+      pickHint: '課程按你「預計」的分數分組：與去年收生分數參考（上四分位、中位數、下四分位）比較，只供參考。按「＋ 加入」放進志願表。',
+      searchPh: '搜尋課程編號、名稱、院校或關鍵字', catLabel: '學科範疇', instLabel: '院校', groupLabel: '按你的分數分組',
+      groups: { uq: '≥ 上四分位', median: '≥ 中位數', lq: '≥ 下四分位', belowlq: '< 下四分位', nodata: '沒有收生分數', inelig: '未達要求' },
+      groupHint: {
+        uq: '你的分數達到或高於去年收生的上四分位——在這些課程的取錄者之中屬較高分。',
+        median: '你的分數達到或高於去年收生的中位數，但低於上四分位。',
+        lq: '你的分數達到或高於去年收生的下四分位，但低於中位數。',
+        belowlq: '你符合入學要求，但分數低於去年收生的下四分位——獲取錄的機會較微。',
+        nodata: '沒有完整的往年收生分數可比較（多為新開辦或重組的課程），結果較難預計。',
+        inelig: '以你預計的成績，未達這些課程的入學要求——放進志願表也不會獲取錄。'
+      },
+      clearFilters: '清除篩選', noneFit: '這一組沒有符合篩選的課程。可試試其他分組，或清除篩選。',
+      more: function (n) { return '再顯示 ' + n + ' 個'; },
+      yourScore: '你的分數', median: '中位數',
+      add: '＋ 加入', fullBtn: '已滿',
+      addAria: function (name) { return '把「' + name + '」加入志願表'; },
+      removeAria: function (name, slot) { return '「' + name + '」在第 ' + slot + ' 志願，按此移除'; },
+      // short names for the institution chips (keys = the database's institution codes)
+      instShort: { HKU: '港大', CUHK: '中大', HKUST: '科大', PolyU: '理大', CityUHK: '城大', HKBU: '浸大', LingnanU: '嶺大',
+        EdUHK: '教大', HKMU: '都大', HSUHK: '恒大', HKSYU: '樹仁', SFU: '聖方濟各', TWC: '東華', 'VTC-THEi': 'THEi',
+        UOWCHK: '伍倫貢', HKCHC: '珠海' },
+      // my list (20 slots, banded like the real form)
+      mine: '⭐ 我的志願表', count: function (n) { return n + ' / 20'; },
+      dragHint: '拖曳 ⠿ 或用 ▲▼ 調整次序，✕ 移除。',
+      dragTitle: '拖曳調整次序',
+      bandSep: { A: 'Band A · 第 1–3 志願', B: 'Band B · 第 4–6 志願', C: 'Band C · 第 7–10 志願',
+        D: 'Band D · 第 11–15 志願', E: 'Band E · 第 16–20 志願' },
+      up: function (slot) { return '上移（現為 ' + slot + '）'; }, down: function (slot) { return '下移（現為 ' + slot + '）'; },
+      del: function (slot) { return '移除 ' + slot; },
+      moved: function (name, slot) { return '已把「' + name + '」移到 ' + slot + '。'; },
       // the teacher JUPAS Evaluator's own labels (its Chance and Band columns)
       ev: { likely: '較有把握', moderate: '較為進取', risky: '風險較高', ineligible: '未達入學要求', nodata: '沒有資料' },
       band: { wrong: '組別錯誤', caution: '建議置 Band A' },
       tagNote: '標籤用你「預計」的成績，按升學輔導老師評估志願的同一套規則：「機會」看你的分數與去年收生分數參考（下四分位、中位數、上四分位）的距離，以及這個志願放在第幾位；「組別錯誤」表示這課程近年 85% 以上的取錄給了放在 Band A 的申請人——放在 Band B 至 E 不會獲取錄。放榜後會用你的實際成績再評估一次。',
       noneEligible: '以你預計的成績，暫時未達任何課程的入學要求。你仍可繼續，看看放榜後的其他出路。',
       suggested: '已按你的成績和興趣建議志願，你可以再修改。',
-      empty: '未有志願。可按「幫我建議志願」，或在上面搜尋加入。',
+      empty: '未有志願。可按「幫我建議志願」，或在上面揀選課程加入。',
       next: '完成志願，前往放榜日', nextEmpty: '不填志願，直接前往放榜日'
     },
     results: {
