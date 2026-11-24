@@ -157,12 +157,12 @@ async function lifePathsCheck(b) {
     const play=async()=>{ for(let n=0;n<120&&!q('.endcard');n++){ const c=q('[data-act="focus"],[data-act="evc"],[data-act="branch"],[data-act="to-end"]');
       if(!c)break; c.click(); await w(20); } return !!(await until(()=>q('.endcard'))); };
     // the safety notice: a fresh device sees the one-time tick box first, and 繼續 waits for the tick; the banner and its full
-    // notice (8 points) never name the school or the team; the footer says it is not an official JUPAS tool
+    // notice (7 points) never name the school or the team; the footer says it is not an official JUPAS tool
     const ackCard=!!(await until(()=>q('.noticecard'))), ackWait=!!q('[data-act="ack"]:disabled');
     const hero=(q('#hero-disc')||{}).textContent||'', heroItems=document.querySelectorAll('#hero-disc .notice-list li').length;
     q('#ack-box').click(); const ackOpen=!q('[data-act="ack"]').disabled; q('[data-act="ack"]').click();
     const acked=localStorage.getItem('life_paths_ack')==='1' && !!(await until(()=>q('[data-act="start"],[data-act="resume"]')));
-    const noticeOK=ackCard && ackWait && ackOpen && acked && heroItems===8 && hero.includes('不是 JUPAS 的真實取錄') &&
+    const noticeOK=ackCard && ackWait && ackOpen && acked && heroItems===7 && hero.includes('不是 JUPAS 的真實取錄') &&
       !/保良局|張永慶|升學輔導及生涯規劃組|本校|本組/.test(hero) && ((q('.po1disc')||{}).textContent||'').includes('並非 JUPAS 官方工具');
     L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)}; s.mode='short';
     // fun pack: the character + dream screen comes first
@@ -347,7 +347,7 @@ for (const t of PAGES) {
       else if (t.page === 'life-paths.html') {
         const r = JSON.parse(got || '{}');
         record(t.page, 'safety notice: one-time tick box before the first game (繼續 waits for the tick; remembered on the device); banner + full ' +
-          'notice (8 points, no school or team name) + footer line; the offer screen says it is a simulated result; no research figures, sources ' +
+          'notice (7 points, no school or team name) + footer line; the offer screen says it is a simulated result; no research figures, sources ' +
           'or teachers\' rules shown', r.noticeOK && r.simNote && r.noResearch, `notice ${r.noticeOK}, offer note ${r.simNote}, no research ${r.noResearch}`);
         record(t.page, `"suggest" list matches the core (${LIFE.list.length} choices, slot tags shown)`,
           JSON.stringify(r.list) === JSON.stringify(LIFE.list) && r.tags === LIFE.list.length, `got ${JSON.stringify(r.list || []).slice(0, 80)}`);

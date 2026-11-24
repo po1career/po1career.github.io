@@ -452,8 +452,8 @@ check('the step bar has the 9 steps the screens use', T.steps.map((x) => x.id).j
    sources, exact offer chances or the teachers' evaluation rules (the engines keep their numbers) */
 {
   const N = T.notice, noticeText = [T.disclaimer, N.title, N.intro, N.ack].concat(N.items.map((x) => x.join(''))).join('\n');
-  check('the safety notice has 8 titled points and never names the school or the team',
-    N.items.length === 8 && N.items.every((x) => x[0] && x[1]) && !/保良局|張永慶|升學輔導及生涯規劃組|本校|本組|PLK|Career Team/.test(noticeText));
+  check('the safety notice has 7 titled points and never names the school or the team',
+    N.items.length === 7 && N.items.every((x) => x[0] && x[1]) && !/保良局|張永慶|升學輔導及生涯規劃組|本校|本組|PLK|Career Team/.test(noticeText));
   // every player-facing string is scanned; text functions are called with sample values
   const strings = [];
   const walk = (v) => {
