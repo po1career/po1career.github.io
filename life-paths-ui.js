@@ -514,7 +514,8 @@
       } else if (p.type === 'event') {
         // only the choices open to this student; a strength's special choice is marked with the strength
         var ev = T.events[p.id], evDef = L.eventById(p.id), first = true;
-        card += '<div class="event"><span class="pill p-mid">' + esc(LT.eventTag) + '</span><h3>' + esc(ev.title) + '</h3><p>' + esc(ev.body) + '</p>' +
+        var storyTag = evDef.story ? ' <span class="pill p-good">' + esc(T.stories.step(T.stories[evDef.story], evDef.step, L.STORY_STEPS[evDef.story])) + '</span>' : '';
+        card += '<div class="event"><span class="pill p-mid">' + esc(LT.eventTag) + '</span>' + storyTag + '<h3>' + esc(ev.title) + '</h3><p>' + esc(ev.body) + '</p>' +
           (ev.support ? '<p class="small support">' + esc(LT.support) + '</p>' : '') + '<div class="row wrapping">' +
           ev.choices.map(function (c, i) {
             var ch = evDef.choices[i];
