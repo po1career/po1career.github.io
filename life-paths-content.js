@@ -443,6 +443,16 @@
       topColNote: '校服的話，這是領呔的顏色。',
       random: '🎲 隨機', reset: '↺ 重設'
     },
+    // 每日人生: a shared "student of the day" (LifePathsFun.dailyStudent) and shared luck for everyone playing that day
+    daily: {
+      heading: '每日人生',
+      hint: function (d) { return '每天一位「今日學生」：今天（' + d + '）玩的人都有相同的預計成績和相同的運氣。角色、強項、夢想和志願由你揀——之後和同學比較一下，大家走的路有甚麼不同。'; },
+      start: function (d) { return '📅 開始今日人生（' + d + '）'; },
+      pill: function (d, g) { return '每日人生 · ' + d + ' · 預計成績：' + g; },
+      ready: '今日學生的成績已經填好，直接揀志願吧！',
+      gradesNote: '每日人生的成績已經設定。修改的話，這一局就不再算是今日挑戰。',
+      end: function (d) { return '每日人生（' + d + '）：今天玩的同學成績和運氣都一樣——比較一下大家的選擇和結果！'; }
+    },
     // 同屆 100 人 (LifePathsFun.cohort): computed on the device when asked
     cohort: {
       heading: '同屆 100 人', run: '看看同屆 100 人怎樣走', working: '計算中…',
