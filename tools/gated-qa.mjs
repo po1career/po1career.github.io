@@ -156,7 +156,14 @@ async function lifePathsCheck(b) {
     // play a life by always clicking the first choice on screen, until the life summary shows
     const play=async()=>{ for(let n=0;n<120&&!q('.endcard');n++){ const c=q('[data-act="focus"],[data-act="evc"],[data-act="branch"],[data-act="to-end"]');
       if(!c)break; c.click(); await w(20); } return !!(await until(()=>q('.endcard'))); };
-    await until(()=>q('[data-act="start"],[data-act="resume"]'));
+    // the safety notice: a fresh device sees the one-time tick box first, and 繼續 waits for the tick; the banner and its full
+    // notice (8 points) never name the school or the team; the footer says it is not an official JUPAS tool
+    const ackCard=!!(await until(()=>q('.noticecard'))), ackWait=!!q('[data-act="ack"]:disabled');
+    const hero=(q('#hero-disc')||{}).textContent||'', heroItems=document.querySelectorAll('#hero-disc .notice-list li').length;
+    q('#ack-box').click(); const ackOpen=!q('[data-act="ack"]').disabled; q('[data-act="ack"]').click();
+    const acked=localStorage.getItem('life_paths_ack')==='1' && !!(await until(()=>q('[data-act="start"],[data-act="resume"]')));
+    const noticeOK=ackCard && ackWait && ackOpen && acked && heroItems===8 && hero.includes('不是 JUPAS 的真實取錄') &&
+      !/保良局|張永慶|升學輔導及生涯規劃組|本校|本組/.test(hero) && ((q('.po1disc')||{}).textContent||'').includes('並非 JUPAS 官方工具');
     L.act('start'); const s=L.state; s.seed=${JSON.stringify(LIFE && LIFE.seed)}; s.mode='short';
     // fun pack: the character + dream screen comes first
     const meScreen=document.querySelectorAll('.avpick').length===9 && document.querySelectorAll('.drpick').length===10;
@@ -215,10 +222,12 @@ async function lifePathsCheck(b) {
     L.act('l-next'); const guessMatch=!!(await until(()=>q('[data-act="guess-match"]')));
     q('[data-act="guess-match"][data-v="2"]').click(); q('[data-act="flip"]').click(); q('[data-act="reveal-all"]').click();
     const results=!!(await until(()=>q('.rtable')&&q('[data-act="r-next"]'))), reflect=!!q('.reflect'), guessRes=!!q('.guess-res');
+    const resText=q('#screen').textContent;
     // offers: a Band guess, then the choices are scanned in order (skipped here)
     L.act('r-next'); q('[data-act="guess-band"][data-v="0"]').click();
     const scan=!!(await until(()=>q('.scanrow'))); q('[data-act="scan-skip"]').click();
     const offerCard=!!(await until(()=>q('.offer-card')));
+    const simNote=((q('.simnote')||{}).textContent||'').includes('不是 JUPAS 取錄');
     const evCol=document.querySelectorAll('.otable thead th').length===5 && !!q('.otable tbody .pill');
     const offer=s.round.offer?s.round.offer.code:null;
     L.act('o-others'); const routes=document.querySelectorAll('.route').length;
@@ -226,6 +235,8 @@ async function lifePathsCheck(b) {
     const meters=document.querySelectorAll('.lifepanel .meter').length, walk=!!q('.walk .walker svg'), payGuess=!!q('[data-act="guess-pay"]');
     const avWalk=walk && q('.walk .walker svg').querySelectorAll('path').length===myLayers;
     const end=await play(), life=s.life?{age:s.life.age,monthly:s.life.job?s.life.job.monthly:null}:null, dataPage=!!q('.datapage');
+    // no research figures, sources or teachers' rules on the results day or the summary (and no source links in the data page)
+    const noResearch=!q('.datapage a') && ![resText, q('.endcard').textContent].some((x)=>/政府統計處|日校考生|平均年薪|收入中位數 HK|評估志願的同一套規則|近年 85%/.test(x));
     const titleCard=!!q('.titlecard .ptitle'), dreamCard=!!q('.dreamcard .stars'), guesses=!!q('.guesses');
     const avTitle=!!q('.titlecard svg') && q('.titlecard svg').querySelectorAll('path').length===myLayers && q('.titlecard svg').getAttribute('aria-label')==='自己設計';
     const stSummary=[...document.querySelectorAll('.endcard .summary dt')].some((dt)=>dt.textContent==='強項') && q('.endcard .summary').textContent.includes('好學不倦');
@@ -275,7 +286,7 @@ async function lifePathsCheck(b) {
       L.state.pred.math===dst.pred.math && L.state.step==='me';
     q('[data-act="me-next"]').click();
     const daily=dailyStart && L.state.step==='list' && !!q('.dailypill') && !q('.navrow [data-act="e-again"]');
-    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle, daily,
+    return JSON.stringify({noticeOK, simNote, noResearch, list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle, daily,
       stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, cohort, comic, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
@@ -335,6 +346,9 @@ for (const t of PAGES) {
       else if (t.page === 'dse-portfolio.html') record(t.page, 'app renders', got === 'ok', got);
       else if (t.page === 'life-paths.html') {
         const r = JSON.parse(got || '{}');
+        record(t.page, 'safety notice: one-time tick box before the first game (繼續 waits for the tick; remembered on the device); banner + full ' +
+          'notice (8 points, no school or team name) + footer line; the offer screen says it is a simulated result; no research figures, sources ' +
+          'or teachers\' rules shown', r.noticeOK && r.simNote && r.noResearch, `notice ${r.noticeOK}, offer note ${r.simNote}, no research ${r.noResearch}`);
         record(t.page, `"suggest" list matches the core (${LIFE.list.length} choices, slot tags shown)`,
           JSON.stringify(r.list) === JSON.stringify(LIFE.list) && r.tags === LIFE.list.length, `got ${JSON.stringify(r.list || []).slice(0, 80)}`);
         record(t.page, 'results day → offers → routes → life (5 meters) → summary + data page all render',
