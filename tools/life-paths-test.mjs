@@ -387,6 +387,42 @@ console.log('\nstrengths + more decisions');
   check('balance: every strength helps at least one of the nine dreams', helps.every((h) => h.best.up >= 0.02));
 }
 
+/* 6c. mini-stories (2026-11-24): linked steps that follow earlier choices */
+console.log('\nmini-stories');
+{
+  const IDS = ['startup1', 'startup2', 'startupGrew', 'startupClosed', 'shop1', 'shop2', 'shop3'], seen = {};
+  let wrong = 0;
+  for (let i = 0; i < 4000; i++) {
+    const { l } = playLife(i, (a, b, k) => Math.floor(C.uniform('sty' + a, 'p' + b) * k));
+    const evs = l.log.filter((e) => e.key === 'event'), at = (id) => evs.find((e) => e.data.id === id);
+    IDS.forEach((id) => { if (at(id)) seen[id] = (seen[id] || 0) + 1; });
+    const s1 = at('startup1'), s2 = at('startup2'), g = at('startupGrew'), c = at('startupClosed');
+    if (s2 && !(s1 && s1.data.choice === 0 && s2.age >= s1.age + 1)) wrong++;                       // step 2 only after joining
+    if ((g || c) && !(s2 && s2.data.choice === 0 && (g || c).age >= s2.age + 1)) wrong++;            // step 3 only after going all in
+    if (g && c) wrong++;
+    if ((g && !l.log.some((e) => e.key === 'startupGrew')) || (c && !l.log.some((e) => e.key === 'startupClosed'))) wrong++;
+    const h1 = at('shop1'), h2 = at('shop2'), h3 = at('shop3');
+    if (h2 && !(h1 && h1.data.choice === 0 && h2.age >= h1.age + 1)) wrong++;
+    if (h3 && !(h2 && h2.data.choice === 0 && l.log.some((e) => e.key === 'shopOnlineWin') && h3.age >= h2.age + 1)) wrong++;
+  }
+  console.log('  story steps per 100 lives: ' + IDS.map((id) => `${id} ${((seen[id] || 0) / 40).toFixed(1)}`).join(' · '));
+  check('a story\'s next step only follows the choice that opens it, a year or more later; every step can happen',
+    wrong === 0 && IDS.every((id) => seen[id] > 0), `${wrong} out of order · missing: ${IDS.filter((id) => !seen[id]).join()}`);
+  const base = { mode: 'long', route: 'work', field: 'Business', offer: null, prog: null, actual: students[0], startAge: 18, strengths: [] };
+  const NS = 4000; let grew = 0, sold = 0;
+  for (let k = 0; k < NS; k++) {
+    const a = L.start({ ...base, seed: 'sx' + k }); a.flags.startup = 18; a.pend = { type: 'event', id: 'startup2' }; a.queue = ['startup2']; L.chooseEvent(a, 0);
+    if (a.flags.startupGrew) grew++;
+    const b2 = L.start({ ...base, seed: 'sx' + k }); b2.flags.shop = 18; b2.pend = { type: 'event', id: 'shop2' }; b2.queue = ['shop2']; L.chooseEvent(b2, 0);
+    if (b2.flags.shopOnline) sold++;
+  }
+  check(`story luck: the start-up grows about ${Math.round(L.STARTUP_GROW * 100)}% of the time (got ${(grew / NS * 100).toFixed(1)}%), ` +
+    `the online shop does well about ${Math.round(L.SHOP_ONLINE_WIN * 100)}% (got ${(sold / NS * 100).toFixed(1)}%)`,
+    Math.abs(grew / NS - L.STARTUP_GROW) < 0.025 && Math.abs(sold / NS - L.SHOP_ONLINE_WIN) < 0.025);
+  check('every story has a name for its label', Object.keys(L.STORY_STEPS).every((s) => !!window.LifePathsText.stories[s]) &&
+    L.EVENTS.filter((e) => e.story).every((e) => L.STORY_STEPS[e.story] && e.step >= 1 && e.step <= L.STORY_STEPS[e.story]));
+}
+
 /* 7. every id the engine can produce has player-facing text (catches a missing label after an edit) */
 console.log('\ngame text covers the engine');
 const T = window.LifePathsText, miss = [];

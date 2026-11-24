@@ -125,8 +125,27 @@
     { id: 'sideBiz', once: true, when: function (l) { return l.track.id === 'work' && l.meters.skills >= 50; }, p: function () { return 0.12; },
       choices: [{ fx: { skills: 5 }, special: 'sideBiz' }, { fx: { wellbeing: 1 } }, { need: 'creative', fx: { skills: 6, connections: 2 }, special: 'sideBizShop' }] },
     { id: 'posting', once: true, when: function (l) { return l.track.id === 'work' && l.meters.skills >= 60 && l.meters.connections >= 50; }, p: function () { return 0.12; },
-      choices: [{ fx: { connections: 5, wellbeing: -3 }, special: 'posting', away: true }, { fx: { wellbeing: 3 } }] }
+      choices: [{ fx: { connections: 5, wellbeing: -3 }, special: 'posting', away: true }, { fx: { wellbeing: 3 } }] },
+    // mini-stories (2026-11-24; ILLUSTRATIVE): linked steps — a step only follows the choice that opens it, a year or more
+    // later (the flags hold the age it happened). 朋友的初創: join → all in (luck: grew / closed) → what next ·
+    // 家庭小店: weekend help → an online shop (luck) → taking it over one day?
+    { id: 'startup1', story: 'startup', step: 1, once: true, when: function (l) { return l.age >= 19 && l.age <= 24; }, p: function () { return 0.10; },
+      choices: [{ fx: { connections: 3, skills: 3, wellbeing: -2 }, special: 'startupJoin' }, { fx: { study: 1, skills: 1 } }] },
+    { id: 'startup2', story: 'startup', step: 2, once: true, when: function (l) { return !!l.flags.startup && l.age >= l.flags.startup + 1; }, p: function () { return 0.6; },
+      choices: [{ fx: { wellbeing: -3, money: -4 }, special: 'startupAllIn' }, { fx: { skills: 4, connections: 3 } }] },
+    { id: 'startupGrew', story: 'startup', step: 3, once: true, when: function (l) { return !!l.flags.startupGrew && l.age >= l.flags.startupGrew + 1; },
+      p: function () { return 0.8; }, choices: [{ fx: { study: 6, money: 4 } }, { fx: { money: 10 } }] },
+    { id: 'startupClosed', story: 'startup', step: 3, once: true, when: function (l) { return !!l.flags.startupClosed && l.age >= l.flags.startupClosed + 1; },
+      p: function () { return 0.8; }, choices: [{ fx: { skills: 4, connections: 4 } }, { fx: { wellbeing: 8 } }] },
+    { id: 'shop1', story: 'shop', step: 1, once: true, when: function (l) { return l.age <= 22; }, p: function () { return 0.10; },
+      choices: [{ fx: { money: 3, connections: 2, wellbeing: -2 }, special: 'shopHelp' }, { fx: { wellbeing: 1 } }] },
+    { id: 'shop2', story: 'shop', step: 2, once: true, when: function (l) { return !!l.flags.shop && l.age >= l.flags.shop + 1; }, p: function () { return 0.7; },
+      choices: [{ fx: { skills: 5, wellbeing: -2 }, special: 'shopOnline' }, { fx: { connections: 2 } }] },
+    { id: 'shop3', story: 'shop', step: 3, once: true, when: function (l) { return !!l.flags.shopOnline && l.age >= l.flags.shopOnline + 1; }, p: function () { return 0.7; },
+      choices: [{ fx: { money: 6, connections: 4 }, flag: 'shopHeir' }, { fx: { wellbeing: 4 } }] }
   ];
+  var STORY_STEPS = { startup: 3, shop: 3 };
+  var STARTUP_GROW = 0.4, SHOP_ONLINE_WIN = 0.6;                 // the stories' luck (ILLUSTRATIVE)
   var DEGREE_RE = /^(ugc|selffin|mainland|overseas|senior|topup)$/;
   // a special choice is open only to a student with its strength
   function choiceOpen(l, ch) { return !!ch && (!ch.need || has(l, ch.need)); }
@@ -334,6 +353,19 @@
       if (l.job) { l.job.field = to; l.job.monthly = Math.round(l.job.monthly * 0.92 / 100) * 100; }
       log(l, 'switchedField', { field: to }, 'info');
     }
+    if (sp === 'startupJoin') l.flags.startup = l.age;
+    if (sp === 'startupAllIn') {                                // the start-up: luck decides whether it grows
+      var grew = C().uniform(l.seed, 'startup|' + l.age) < STARTUP_GROW;
+      if (grew) { addFx(l, { money: 12, skills: 6, connections: 6 }); l.flags.startupGrew = l.age; }
+      else { addFx(l, { money: -6, skills: 6, wellbeing: -3 }); l.flags.startupClosed = l.age; }
+      log(l, grew ? 'startupGrew' : 'startupClosed', {}, grew ? 'good' : 'warn');
+    }
+    if (sp === 'shopHelp') l.flags.shop = l.age;
+    if (sp === 'shopOnline') {                                  // the family shop goes online: luck decides how it sells
+      var sold = C().uniform(l.seed, 'shop|' + l.age) < SHOP_ONLINE_WIN;
+      if (sold) { addFx(l, { money: 8 }); l.flags.shopOnline = l.age; }
+      log(l, sold ? 'shopOnlineWin' : 'shopOnlineSlow', {}, sold ? 'good' : 'info');
+    }
     if (sp === 'sideBiz' || sp === 'sideBizShop') {            // a small business: luck decides (創意無限's online shop: better odds)
       var win = C().uniform(l.seed, 'biz|' + l.age) < (sp === 'sideBizShop' ? BIZ_WIN_SHOP : BIZ_WIN);
       addFx(l, win ? { money: 10, connections: 3 } : { money: -6 });
@@ -393,7 +425,8 @@
   // Rule version stamped on every life. BUMP IT whenever a rule change would replay an old saved life differently
   // (the "what if" screen then asks for a new game instead of comparing old rules with new ones).
   // 2 = Phase 3 (one personal pay factor per life). 3 = strengths + more decisions + working holiday (2026-11-19).
-  var MODEL_VERSION = 3;
+  // 4 = mini-stories (朋友的初創, 家庭小店; 2026-11-24).
+  var MODEL_VERSION = 4;
   // ctx: { seed, mode:'short'|'long', route, field, offer:{code}|null, prog (offer programme)|null, actual, startAge }
   function start(ctx) {
     var lv = [ctx.actual.chi, ctx.actual.eng, ctx.actual.math].concat((ctx.actual.elect || []).map(function (e) { return e.lv; }))
@@ -473,6 +506,7 @@
     METERS: METERS, TRACKS: TRACKS, EVENTS: EVENTS, FOCUS: FOCUS, CRED_RANK: CRED_RANK, HEALTH_SHARE: HEALTH_SHARE,
     BRANCHES: BRANCHES, FOCUS_TWIN: FOCUS_TWIN, MODEL_VERSION: MODEL_VERSION,
     STRENGTHS: STRENGTHS, STRENGTH_IDS: STRENGTH_IDS, BOOST: BOOST, SOFTEN: SOFTEN, BIZ_WIN: BIZ_WIN, BIZ_WIN_SHOP: BIZ_WIN_SHOP,
+    STORY_STEPS: STORY_STEPS, STARTUP_GROW: STARTUP_GROW, SHOP_ONLINE_WIN: SHOP_ONLINE_WIN,
     cleanStrengths: cleanStrengths, choiceOpen: choiceOpen, openChoices: openChoices, wentAway: wentAway, focusFx: focusFx, addFx: addFx,
     start: start, chooseFocus: chooseFocus, chooseEvent: chooseEvent, chooseBranch: chooseBranch, turnYears: turnYears,
     replay: replay, programmeYears: programmeYears, isSubDegree: isSubDegree,
