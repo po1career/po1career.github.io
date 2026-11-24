@@ -443,6 +443,16 @@
       topColNote: '校服的話，這是領呔的顏色。',
       random: '🎲 隨機', reset: '↺ 重設'
     },
+    // the comic ending (LifePathsFun.comicPanels; drawn on a canvas on the device)
+    comic: {
+      heading: '我的人生四格漫畫', title: '我的人生四格漫畫',
+      hint: '把你的人生路畫成四格漫畫，主角是你的角色。圖片只在你的裝置上製作，不會上載，也沒有你的成績或名字。',
+      button: '🎞️ 製作四格漫畫', making: '製作中……', failed: '這部裝置未能製作漫畫。', download: '下載漫畫', file: 'dse-life-comic.png',
+      panels: ['放榜', '起步', '轉捩點', '現在'],
+      offer: function (slot, name) { return slot + '「' + name + '」取錄！'; },
+      clearing: '補選獲得學位！', noOffer: '主要輪次未獲取錄', retake: '決定重考，再試一次', steady: '一步一步向前走',
+      foot: '模擬，不是預測 · po1career.net · DSE 人生模擬器'
+    },
     // 每日人生: a shared "student of the day" (LifePathsFun.dailyStudent) and shared luck for everyone playing that day
     daily: {
       heading: '每日人生',

@@ -241,6 +241,9 @@ async function lifePathsCheck(b) {
       new RegExp('（'+kept.length+' / 12）').test((q('.endcard details.badges summary')||{}).textContent||'') && document.querySelectorAll('.bgrid .badge.on').length===kept.length;
     const sh=q('[data-act="share"]'); if (sh) sh.click();
     const share=!!sh && !!(await until(()=>{const u=L.shareURL;return u&&/^data:image\\/png;base64,/.test(u.url)&&u.w===1080&&q('.shareimg');},20000));
+    // the comic ending: four panels drawn on the device as a 1080×1080 PNG
+    const cm=q('[data-act="comic"]'); if (cm) cm.click();
+    const comic=!!cm && !!(await until(()=>{const u=L.comicURL;return u&&u.url.indexOf('data:image/png;base64,')===0&&u.w===1080&&u.h===1080&&q('.comicimg');},20000));
     // the screens the work route skips: retake year → round 2 (→ Clearing Round) → field picker → a second life
     L.go('routes'); q('[data-act="route"][data-id="retake"]').click();
     q('[data-act="rt-sub"]').click(); q('[data-act="rt-go"]').click();
@@ -273,7 +276,7 @@ async function lifePathsCheck(b) {
     q('[data-act="me-next"]').click();
     const daily=dailyStart && L.state.step==='list' && !!q('.dailypill') && !q('.navrow [data-act="e-again"]');
     return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle, daily,
-      stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, cohort, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+      stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, cohort, comic, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -348,6 +351,7 @@ for (const t of PAGES) {
         record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
           r.meScreen && r.quick, got);
         record(t.page, '同屆 100 人: 100 classmates with the same grades and list are compared on the summary (own route highlighted)', r.cohort, got);
+        record(t.page, 'comic ending: a four-panel comic (1080×1080 PNG) is drawn on the device and shown with a download link', r.comic, got);
         record(t.page, '每日人生: the day\'s student and shared luck (seed day-YYYY-MM-DD); 下一步 goes straight to the list with the day\'s grades shown',
           r.daily, got);
         record(t.page, 'badges: new ones shown on the summary and saved on the device (如果當初 too); an earned badge\'s item becomes ' +

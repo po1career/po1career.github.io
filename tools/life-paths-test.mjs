@@ -476,6 +476,24 @@ console.log('\n同屆 100 人 (classmates)');
   check('the comparison follows the grades: a stronger student\'s classmates get more offers than a weaker one\'s', os > ow);
 }
 
+/* 8c. the comic ending: four panels read from a finished life */
+console.log('\ncomic ending');
+{
+  const FN = window.LifePathsFun, T2 = window.LifePathsText;
+  let bad = 0, branchFirst = 0, withBranch = 0; const seen = new Set();
+  for (let i = 0; i < 1500; i++) {
+    const { l } = playLife(i, (a, b, k) => Math.floor(C.uniform('cm' + a, 'p' + b) * k));
+    const ps = FN.comicPanels(l, { offer: i % 2 === 0, clearing: false, retake: false });
+    ps.forEach((p) => seen.add(p.scene));
+    if (ps.length !== 4 || ps.some((p) => !FN.COMIC_SCENES.includes(p.scene)) || ps.some((p, k) => k && p.age < ps[k - 1].age) ||
+      (ps[3].scene === 'work') !== !!l.job || ps[3].age !== l.age) bad++;
+    if (l.decisions.some((d) => d.key === 'branch')) { withBranch++; if (ps[2].scene === 'crossroads') branchFirst++; }
+  }
+  check(`four panels for every life: known scenes, ages in order, the last one "now" (${seen.size} scenes used)`, bad === 0, `${bad} wrong`);
+  check(`the turning point is a choice of path whenever there was one (${branchFirst}/${withBranch})`, branchFirst === withBranch && withBranch > 100);
+  check('the comic has a title and a name for each panel', T2.comic.panels.length === 4 && T2.comic.panels.every((s) => !!s) && !!T2.comic.title);
+}
+
 /* 9. fun pack: characters, dreams, end titles, quick start (life-paths-fun.js) */
 console.log('\nfun pack (characters, dreams, titles, quick start)');
 const F = window.LifePathsFun;

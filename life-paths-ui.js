@@ -118,7 +118,7 @@
   var BACK = { grades: 'me', interests: 'grades', list: 'interests', results: 'list', offers: 'results', clearing: 'offers', routes: 'offers', retake: 'routes', field: 'routes' };
   // a new screen: back to the top, and keyboard / screen-reader focus to its heading
   function go(step) {
-    if (step !== 'end') shareURL = null;
+    if (step !== 'end') { shareURL = null; comicURL = null; }
     if (step !== state.step) { flips = {}; clearTimeout(scanTimer); }
     state.step = step; save(); render(); window.scrollTo(0, 0);
     var h = $('screen').querySelector('h2');
@@ -569,7 +569,7 @@
           (l.strengths && l.strengths.length ? '<dt>' + esc(LE.strengths) + '</dt><dd>' + esc(strengthNames(l.strengths, true)) + '</dd>' : '') + '</dl>' +
           '<p class="small muted">' + esc(LE.compare(l.age)) + '</p><h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
           (choices ? '<h3 class="sub">' + esc(LE.keyChoices) + '</h3><ol class="tl">' + choices + '</ol>' : '') +
-          guessSummary() + badgeSection() + reflectBox('end') + whatIfSection() + cohortSection() + shareSection() +
+          guessSummary() + badgeSection() + reflectBox('end') + whatIfSection() + cohortSection() + shareSection() + comicSection() +
           '<details class="explain"><summary>' + esc(LE.chapter1) + '</summary>' + ch1 + '</details>' +
           '<details class="explain timeline"><summary>' + esc(T.life.timeline) + '</summary><ol class="tl">' +
           l.log.map(function (e) { return '<li class="' + e.tone + '"><span class="tl-age">' + esc(T.life.age(e.age)) + '</span>' + esc(logText(e)) + '</li>'; }).join('') + '</ol></details>';
@@ -828,6 +828,114 @@
       // footer
       x.fillStyle = '#8a6f59'; fitText(x, S.foot1, PX, H - M - 78, W - 2 * PX, '700', 28, FONT);
       x.fillStyle = '#936c1f'; fitText(x, S.foot2, PX, H - M - 34, W - 2 * PX, '800', 28, FONT);
+      return { url: cv.toDataURL('image/png'), w: W, h: H };
+    });
+  }
+
+  /* ---------- the comic ending: four panels drawn on a canvas on this device (no grades, no name, no upload) ---------- */
+  var comicURL = null;
+  function comicSection() {
+    var K = T.comic;
+    return '<section class="sharebox comicbox"><h3 class="sub">🎞️ ' + esc(K.heading) + '</h3><p class="hint small">' + esc(K.hint) + '</p>' +
+      (comicURL ? '<img class="shareimg comicimg" src="' + esc(comicURL.url) + '" alt="' + esc(K.title) + '" width="540" height="540">' +
+        '<p><a class="btn small" href="' + esc(comicURL.url) + '" download="' + esc(K.file) + '">⬇ ' + esc(K.download) + '</a></p>'
+        : btn('comic', K.button, { ghost: true })) + '</section>';
+  }
+  function comicCaption(p, i, l) {
+    var K = T.comic, ro = curRound() && curRound().offer, body;
+    if (i === 0) body = p.retake ? K.retake : p.clearing ? K.clearing : p.offer && ro ? K.offer(ro.slot, shortName(pname(DB.byCode[ro.code]))) : K.noOffer;
+    else if (i === 1) body = (pathSteps(l)[0] || { text: '' }).text;
+    else if (i === 2) body = p.decision ? decisionText(p.decision) : p.log ? T.path.graduated(T.creds[p.log.data.cred]) : K.steady;
+    else body = lifeStatus(l);
+    return [T.life.age(p.age) + ' · ' + K.panels[i], body];
+  }
+  // a simple scene in the panel's picture area (props kept to the sides: the character stands in the middle)
+  var SCENE_SKY = { results: '#E3EEF6', campus: '#E7F0E4', workshop: '#FDF0E2', office: '#E8F1F6', desk: '#F6EBD3', crossroads: '#EEF4EC',
+    moment: '#FBEFEF', milestone: '#FFF6D8', work: '#FCE4CF', study: '#E3EEF6' };
+  function drawScene(x, p, X, Y, w, h) {
+    var INK = '#5B3A24';
+    function box(a, b, c, d, fill, r) { roundRect(x, a, b, c, d, r || 6); x.fillStyle = fill; x.fill(); x.lineWidth = 3; x.strokeStyle = INK; x.stroke(); }
+    function dot(a, b, r, fill) { x.beginPath(); x.arc(a, b, r, 0, Math.PI * 2); x.fillStyle = fill; x.fill(); }
+    function lines(a, b, c, n, gap) { x.strokeStyle = '#C9B98F'; x.lineWidth = 3; for (var k = 0; k < n; k++) { x.beginPath(); x.moveTo(a, b + k * gap); x.lineTo(a + c, b + k * gap); x.stroke(); } }
+    x.fillStyle = SCENE_SKY[p.scene] || '#F6EBD3'; x.fillRect(X, Y, w, h);
+    x.fillStyle = p.scene === 'work' ? '#E8C9A8' : '#D8E6D2'; x.fillRect(X, Y + h - 34, w, 34);            // the ground
+    var L0 = X + 30, R0 = X + w - 150;
+    if (p.scene === 'results') {
+      box(L0, Y + 70, 120, 110, '#FFFDF8'); lines(L0 + 16, Y + 96, 88, 4, 20);                                // notice board
+      box(R0 + 20, Y + 90, 96, 120, '#FFFDF8'); lines(R0 + 34, Y + 116, 68, 3, 22);                          // results slip
+      dot(R0 + 92, Y + 188, 14, p.offer || p.clearing ? '#5f9e5a' : '#B9B1A2');
+      if (p.offer || p.clearing) ['#E07A7A', '#F2C94C', '#6189A3', '#8BA888'].forEach(function (c, k) { dot(X + 80 + k * 95, Y + 34 + (k % 2) * 18, 7, c); });
+    } else if (p.scene === 'campus' || p.scene === 'study') {
+      x.beginPath(); x.moveTo(R0 - 10, Y + 92); x.lineTo(R0 + 65, Y + 52); x.lineTo(R0 + 140, Y + 92); x.closePath();
+      x.fillStyle = '#E0A85A'; x.fill(); x.lineWidth = 3; x.strokeStyle = INK; x.stroke();
+      box(R0, Y + 92, 130, 18, '#F0DFB5', 3);
+      for (var c = 0; c < 4; c++) box(R0 + 10 + c * 31, Y + 112, 16, 100, '#FFFDF8', 3);
+      box(R0 - 6, Y + 212, 142, 16, '#F0DFB5', 3);
+      x.fillStyle = INK; x.fillRect(L0 + 30, Y + 60, 5, h - 94);                                                 // flag pole + flag
+      x.beginPath(); x.moveTo(L0 + 35, Y + 62); x.lineTo(L0 + 100, Y + 78); x.lineTo(L0 + 35, Y + 96); x.closePath(); x.fillStyle = '#E07A7A'; x.fill();
+    } else if (p.scene === 'workshop') {
+      x.save(); x.translate(L0 + 60, Y + 120); x.fillStyle = '#9AA0A6';                                         // a gear
+      for (var g = 0; g < 8; g++) { x.rotate(Math.PI / 4); x.fillRect(-8, -58, 16, 22); }
+      x.restore(); dot(L0 + 60, Y + 120, 44, '#B7BCC2'); dot(L0 + 60, Y + 120, 16, SCENE_SKY.workshop);
+      box(R0, Y + 160, 130, 22, '#BD7D54', 4); box(R0 + 12, Y + 182, 12, 60, '#BD7D54', 3); box(R0 + 106, Y + 182, 12, 60, '#BD7D54', 3);   // workbench
+      box(R0 + 20, Y + 120, 50, 40, '#6189A3', 4); box(R0 + 84, Y + 132, 30, 28, '#F2C94C', 4);
+    } else if (p.scene === 'office' || p.scene === 'work') {
+      if (p.scene === 'work') { dot(X + w - 80, Y + 70, 34, '#F2B26A'); }                                       // the evening sun
+      [[0, 90, 40], [46, 60, 34], [86, 110, 30], [122, 80, 26]].forEach(function (b2) {                          // skyline
+        box(L0 + b2[0], Y + h - 34 - b2[1] - 40, b2[2], b2[1] + 40, p.scene === 'work' ? '#8a6f59' : '#88A6B3', 3);
+      });
+      box(R0 + 10, Y + 150, 120, 16, '#BD7D54', 4); box(R0 + 30, Y + 112, 70, 40, '#3E4A5A', 4);              // desk + laptop
+      if (p.scene === 'work') { box(R0 + 40, Y + 196, 70, 40, '#D98A5A', 6); box(R0 + 62, Y + 186, 26, 12, '#D98A5A', 4); }   // briefcase
+    } else if (p.scene === 'desk') {
+      ['#E07A7A', '#6189A3', '#8BA888', '#F2C94C'].forEach(function (c, k) { box(L0 + 10, Y + h - 34 - 26 * (k + 1), 120 - k * 10, 24, c, 4); });   // books
+      x.strokeStyle = INK; x.lineWidth = 5; x.beginPath(); x.moveTo(R0 + 70, Y + h - 34); x.lineTo(R0 + 70, Y + 110); x.lineTo(R0 + 110, Y + 80); x.stroke();   // lamp
+      x.beginPath(); x.moveTo(R0 + 90, Y + 70); x.lineTo(R0 + 140, Y + 80); x.lineTo(R0 + 118, Y + 112); x.closePath(); x.fillStyle = '#F2C94C'; x.fill(); x.stroke();
+    } else if (p.scene === 'crossroads') {
+      x.strokeStyle = '#C9A24B'; x.lineWidth = 26; x.lineCap = 'round';                                          // the road forks
+      x.beginPath(); x.moveTo(X + w / 2, Y + h); x.lineTo(X + w / 2, Y + h - 60); x.lineTo(X + 70, Y + 70); x.moveTo(X + w / 2, Y + h - 60); x.lineTo(X + w - 70, Y + 70); x.stroke();
+      x.lineCap = 'butt'; x.fillStyle = INK; x.fillRect(R0 + 70, Y + 60, 6, 120);                              // signpost
+      box(R0 + 20, Y + 64, 70, 26, '#FFFDF8', 4); box(R0 + 60, Y + 100, 70, 26, '#FFFDF8', 4);
+    } else if (p.scene === 'milestone') {
+      x.beginPath(); x.moveTo(L0, Y + 80); x.lineTo(L0 + 60, Y + 52); x.lineTo(L0 + 120, Y + 80); x.lineTo(L0 + 60, Y + 108); x.closePath();
+      x.fillStyle = '#2E3440'; x.fill();                                                                         // a graduation cap
+      box(R0 + 20, Y + 110, 110, 46, '#FFFDF8', 20); dot(R0 + 75, Y + 160, 12, '#E07A7A');                      // a diploma
+    } else {
+      ['#F2C94C', '#E07A7A', '#8BA888'].forEach(function (c, k) {                                               // a moment: sparkles
+        var sx = k === 1 ? X + w - 90 : X + 80 + k * 40, sy = Y + 60 + k * 50;
+        x.beginPath(); for (var s2 = 0; s2 < 10; s2++) { var a2 = -Math.PI / 2 + s2 * Math.PI / 5, rr = s2 % 2 ? 9 : 22; x.lineTo(sx + rr * Math.cos(a2), sy + rr * Math.sin(a2)); }
+        x.closePath(); x.fillStyle = c; x.fill();
+      });
+    }
+  }
+  function makeComic(l) {
+    var K = T.comic, panels = F.comicPanels(l, storyFlags()), caps = panels.map(function (p, i) { return comicCaption(p, i, l); });
+    var FONT = '"Noto Sans TC", "PingFang HK", "Microsoft JhengHei", sans-serif', title = lifeTitle(l).name;
+    var all = [K.title, title, K.foot].concat(caps.map(function (c) { return c.join(''); })).join('') + '0123456789HK$,.…·';
+    var ready = document.fonts && document.fonts.load
+      ? Promise.all(['800', '700'].map(function (wt) { return document.fonts.load(wt + ' 40px "Noto Sans TC"', all); })) : Promise.resolve();
+    return ready.catch(function () {}).then(function () {
+      var W = 1080, H = 1080, M = 50, PW = (W - 2 * M - 30) / 2, PH = 400, TOP = 190, CAP = 110;
+      var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      var x = cv.getContext('2d');
+      x.fillStyle = '#FAF4E6'; x.fillRect(0, 0, W, H);
+      x.textBaseline = 'alphabetic';
+      x.fillStyle = '#5B3A24'; fitText(x, K.title, M + 6, 100, W - 2 * M - 150, '800', 52, FONT);
+      x.fillStyle = '#A9842F'; fitText(x, title, M + 6, 152, W - 2 * M - 150, '800', 34, FONT);
+      F.drawAvatar(x, state.me, W - M - 120, 36, 120);
+      panels.forEach(function (p, i) {
+        var X0 = M + (i % 2) * (PW + 30), Y0 = TOP + Math.floor(i / 2) * (PH + 30);
+        x.save(); roundRect(x, X0, Y0, PW, PH, 26); x.clip();
+        drawScene(x, p, X0, Y0, PW, PH - CAP);
+        F.drawAvatar(x, state.me, X0 + PW / 2 - 72, Y0 + PH - CAP - 162, 144);
+        x.fillStyle = '#FFFDF8'; x.fillRect(X0, Y0 + PH - CAP, PW, CAP);
+        x.restore();
+        roundRect(x, X0, Y0, PW, PH, 26); x.lineWidth = 5; x.strokeStyle = '#5B3A24'; x.stroke();
+        x.beginPath(); x.arc(X0 + 34, Y0 + 34, 22, 0, Math.PI * 2); x.fillStyle = '#C9A24B'; x.fill();
+        x.fillStyle = '#FFFDF8'; x.font = '800 26px ' + FONT; x.textAlign = 'center'; x.fillText(String(i + 1), X0 + 34, Y0 + 43); x.textAlign = 'left';
+        x.fillStyle = '#936c1f'; fitText(x, caps[i][0], X0 + 22, Y0 + PH - CAP + 44, PW - 44, '800', 28, FONT);
+        x.fillStyle = '#5B3A24'; fitText(x, caps[i][1], X0 + 22, Y0 + PH - CAP + 88, PW - 44, '700', 28, FONT);
+      });
+      x.fillStyle = '#8a6f59'; fitText(x, K.foot, M + 6, H - 22, W - 2 * M, '700', 24, FONT);
       return { url: cv.toDataURL('image/png'), w: W, h: H };
     });
   }
@@ -1540,6 +1648,13 @@
       state.whatIf = null; save(); render();
       var w = $('whatif'); if (w) w.scrollIntoView({ block: 'nearest' });
     },
+    comic: function (b) {
+      b.disabled = true; b.textContent = T.comic.making;
+      makeComic(state.life).then(function (url) {
+        comicURL = url; render();
+        var im = document.querySelector('.comicimg'); if (im) im.scrollIntoView({ block: 'nearest' });
+      }).catch(function () { b.disabled = false; b.textContent = T.comic.failed; });
+    },
     share: function (b) {
       b.disabled = true; b.textContent = T.share.making;
       makeShare(state.life).then(function (url) {
@@ -1639,7 +1754,8 @@
       var l = state.life; if (!l) return null;
       return JSON.stringify(L.replay(lifeCtx(state.route, l.decisions[0].data.field), l, { key: 'none' })) === JSON.stringify(l);
     },
-    get shareURL() { return shareURL; }
+    get shareURL() { return shareURL; },
+    get comicURL() { return comicURL; }
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
