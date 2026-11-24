@@ -33,5 +33,9 @@ window.SITE_TOOLS = [
     desc: { en: "Organise and review your 20 JUPAS choices with your teacher.", zh: "整理並與老師檢視你的 20 個 JUPAS 志願。" } },
   { id: "planner", href: "jupas-planner.html", group: "jupastools", icon: "🗺️", gated: true,
     name: { en: "JUPAS Planner", zh: "放榜行動計劃" }, aud: { en: "F.6", zh: "中六" },
-    desc: { en: "Plan your Band A & B choices for three results-day scenarios — as expected, better, or worse.", zh: "為放榜三種情境（如預期、比預期好、比預期差）規劃 Band A 及 B 志願。" } }
+    desc: { en: "Plan your Band A & B choices for three results-day scenarios — as expected, better, or worse.", zh: "為放榜三種情境（如預期、比預期好、比預期差）規劃 Band A 及 B 志願。" } },
+  { id: "lifepaths", href: "life-paths.html", group: "jupastools", icon: "🌱", gated: true,
+    name: { en: "DSE Life Paths", zh: "DSE 人生模擬器" }, aud: { en: "F.5–F.6", zh: "中五至中六" },
+    desc: { en: "A life-simulation game: from predicted DSE grades and a JUPAS list to results day, offers and the years after. In Traditional Chinese only.",
+      zh: "人生模擬遊戲：由預計文憑試成績和聯招志願，到放榜、取錄，以至之後幾年的人生路。" } }
 ];

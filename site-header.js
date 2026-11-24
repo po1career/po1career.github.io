@@ -18,7 +18,8 @@
       nav_studytools: "Study Tools", nav_jupastools: "JUPAS Tools",
       nav_quiz: "Career Quiz", nav_pathways: "Pathways Explorer", nav_pomodoro: "Pomodoro",
       nav_studyplan: "Study Plan", nav_dse: "DSE Portfolio", nav_streaming: "Streaming Tool",
-      nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_planner: "JUPAS Planner", lang: "中文", menu: "Menu"
+      nav_jupas: "JUPAS Finder", nav_jupaschoices: "JUPAS Choices", nav_planner: "JUPAS Planner", nav_lifepaths: "DSE Life Paths",
+      lang: "中文", menu: "Menu"
     },
     zh: {
       school: "保良局第一張永慶中學", dept: "升學輔導及生涯規劃組", motto: "展翅高飛・逐夢前行",
@@ -26,7 +27,8 @@
       nav_studytools: "學習工具", nav_jupastools: "JUPAS 工具",
       nav_quiz: "興趣測驗", nav_pathways: "升學出路", nav_pomodoro: "番茄鐘",
       nav_studyplan: "溫習計劃", nav_dse: "DSE 試卷組合", nav_streaming: "選科工具",
-      nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_planner: "放榜行動計劃", lang: "EN", menu: "選單"
+      nav_jupas: "JUPAS 搜尋器", nav_jupaschoices: "JUPAS 選科", nav_planner: "放榜行動計劃", nav_lifepaths: "DSE 人生模擬器",
+      lang: "EN", menu: "選單"
     }
   };
 
@@ -70,6 +72,7 @@
               '<a href="jupas-finder.html" id="nav-jupas"></a>' +
               '<a href="jupas-choices.html" id="nav-jupaschoices"></a>' +
               '<a href="jupas-planner.html" id="nav-planner"></a>' +
+              '<a href="life-paths.html" id="nav-lifepaths"></a>' +
             '</div>' +
           '</div>' +
           '<button class="langbtn"></button>' +
@@ -97,7 +100,7 @@
     setText("nav-pomodoro", t.nav_pomodoro); setText("nav-studyplan", t.nav_studyplan);
     setText("nav-dse", t.nav_dse); setText("nav-streaming", t.nav_streaming);
     setText("nav-jupas", t.nav_jupas); setText("nav-jupaschoices", t.nav_jupaschoices);
-    setText("nav-planner", t.nav_planner);
+    setText("nav-planner", t.nav_planner); setText("nav-lifepaths", t.nav_lifepaths);
     var lb = document.querySelector("#site-header .langbtn"); if (lb) lb.textContent = t.lang;
     var burger = document.getElementById("nav-burger");
     if (burger) { burger.setAttribute("aria-label", t.menu); burger.setAttribute("title", t.menu); }
