@@ -418,6 +418,29 @@
       cats: [RANDOM_CATS[Math.floor(rand() * RANDOM_CATS.length)]] };
   }
 
+  /* ---------- the comic ending: four panels read from a finished life (the screens draw them on a canvas) ---------- */
+  // 1 results day · 2 the first path (a scene per route) · 3 the first real decision (a turning point or an event with
+  // a choice; else a graduation) · 4 now (working or studying)
+  var ROUTE_SCENE = { degree: 'campus', selffin: 'campus', mainland: 'campus', overseas: 'campus', subdeg: 'workshop', vtc: 'workshop',
+    dae: 'workshop', work: 'office', retake: 'desk' };
+  var COMIC_SCENES = ['results', 'campus', 'workshop', 'office', 'desk', 'crossroads', 'moment', 'milestone', 'work', 'study'];
+  function comicPanels(l, story) {
+    var first = l.decisions[0], route = first.data.route;
+    // the turning point: a choice of path (e.g. after graduating) if there was one, else an event after the first year
+    var turn = l.decisions.filter(function (d) { return d.key === 'branch'; })[0] ||
+      l.decisions.filter(function (d) { return d.key === 'event' && d.age > first.age; })[0] ||
+      l.decisions.filter(function (d) { return d.key === 'event'; })[0];
+    var grad = l.log.filter(function (e) { return e.key === 'graduated'; })[0];
+    var p3 = turn ? { scene: turn.key === 'branch' ? 'crossroads' : 'moment', age: turn.age, decision: turn }
+      : grad ? { scene: 'milestone', age: grad.age, log: grad } : { scene: 'moment', age: Math.min(l.age, first.age + 1), decision: null };
+    return [
+      { scene: 'results', age: first.age, offer: !!(story && story.offer), clearing: !!(story && story.clearing), retake: !!(story && story.retake) },
+      { scene: ROUTE_SCENE[route] || 'campus', age: first.age, route: route },
+      p3,
+      { scene: l.job ? 'work' : 'study', age: l.age }
+    ];
+  }
+
   // 每日人生: the "student of the day" — grades and interests drawn from the date, so everyone playing that day starts
   // the same (ymd = 'YYYY-MM-DD' on the device; the game's seed is 'day-' + ymd, so the luck is shared too)
   function dailyStudent(ymd) {
@@ -434,6 +457,7 @@
     LOOK: LOOK, LOOK_BASE: LOOK_BASE, LOOK_PARTS: LOOK_PARTS, LOOK_COLOURS: LOOK_COLOURS, DEFAULT_LOOK: DEFAULT_LOOK,
     BADGES: BADGES, BALANCED: BALANCED, UNLOCKS: UNLOCKS, lockedBy: lockedBy, badgesFor: badgesFor,
     COHORT_N: COHORT_N, COHORT_ROUTES: COHORT_ROUTES, cohort: cohort, dailyStudent: dailyStudent,
+    COMIC_SCENES: COMIC_SCENES, comicPanels: comicPanels,
     cleanLook: cleanLook, randomLook: randomLook, lookLayers: lookLayers, layersOf: layersOf,
     DREAMS: DREAMS, DREAM_IDS: DREAM_IDS, METER_STARS: METER_STARS, dreamStars: dreamStars,
     PERSONA_IDS: PERSONA_IDS, MOD_IDS: MOD_IDS, persona: persona,
