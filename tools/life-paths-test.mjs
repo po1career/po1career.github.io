@@ -453,6 +453,29 @@ check(`one turning point or event answer changed → identical before it, the ne
   wi.prefix === wi.prefixN && wi.prefixN > 50, wi.err.slice(0, 3).join(' | '));
 check(`another route at the start → a valid life to the same final age (${wi.route}/${wi.routeN})`, wi.route === wi.routeN, wi.err.slice(0, 3).join(' | '));
 
+/* 8b. 同屆 100 人 (LifePathsFun.cohort): classmates with the same grades and list, each with their own luck and choices */
+console.log('\n同屆 100 人 (classmates)');
+{
+  const FN = window.LifePathsFun;
+  const pred = { chi: '4', eng: '4', math: '4', csd: 'attained', elect: [{ s: 'econ', lv: '4' }, { s: 'bafs', lv: '4' }] }, list = C.suggestList(pred, [], DB);
+  const t0 = Date.now(), a = FN.cohort(pred, list, 'short', 'co1', DB, 'engineer'), ms = Date.now() - t0;
+  const b = FN.cohort(pred, list, 'short', 'co1', DB, 'engineer');
+  let bad = 0;
+  a.forEach((r, i) => {
+    const s = 'co1|mate' + i, off = C.mainRound(list, C.resultsDay(pred, s).actual, DB, s).offer;
+    if (r.offer !== !!off || (r.offer && r.route !== 'degree') || (!r.offer && !FN.COHORT_ROUTES[r.route]) || r.age !== 25 ||
+      (r.pay !== null && !(r.pay > 5000 && r.pay < 300000)) || !(r.stars >= 0 && r.stars <= 3)) bad++;
+  });
+  check(`100 classmates (same grades and list, own luck): each offer matches the Main Round for that luck, routes are valid, ` +
+    `the same seed gives the same classmates (${ms} ms in node)`, a.length === 100 && bad === 0 && JSON.stringify(a) === JSON.stringify(b), `${bad} wrong`);
+  const strong = { chi: '5', eng: '5', math: '5', csd: 'attained', elect: [{ s: 'phys', lv: '5' }, { s: 'chem', lv: '5' }] };
+  const weak = { chi: '3', eng: '3', math: '3', csd: 'attained', elect: [{ s: 'econ', lv: '3' }, { s: 'geog', lv: '3' }] };
+  const offers = (p) => FN.cohort(p, C.suggestList(p, [], DB), 'short', 'co2', DB, null).filter((r) => r.offer).length;
+  const os = offers(strong), ow = offers(weak);
+  console.log(`  classmates with a Main Round offer (suggested lists): strong grades ${os}/100 · weaker grades ${ow}/100 · base student ${a.filter((r) => r.offer).length}/100`);
+  check('the comparison follows the grades: a stronger student\'s classmates get more offers than a weaker one\'s', os > ow);
+}
+
 /* 9. fun pack: characters, dreams, end titles, quick start (life-paths-fun.js) */
 console.log('\nfun pack (characters, dreams, titles, quick start)');
 const F = window.LifePathsFun;

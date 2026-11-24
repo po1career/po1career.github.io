@@ -91,8 +91,9 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
 - Every user-facing string is bilingual (English + 繁體中文); add both. **Exception:** the DSE Life Paths game
   (`life-paths*`) is 繁體中文 only, by owner decision (2026-11-18).
 - The game's simulation — `life-paths-core.js` (DSE → August) and `life-paths-life.js` (the years after) — has no
-  DOM dependencies and uses seeded, keyed randomness; `life-paths-fun.js` (characters and the 自己設計 avatar creator, badges, dreams, end titles, quick start)
-  only reads a finished life and must never change the simulation. Main Round offers follow the JUPAS Evaluator's own
+  DOM dependencies and uses seeded, keyed randomness; `life-paths-fun.js` (characters and the 自己設計 avatar creator, badges, dreams, end titles, quick start,
+  同屆 100 人) only reads a finished life and must never change the simulation — 同屆 100 人 runs its own separate lives for
+  100 classmates and never touches the student's. Main Round offers follow the JUPAS Evaluator's own
   rules (`jupas-evaluator-analytics.js`, loaded by both pages): editing that file changes the game too. Test them with
   `tools/life-paths-test.mjs` (needs `PO1_STUDENT_PASS`), which also checks that `life-paths-content.js` has text for
   every id the engine produces.

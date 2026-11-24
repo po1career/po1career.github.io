@@ -554,7 +554,7 @@
           (l.strengths && l.strengths.length ? '<dt>' + esc(LE.strengths) + '</dt><dd>' + esc(strengthNames(l.strengths, true)) + '</dd>' : '') + '</dl>' +
           '<p class="small muted">' + esc(LE.compare(l.age)) + '</p><h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
           (choices ? '<h3 class="sub">' + esc(LE.keyChoices) + '</h3><ol class="tl">' + choices + '</ol>' : '') +
-          guessSummary() + badgeSection() + reflectBox('end') + whatIfSection() + shareSection() +
+          guessSummary() + badgeSection() + reflectBox('end') + whatIfSection() + cohortSection() + shareSection() +
           '<details class="explain"><summary>' + esc(LE.chapter1) + '</summary>' + ch1 + '</details>' +
           '<details class="explain timeline"><summary>' + esc(T.life.timeline) + '</summary><ol class="tl">' +
           l.log.map(function (e) { return '<li class="' + e.tone + '"><span class="tl-age">' + esc(T.life.age(e.age)) + '</span>' + esc(logText(e)) + '</li>'; }).join('') + '</ol></details>';
@@ -882,6 +882,38 @@
     saveBadges(have.concat(fresh));
     state.newBadges = (state.newBadges || []).concat(fresh); save();
     confettiNext = true;
+  }
+  /* ---------- 同屆 100 人: computed on request (button), kept for this visit only ---------- */
+  var cohortCache = null;
+  function cohortKey() {
+    return [state.seed, JSON.stringify(predClean()), state.list.join(','), state.life ? state.life.mode : state.mode, state.me.dream || ''].join('#');
+  }
+  function cohortSection() {
+    var K = T.cohort, l = state.life;
+    var head = '<section class="cohort" id="cohort"><h3 class="sub">👥 ' + esc(K.heading) + '</h3><p class="hint">' + esc(K.hint) + '</p>';
+    if (!cohortCache || cohortCache.key !== cohortKey()) return head + '<div class="row">' + btn('cohort', K.run, { ghost: true }) + '</div></section>';
+    var rows = cohortCache.rows, n = rows.length;
+    function count(field, k) { return rows.filter(function (r) { return r[field] === k; }).length; }
+    function bars(field, keys, label, you) {
+      var max = Math.max.apply(null, keys.map(function (k) { return count(field, k); }).concat([1]));
+      return keys.filter(function (k) { return count(field, k) > 0 || k === you; }).map(function (k) {
+        var c = count(field, k), me = k === you;
+        return '<div class="cbar' + (me ? ' you' : '') + '"><span class="cl">' + esc(label(k)) + (me ? ' <b class="ytag">' + esc(K.youTag) + '</b>' : '') +
+          '</span><span class="cb"><i style="width:' + Math.round(100 * c / max) + '%"></i></span><b class="cn">' + c + '</b></div>';
+      }).join('');
+    }
+    var pays = rows.filter(function (r) { return r.pay; }).map(function (r) { return r.pay; }).sort(function (a, b) { return a - b; });
+    function q(f) { return pays[Math.min(pays.length - 1, Math.floor(f * pays.length))]; }
+    var you = l && l.job ? K.you(money(l.job.monthly), Math.round(100 * pays.filter(function (p) { return p < l.job.monthly; }).length / Math.max(1, pays.length)))
+      : K.youNoJob + ' ' + K.noJob(n - pays.length);
+    var dream = state.me.dream && l ? '<p>' + esc(K.dream(T.dreams[state.me.dream].name, count('stars', 3), stars(F.dreamStars(l, state.me.dream)))) + '</p>' : '';
+    return head + '<p class="cstat">' + esc(K.offers(count('offer', true), storyFlags().offer)) + '</p>' +
+      '<h4>' + esc(K.routes) + '</h4><div class="cbars">' +
+      bars('route', ['degree', 'selffin', 'subdeg', 'vtc', 'dae', 'mainland', 'overseas', 'work', 'retake'], function (k) { return T.routeInfo[k].name; }, state.route) + '</div>' +
+      '<h4>' + esc(K.creds) + '</h4><div class="cbars">' +
+      bars('top', ['masters', 'degree', 'subdegree', 'dae', 'dse'], function (k) { return T.creds[k]; }, l ? L.topCred(l) : null) + '</div>' +
+      '<h4>' + esc(K.pay(l ? l.age : '')) + '</h4>' + (pays.length ? '<p>' + esc(K.payLine(money(q(0.5)), money(q(0.25)), money(q(0.75)))) + '</p>' : '') +
+      '<p class="cyou">' + esc(you) + '</p>' + dream + '<p class="small muted">' + esc(K.note) + '</p><p class="reflect-lite">🪞 ' + esc(K.takeaway) + '</p></section>';
   }
   function badgeSection() {
     var B = T.badges, have = loadBadges(), fresh = state.newBadges || [];
@@ -1459,6 +1491,16 @@
     'to-end': function () { lastMsg = null; go('end'); },
     'e-again': function () { if (!state.classCode) state.seed = C.newSeed(); ACT['l-next'](); },
     'e-edit': function () { if (!state.classCode) state.seed = C.newSeed(); go('grades'); },
+    // 同屆 100 人: about 100 short simulations on the device — show "計算中…" first, then compute
+    cohort: function () {
+      var b = $('screen').querySelector('[data-act="cohort"]');
+      if (b) { b.disabled = true; b.textContent = T.cohort.working; }
+      setTimeout(function () {
+        cohortCache = { key: cohortKey(), rows: F.cohort(predClean(), state.list, state.life ? state.life.mode : state.mode, state.seed, DB, state.me.dream) };
+        render();
+        var c = $('cohort'); if (c && c.scrollIntoView) c.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+      }, 30);
+    },
     wi: function (b) {
       state.whatIf = { n: +b.getAttribute('data-n'), j: +b.getAttribute('data-j') }; awardBadges(['whatIf']); save(); render();
       var h = document.querySelector('#wi-cmp h4');
