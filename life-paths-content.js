@@ -443,6 +443,20 @@
       topColNote: '校服的話，這是領呔的顏色。',
       random: '🎲 隨機', reset: '↺ 重設'
     },
+    // 同屆 100 人 (LifePathsFun.cohort): computed on the device when asked
+    cohort: {
+      heading: '同屆 100 人', run: '看看同屆 100 人怎樣走', working: '計算中…',
+      hint: '100 位虛擬同學，和你有相同的預計成績、相同的聯招志願，但各有自己的運氣、強項和選擇。同一個起點，可以走出很不同的路。（在你的裝置上計算，只供參考）',
+      offers: function (n, you) { return '主要輪次獲取錄：' + n + ' / 100 人' + (you ? '（你也是其中之一）' : '（你這次沒有）'); },
+      routes: '大家走的路', creds: '最高學歷', youTag: '你',
+      pay: function (age) { return age + ' 歲時的月薪（有全職工作的同學）'; },
+      payLine: function (med, lo, hi) { return '中位數 ' + med + '；中間一半的同學在 ' + lo + '–' + hi + ' 之間'; },
+      you: function (m, pct) { return '你：' + m + '，高過 ' + pct + '% 有全職工作的同學'; },
+      youNoJob: '你暫時未有全職工作。', noJob: function (n) { return '同屆中有 ' + n + ' 人也暫時未有全職工作。'; },
+      dream: function (name, n, yours) { return '夢想「' + name + '」得到三粒星：' + n + ' / 100 人（你：' + yours + '）'; },
+      note: '簡化：同學只計第一次放榜和主要輪次，不參加補選或重考；沒有取錄的同學按簡單比例選擇其他出路；之後的選擇大致隨機，但畢業後多數同學會先找工作。',
+      takeaway: '想一想：你和大部分同學走的路一樣嗎？哪些是運氣，哪些是選擇？'
+    },
     // badges: earned across games, saved only on this device; each unlocks one item in 「自己設計」 (LifePathsFun.UNLOCKS)
     badges: {
       heading: '🏅 我的徽章', fresh: '🎉 新徽章！', unlock: '解鎖',

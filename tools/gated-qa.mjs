@@ -233,6 +233,8 @@ async function lifePathsCheck(b) {
     const replaySame=L.replaySame(), wiBtn=q('[data-act="wi"]');
     if (wiBtn) wiBtn.click();
     const whatIf=!!wiBtn && !!(await until(()=>q('#wi-cmp .cmp'))), runs=!!q('.runs');
+    // 同屆 100 人: the comparison renders on the summary, with the student's own route highlighted
+    L.act('cohort'); const cohort=!!(await until(()=>q('.cohort .cbar.you'),15000)) && ((q('.cohort .cstat')||{}).textContent||'').includes('/ 100 人');
     // badges: the new ones show on the summary and are saved on the device (如果當初 too, from the comparison just opened)
     const kept=JSON.parse(localStorage.getItem('life_paths_badges')||'[]');
     const badges=!!q('.badges-new .bchip') && kept.includes('firstJob') && kept.includes('whatIf') && kept.includes('offer') &&
@@ -264,7 +266,7 @@ async function lifePathsCheck(b) {
     const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='custom' && JSON.stringify(L.state.me.look)===myLook &&
       JSON.stringify(L.state.me.strengths)===${JSON.stringify(JSON.stringify(QA_STRENGTHS))};
     return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle,
-      stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
+      stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, cohort, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
 async function finderCheck(b) {
@@ -338,6 +340,7 @@ for (const t of PAGES) {
         record(t.page, 'class mode: the class code becomes the shared seed and shows on screen', r.classMode, got);
         record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
           r.meScreen && r.quick, got);
+        record(t.page, '同屆 100 人: 100 classmates with the same grades and list are compared on the summary (own route highlighted)', r.cohort, got);
         record(t.page, 'badges: new ones shown on the summary and saved on the device (如果當初 too); an earned badge\'s item becomes ' +
           'selectable in 自己設計, an unearned one stays locked', r.badges && r.idOpen && r.crownLocked, got);
         record(t.page, 'strengths: 8 cards; 下一步 waits for exactly two; a third is disabled; the two shape the life (same as the core), ' +

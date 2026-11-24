@@ -278,6 +278,20 @@
     padding:10px 8px;background:#f8f6f1;color:var(--muted);}
   .badge .b-icon{font-size:1.6rem;line-height:1.2;filter:grayscale(1);opacity:0.6;}
   .badge.on{border:2px solid #e8c25a;background:#fffaf0;color:var(--ink);} .badge.on .b-icon{filter:none;opacity:1;}
+  /* 同屆 100 人 */
+  .cohort{border-top:1px dashed var(--border);margin-top:14px;padding-top:2px;}
+  .cohort h4{margin:12px 0 6px;font-size:0.92rem;}
+  .cbars{display:flex;flex-direction:column;gap:5px;}
+  .cbar{display:grid;grid-template-columns:minmax(0,14em) 1fr 2.6em;gap:8px;align-items:center;font-size:0.86rem;}
+  .cbar .cl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cbar .cb{height:12px;background:#f3ecd9;border-radius:999px;overflow:hidden;}
+  .cbar .cb i{display:block;height:100%;background:linear-gradient(90deg,#8BA888,#6f8f6b);border-radius:999px;}
+  .cbar.you .cb i{background:linear-gradient(90deg,var(--accent),var(--accent-dark));} .cbar.you .cl{font-weight:800;}
+  .cbar .cn{text-align:right;font-variant-numeric:tabular-nums;}
+  .ytag{background:var(--accent);color:#fff;border-radius:999px;padding:0 7px;font-size:0.72rem;}
+  .cstat,.cyou{font-weight:700;}
+  .reflect-lite{background:#fffaf0;border-left:4px solid #e8c25a;padding:8px 12px;border-radius:8px;}
+  @media (max-width:600px){ .cbar{grid-template-columns:minmax(0,1fr) 5em 2.2em;} .cbar .cl{white-space:normal;} }
   @media (max-width:600px){ .bgrid{grid-template-columns:repeat(2,minmax(0,1fr));} .badge{padding:8px 6px;} }
   /* strengths (pick 2) */
   .stgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
@@ -421,9 +435,9 @@
 <script src="life-paths-core.js?v=4"></script>
 <script src="life-paths-stats.js?v=1"></script>
 <script src="life-paths-life.js?v=6"></script>
-<script src="life-paths-fun.js?v=4"></script>
-<script src="life-paths-content.js?v=13"></script>
-<script src="life-paths-ui.js?v=15"></script>
+<script src="life-paths-fun.js?v=5"></script>
+<script src="life-paths-content.js?v=14"></script>
+<script src="life-paths-ui.js?v=16"></script>
 <div class="po1credit">© 2026 保良局第一張永慶中學 · 升學輔導及生涯規劃組</div>
 </body>
 </html>

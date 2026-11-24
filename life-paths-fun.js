@@ -352,6 +352,53 @@
     return { id: id, mod: mod };
   }
 
+  /* ---------- 同屆 100 人: classmates with the same predicted grades, JUPAS list and mode, each with their own luck,
+     two strengths and choices — how differently the same start can turn out. Pure: the same seed always gives the
+     same classmates, and the student's own game is never touched. Simplifications (ILLUSTRATIVE): first sitting only,
+     no Clearing Round or retake; without an offer a classmate picks an open route by the weights below. ---------- */
+  var COHORT_N = 100;
+  var COHORT_ROUTES = { selffin: 3, subdeg: 3, vtc: 3, dae: 1, mainland: 0.5, overseas: 0.5, work: 1 };
+  var COHORT_FIELDS = ['Business', 'SocialSciences', 'Science', 'Arts', 'Engineering', 'Education', 'Computing', 'Design', 'Health'];
+  // at a turning point most classmates go straight to work (a uniform pick would send a third into a master's)
+  var COHORT_BRANCH = { work: 6, masters: 2, whs: 1, senior: 4, topup: 3, subdeg: 3, vtc: 3 };
+  function weighted(options, weights, u) {
+    var total = options.reduce(function (a, o) { return a + (weights[o] || 1); }, 0), x = u * total;
+    for (var i = 0; i < options.length; i++) { x -= weights[options[i]] || 1; if (x < 0) return options[i]; }
+    return options[options.length - 1];
+  }
+  function cohort(pred, list, mode, seed, db, dream, n) {
+    var Co = C(), Lf = L(), out = [];
+    for (var i = 0; i < (n || COHORT_N); i++) {
+      var s = seed + '|mate' + i, k = 0;
+      var rand = function () { k++; return Co.uniform(s, 'mate|' + k); };
+      var actual = Co.resultsDay(pred, s).actual, offer = Co.mainRound(list, actual, db, s).offer, route = 'degree';
+      if (!offer) {
+        var open = Co.routeOptions(actual, null).filter(function (o) { return o.available && COHORT_ROUTES[o.id]; });
+        var u = rand() * open.reduce(function (a, o) { return a + COHORT_ROUTES[o.id]; }, 0);
+        route = open.length ? open[open.length - 1].id : 'work';
+        for (var j = 0; j < open.length; j++) { u -= COHORT_ROUTES[open[j].id]; if (u < 0) { route = open[j].id; break; } }
+      }
+      var prog = offer ? db.byCode[offer.code] : null;
+      var field = prog ? (prog.categories && prog.categories[0]) || 'Business' : COHORT_FIELDS[Math.floor(rand() * COHORT_FIELDS.length)];
+      if (!prog && field === 'Medicine') field = 'Health';
+      var ids = Lf.STRENGTH_IDS.slice(), st = [ids.splice(Math.floor(rand() * ids.length), 1)[0]];
+      st.push(ids[Math.floor(rand() * ids.length)]);
+      var l = Lf.start({ seed: s, mode: mode, route: route, field: field, offer: offer, prog: prog, actual: actual, startAge: 18, strengths: st, wish: null });
+      for (var t = 0; t < 300 && l.pend.type !== 'end'; t++) {
+        var p = l.pend;
+        if (p.type === 'focus') { var fo = Lf.focusOptions(l); Lf.chooseFocus(l, fo[Math.floor(rand() * fo.length)]); }
+        else if (p.type === 'event') {
+          var oc = Lf.openChoices(l, p.id);
+          // a part-time master's while working: about one classmate in four says yes
+          Lf.chooseEvent(l, p.id === 'masters' ? (rand() < 0.25 ? 0 : 1) : oc[Math.floor(rand() * oc.length)]);
+        } else Lf.chooseBranch(l, weighted(p.options, COHORT_BRANCH, rand()));
+      }
+      out.push({ offer: !!offer, route: route, top: Lf.topCred(l), pay: l.job ? l.job.monthly : null,
+        stars: dream ? dreamStars(l, dream) : null, age: l.age });
+    }
+    return out;
+  }
+
   /* ---------- quick start: four ready-made students and a random one (grades + interests only) ---------- */
   var SAMPLES = {
     sci: { pred: { chi: '4', eng: '4', math: '5', csd: 'attained', elect: [{ s: 'chem', lv: '5' }, { s: 'bio', lv: '5' }, { s: 'phys', lv: '4' }] }, cats: ['Science', 'Health'] },
@@ -379,6 +426,7 @@
     AVATARS: AVATARS, AVATAR_IDS: AVATAR_IDS, avatarSVG: avatarSVG, drawAvatar: drawAvatar,
     LOOK: LOOK, LOOK_BASE: LOOK_BASE, LOOK_PARTS: LOOK_PARTS, LOOK_COLOURS: LOOK_COLOURS, DEFAULT_LOOK: DEFAULT_LOOK,
     BADGES: BADGES, BALANCED: BALANCED, UNLOCKS: UNLOCKS, lockedBy: lockedBy, badgesFor: badgesFor,
+    COHORT_N: COHORT_N, COHORT_ROUTES: COHORT_ROUTES, cohort: cohort,
     cleanLook: cleanLook, randomLook: randomLook, lookLayers: lookLayers, layersOf: layersOf,
     DREAMS: DREAMS, DREAM_IDS: DREAM_IDS, METER_STARS: METER_STARS, dreamStars: dreamStars,
     PERSONA_IDS: PERSONA_IDS, MOD_IDS: MOD_IDS, persona: persona,
