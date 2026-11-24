@@ -36,6 +36,19 @@
   .hero-disc{display:flex;gap:9px;align-items:flex-start;margin:14px 0 0;position:relative;z-index:1;background:#fbeee2;
     border:1px solid #e8c9a8;border-left:5px solid var(--accent-dark);border-radius:12px;padding:10px 14px;max-width:70ch;}
   .hero-disc p{margin:0;color:#7a3517;font-size:0.84rem;font-weight:600;}
+  /* the safety notice: the full text folded under the banner, the one-time tick box, the note on the offer screen */
+  .hero-disc .disc-body{flex:1;min-width:0;}
+  .disc-more{margin:7px 0 0;}
+  .disc-more summary{cursor:pointer;color:#7a3517;font-size:0.82rem;font-weight:800;text-decoration:underline;text-underline-offset:2px;}
+  .notice-list{margin:8px 0 2px;padding-left:1.5em;color:var(--ink);font-size:0.84rem;line-height:1.65;}
+  .notice-list li{margin:5px 0;}
+  .noticecard .notice-list{font-size:0.92rem;background:#fffdf7;border:1px solid var(--border);border-radius:12px;padding:10px 14px 10px 2.1em;}
+  .toggle.ack{margin:14px 0 6px;align-items:flex-start;line-height:1.5;}
+  .toggle.ack input{margin-top:2px;flex:none;}
+  .simnote{display:flex;gap:8px;align-items:flex-start;background:#fbeee2;border:1px solid #e8c9a8;border-left:4px solid var(--accent-dark);
+    border-radius:10px;padding:8px 12px;margin:0 0 12px;color:#7a3517;font-size:0.86rem;font-weight:700;}
+  .po1disc{max-width:960px;margin:30px auto 0;padding:0 20px;text-align:center;color:#8a6f59;font-size:.78rem;line-height:1.6;}
+  .po1disc + .po1credit{margin-top:12px;}
   /* steps */
   .steps{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0 0 14px;}
   .steps li{display:flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:700;color:var(--muted);background:#fffdf7;
@@ -424,7 +437,7 @@
     <span class="hero-eyebrow">人生模擬 · 中六生</span>
     <h1>DSE 人生模擬器</h1>
     <p class="subtitle">輸入你預計的文憑試成績，模擬放榜、聯招取錄和之後的出路。</p>
-    <div class="hero-disc"><span aria-hidden="true">⚠️</span><p>這是模擬，不是預測。遊戲用本站 JUPAS 工具的同一套計分方法和真實的往年收生資料，但每一局都有運氣成分；結果只供參考和反思，真正的決定請與家人及升學輔導老師商量。</p></div>
+    <div class="hero-disc" id="hero-disc" role="note"></div>
   </header>
   <ol id="steps" class="steps" aria-label="進度"></ol>
   <main id="screen"></main>
@@ -437,8 +450,9 @@
 <script src="life-paths-stats.js?v=1"></script>
 <script src="life-paths-life.js?v=7"></script>
 <script src="life-paths-fun.js?v=7"></script>
-<script src="life-paths-content.js?v=17"></script>
-<script src="life-paths-ui.js?v=19"></script>
+<script src="life-paths-content.js?v=18"></script>
+<script src="life-paths-ui.js?v=20"></script>
+<p class="po1disc">本遊戲只供參考，並非 JUPAS 官方工具；遊戲中的取錄是模擬結果，不代表真實取錄。當中包含第三方計分引擎及資料庫，並依授權條款使用。</p>
 <div class="po1credit">© 2026 保良局第一張永慶中學 · 升學輔導及生涯規劃組</div>
 </body>
 </html>

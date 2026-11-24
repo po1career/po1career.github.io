@@ -448,6 +448,24 @@ for (const k of ['startDegree', 'startTrack', 'startWork']) if (typeof T.logs[k]
 check(`every event, choice, focus, track, credential, meter, route, field, branch and log line has text ` +
   `(${L.EVENTS.length} events, ${Object.keys(seenBranches).length} branches, ${seenLogKeys.size} log kinds seen)`, miss.length === 0, miss.slice(0, 8).join(', '));
 check('the step bar has the 9 steps the screens use', T.steps.map((x) => x.id).join() === 'me,grades,interests,list,results,offers,routes,life,end');
+/* the safety notice (owner, 2026-11-24): it never names the school or the team, and the game shows no research figures,
+   sources, exact offer chances or the teachers' evaluation rules (the engines keep their numbers) */
+{
+  const N = T.notice, noticeText = [T.disclaimer, N.title, N.intro, N.ack].concat(N.items.map((x) => x.join(''))).join('\n');
+  check('the safety notice has 8 titled points and never names the school or the team',
+    N.items.length === 8 && N.items.every((x) => x[0] && x[1]) && !/保良局|張永慶|升學輔導及生涯規劃組|本校|本組|PLK|Career Team/.test(noticeText));
+  // every player-facing string is scanned; text functions are called with sample values
+  const strings = [];
+  const walk = (v) => {
+    if (typeof v === 'string') strings.push(v);
+    else if (typeof v === 'function') { try { const r = v('A1', '課程', '院校', 3, 4); if (typeof r === 'string') strings.push(r); } catch (e) { /* needs other values */ } }
+    else if (v && typeof v === 'object') Object.values(v).forEach(walk);
+  };
+  walk(T);
+  const bad = strings.filter((x) => /統計處|日校考生|平均年薪|收入中位數|教資會每年|資料：|近年 85%|90%|升學輔導老師評估|同一套規則評估|去年收生/.test(x));
+  check(`no research figures, sources, exact offer chances or teachers' rules in the game text (${strings.length} strings scanned)`,
+    bad.length === 0, bad.slice(0, 3).join(' | '));
+}
 {
   const provs = new Set(LIST.map((p) => p.institution !== 'SSSDP' ? p.institution : ((/Offered by ([^:]+):/.exec(p.name_en || '') || [])[1] || 'SSSDP').trim()));
   const gap = C.GROUPS.filter((g) => !T.list.groups[g] || !T.list.groupHint[g]);

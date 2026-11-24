@@ -99,8 +99,12 @@ upstream sync, update `tools/upstream.json` in the same PR so the watch goes qui
   every id the engine produces.
   Strengths (`STRENGTHS` in `life-paths-life.js`, text in `life-paths-content.js`) are held to a pay-balance check in the test:
   change a strength's numbers only together with its card text, and re-run the test.
-  Cited figures live only in `life-paths-stats.js` (source, year and link each); anything else is labelled
-  illustrative on the game's 資料來源與假設 page. Bump `MODEL_VERSION` in `life-paths-life.js` whenever a rule change
+  Research figures live only in `life-paths-stats.js` (source, year and link each) and the engines: by owner decision
+  (2026-11-24) no screen shows research figures, their sources, exact offer chances or the career teachers' evaluation
+  rules — the 遊戲的簡化假設 page describes the assumptions in plain words. The safety notice (`disclaimer` + `notice` in
+  `life-paths-content.js`: a banner on every screen, a note on the offer screen, a one-time tick box per device in LS
+  `life_paths_ack`) never names the school or the team; bump `NOTICE_V` in `life-paths-ui.js` when its meaning changes.
+  The simulation test checks both. Bump `MODEL_VERSION` in `life-paths-life.js` whenever a rule change
   would replay an old saved life differently (the "what if" screen relies on it). The game's class code, saves, badges
   and share image never leave the device — keep it that way.
 - The scoring engine has **no DOM dependencies** — keep it that way so it stays testable in node/JSC.

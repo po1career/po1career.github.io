@@ -15,9 +15,10 @@
    ========================================================================== */
 (function () {
   'use strict';
-  var C = window.LifePathsCore, L = window.LifePathsLife, ST = window.LifePathsStats, T = window.LifePathsText, F = window.LifePathsFun;
+  var C = window.LifePathsCore, L = window.LifePathsLife, T = window.LifePathsText, F = window.LifePathsFun;
   var PBKDF2_ITER = 150000, LS_PASS = 'jupas_pass', ENC_URL = 'jupas-finder-db.enc.json';
   var LS_STATE = 'life_paths_state', LS_RUNS = 'life_paths_runs', LS_BIG = 'life_paths_big', LS_BADGES = 'life_paths_badges';
+  var LS_ACK = 'life_paths_ack', NOTICE_V = '1';   // the one-time tick box; bump NOTICE_V when the notice's meaning changes
   var LEVELS = ['5**', '5*', '5', '4', '3', '2', '1', 'U'];
   var DB = null, encBlob = null, state = null, resumeStep = null, lastMsg = null;
   var codeDraft = null, shareURL = null;           // the class code being typed on the intro; the last share image {url, w, h}
@@ -113,6 +114,18 @@
     } catch (e) {}
   }
 
+  /* ---------- the safety notice: a banner on every screen + a one-time tick box per device (per NOTICE_V) ---------- */
+  var ackedNow = false;   // if storage is blocked, the tick still counts for this visit
+  function acked() { if (ackedNow) return true; try { return localStorage.getItem(LS_ACK) === NOTICE_V; } catch (e) { return false; } }
+  function beforeGame() { return state.step === 'intro' || state.step === 'notice'; }
+  function noticeList() {
+    return '<ol class="notice-list">' + T.notice.items.map(function (x) { return '<li><b>' + esc(x[0]) + '：</b>' + esc(x[1]) + '</li>'; }).join('') + '</ol>';
+  }
+  function renderHeroNotice() {
+    $('hero-disc').innerHTML = '<span aria-hidden="true">⚠️</span><div class="disc-body"><p>' + esc(T.disclaimer) + '</p>' +
+      '<details class="disc-more"><summary>' + esc(T.notice.title) + '</summary>' + noticeList() + '</details></div>';
+  }
+
   /* ---------- navigation ---------- */
   var STEP_IDX = { me: 0, grades: 1, interests: 2, list: 3, results: 4, offers: 5, clearing: 5, routes: 6, retake: 6, field: 6, life: 7, end: 8 };
   var BACK = { grades: 'me', interests: 'grades', list: 'interests', results: 'list', offers: 'results', clearing: 'offers', routes: 'offers', retake: 'routes', field: 'routes' };
@@ -120,7 +133,9 @@
   function go(step) {
     if (step !== 'end') { shareURL = null; comicURL = null; }
     if (step !== state.step) { flips = {}; clearTimeout(scanTimer); }
-    state.step = step; save(); render(); window.scrollTo(0, 0);
+    state.step = step; save(); render(); window.scrollTo(0, 0); focusHeading();
+  }
+  function focusHeading() {
     var h = $('screen').querySelector('h2');
     if (h) { h.setAttribute('tabindex', '-1'); try { h.focus({ preventScroll: true }); } catch (e) {} }
   }
@@ -138,7 +153,7 @@
   }
   function renderSteps() {
     var cur = STEP_IDX[state.step];
-    $('steps').innerHTML = state.step === 'intro' ? '' : T.steps.map(function (s, i) {
+    $('steps').innerHTML = beforeGame() ? '' : T.steps.map(function (s, i) {
       return '<li class="' + (i < cur ? 'done' : i === cur ? 'on' : '') + '"' + (i === cur ? ' aria-current="step"' : '') + '>' +
         '<span class="n">' + (i + 1) + '</span>' + esc(s.label) + '</li>';
     }).join('');
@@ -146,8 +161,8 @@
   function render() {
     renderSteps();
     var s = SCREENS[state.step] || SCREENS.intro;
-    $('screen').innerHTML = (state.classCode && state.step !== 'intro' ? classPill() : '') +
-      (state.daily && state.step !== 'intro' ? dailyPill() : '') + s();
+    $('screen').innerHTML = (state.classCode && !beforeGame() ? classPill() : '') +
+      (state.daily && !beforeGame() ? dailyPill() : '') + s();
     if (state.step === 'list') renderList();
     afterRender();
   }
@@ -233,6 +248,14 @@
 
   /* ---------- screens ---------- */
   var SCREENS = {
+    // the one-time tick box before the first game on this device
+    notice: function () {
+      var N = T.notice;
+      return '<div class="panel noticecard"><h2>📋 ' + esc(N.title) + '</h2><p class="hint">' + esc(N.intro) + '</p>' + noticeList() +
+        '<label class="toggle ack"><input type="checkbox" id="ack-box"> ' + esc(N.ack) + '</label>' +
+        '<div class="navrow"><span></span>' + btn('ack', N.go + ' →', { disabled: true }) + '</div></div>';
+    },
+
     intro: function () {
       var M = T.modes, K = T.classMode, how = '<div class="panel">' + art() + '<h2>' + esc(T.intro.how) + '</h2><ol class="how">' +
         T.howItWorks.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><p class="note">' + esc(T.phase1Note) + '</p>';
@@ -376,7 +399,7 @@
       }
       var met = C.meets332A(res.actual);
       return head + table + '<p class="tally">' + esc(tally) + '</p>' + (rt ? '' : guessResult('match')) +
-        '<div class="callout ' + (met ? 'ok' : 'warn') + '">' + esc(met ? R.met332A : R.not332A) + '<br><span class="small">' + esc(R.stat332A) + '</span></div>' +
+        '<div class="callout ' + (met ? 'ok' : 'warn') + '">' + esc(met ? R.met332A : R.not332A) + '</div>' +
         reflectBox('results') +
         '<details class="explain"><summary>' + esc(R.ruleTitle) + '</summary><p>' + esc(rt ? K.rule : R.rule) + '</p></details>' +
         (rt ? '<p class="hint small">' + esc(K.listNote) + '</p>' : '') +
@@ -385,7 +408,9 @@
 
     offers: function () {
       var O = T.offers, G = T.guess, round = curRound(), o = round.offer, card, rt = inRetakeYear();
-      var h2 = '<h2>✉️ ' + esc(rt ? T.retake.roundHeading : O.heading) + '</h2>';
+      // the simulated-result note stays visible on every view of this screen (guess, scan and result)
+      var h2 = '<h2>✉️ ' + esc(rt ? T.retake.roundHeading : O.heading) + '</h2>' +
+        '<p class="simnote" role="note"><span aria-hidden="true">⚠️</span><span>' + esc(O.simNote) + '</span></p>';
       if (!state.revealed[rt ? 'offers2' : 'offers'] && round.rows.length) {
         if (!rt && state.guesses.band == null) {
           return '<div class="panel">' + h2 + guessBox(G.band, G.bands.map(function (b, k) { return btn('guess-band', b, { ghost: true, small: true, data: { v: k } }); }).join('') +
@@ -568,7 +593,7 @@
           '<dt>' + esc(LE.cred) + '</dt><dd>' + esc(T.creds[L.topCred(l)]) + '</dd>' +
           (topFocus ? '<dt>' + esc(LE.topFocus) + '</dt><dd>' + esc(topFocus) + '</dd>' : '') +
           (l.strengths && l.strengths.length ? '<dt>' + esc(LE.strengths) + '</dt><dd>' + esc(strengthNames(l.strengths, true)) + '</dd>' : '') + '</dl>' +
-          '<p class="small muted">' + esc(LE.compare(l.age)) + '</p><h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
+          '<h3 class="sub">' + esc(LE.meters) + '</h3><div class="mchips">' + meters + '</div>' +
           (choices ? '<h3 class="sub">' + esc(LE.keyChoices) + '</h3><ol class="tl">' + choices + '</ol>' : '') +
           guessSummary() + badgeSection() + reflectBox('end') + whatIfSection() + cohortSection() + shareSection() + comicSection() +
           '<details class="explain"><summary>' + esc(LE.chapter1) + '</summary>' + ch1 + '</details>' +
@@ -613,16 +638,10 @@
     if (d.key === 'event') return evTitle(d.data.id) + '：' + choiceLabel(L.eventById(d.data.id).choices[d.data.choice], T.events[d.data.id].choices[d.data.choice]);
     return '';
   }
+  // the game's simplified assumptions in plain words: no figures, no sources (owner, 2026-11-24)
   function dataPage() {
-    var D = T.data, K = D.cite;
-    var cited = [
-      [K.dse(ST.hkeaa332A), ST.hkeaa332A], [K.ugc(ST.ugcUndergradAnnualK), ST.ugcUndergradAnnualK],
-      [K.edu(ST.csdByEducation, money), ST.csdByEducation], [K.age(ST.csdByAge, money), ST.csdByAge], [K.senior(ST.seniorYearPlaces), ST.seniorYearPlaces]
-    ].map(function (c) {
-      return '<li>' + esc(c[0]) + '<br><span class="small muted">' + esc(c[1].source) + ' · <a href="' + esc(c[1].url) + '" target="_blank" rel="noopener noreferrer">' + esc(D.source) + ' ↗</a></span></li>';
-    }).join('');
-    return '<details class="explain datapage"><summary>📊 ' + esc(D.title) + '</summary><h4>' + esc(D.cited) + '</h4><ul>' + cited +
-      '<li>' + esc(K.jupas) + '</li></ul><h4>' + esc(D.illustrative) + '</h4><ul>' +
+    var D = T.data;
+    return '<details class="explain datapage"><summary>📊 ' + esc(D.title) + '</summary><p class="small">' + esc(D.intro) + '</p><ul>' +
       D.assumptions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul></details>';
   }
 
@@ -1429,6 +1448,12 @@
   /* ---------- actions ---------- */
   var ACT = {
     mode: function (b) { state.mode = b.getAttribute('data-v') === 'long' ? 'long' : 'short'; render(); },
+    // the tick box is remembered on this device; like go('intro') but without saving, so a saved game can still be resumed
+    ack: function () {
+      var box = $('ack-box'); if (!box || !box.checked) return;
+      ackedNow = true; try { localStorage.setItem(LS_ACK, NOTICE_V); } catch (e) {}
+      state.step = 'intro'; render(); window.scrollTo(0, 0); focusHeading();
+    },
     start: function () {
       var code = normCode(codeDraft != null ? codeDraft : state && state.classCode);
       if (code && !validCode(code)) { $('class-err').textContent = T.classMode.invalid; return; }
@@ -1693,6 +1718,7 @@
       else if (t.hasAttribute('data-el')) { state.pred.elect[+t.getAttribute('data-el')].s = t.value; save(); render(); }
       else if (t.hasAttribute('data-ellv')) { state.pred.elect[+t.getAttribute('data-ellv')].lv = t.value; save(); }
       else if (t.id === 'big-text') setBig(t.checked);
+      else if (t.id === 'ack-box') { var gb = $('screen').querySelector('[data-act="ack"]'); if (gb) gb.disabled = !t.checked; }
     });
     scr.addEventListener('input', function (e) {
       if (e.target.id === 'l-q') { var P = pickState(); P.q = e.target.value; P.shown = PICK_PAGE; renderPicker(); }
@@ -1731,8 +1757,9 @@
     var saved = load();
     document.documentElement.classList.toggle('big', isBig());
     state = saved || blank();
-    resumeStep = saved && saved.step && saved.step !== 'intro' && SCREENS[saved.step] ? saved.step : null;
-    state.step = 'intro';
+    resumeStep = saved && saved.step && saved.step !== 'intro' && saved.step !== 'notice' && SCREENS[saved.step] ? saved.step : null;
+    state.step = acked() ? 'intro' : 'notice';
+    renderHeroNotice();
     if (!wireScreen.done) { wireScreen(); wireScreen.done = true; }
     render();
   }
