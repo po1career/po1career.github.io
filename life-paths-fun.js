@@ -418,6 +418,13 @@
       cats: [RANDOM_CATS[Math.floor(rand() * RANDOM_CATS.length)]] };
   }
 
+  // 每日人生: the "student of the day" — grades and interests drawn from the date, so everyone playing that day starts
+  // the same (ymd = 'YYYY-MM-DD' on the device; the game's seed is 'day-' + ymd, so the luck is shared too)
+  function dailyStudent(ymd) {
+    var k = 0;
+    return randomStudent(function () { k++; return C().uniform('day-' + ymd, 'student|' + k); });
+  }
+
   /* ---------- 估一估: guesses before a reveal ---------- */
   var PAY_BANDS = [0, 15000, 20000, 25000, 35000];            // under 15k · 15–20k · 20–25k · 25–35k · 35k+
   function payBand(monthly) { var b = 0; PAY_BANDS.forEach(function (t, i) { if (monthly >= t) b = i; }); return b; }
@@ -426,7 +433,7 @@
     AVATARS: AVATARS, AVATAR_IDS: AVATAR_IDS, avatarSVG: avatarSVG, drawAvatar: drawAvatar,
     LOOK: LOOK, LOOK_BASE: LOOK_BASE, LOOK_PARTS: LOOK_PARTS, LOOK_COLOURS: LOOK_COLOURS, DEFAULT_LOOK: DEFAULT_LOOK,
     BADGES: BADGES, BALANCED: BALANCED, UNLOCKS: UNLOCKS, lockedBy: lockedBy, badgesFor: badgesFor,
-    COHORT_N: COHORT_N, COHORT_ROUTES: COHORT_ROUTES, cohort: cohort,
+    COHORT_N: COHORT_N, COHORT_ROUTES: COHORT_ROUTES, cohort: cohort, dailyStudent: dailyStudent,
     cleanLook: cleanLook, randomLook: randomLook, lookLayers: lookLayers, layersOf: layersOf,
     DREAMS: DREAMS, DREAM_IDS: DREAM_IDS, METER_STARS: METER_STARS, dreamStars: dreamStars,
     PERSONA_IDS: PERSONA_IDS, MOD_IDS: MOD_IDS, persona: persona,

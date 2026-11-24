@@ -265,7 +265,14 @@ async function lifePathsCheck(b) {
     q('[data-act="me-next"]').click(); q('[data-act="sample"][data-id="biz"]').click();
     const quick=L.state.step==='list' && L.state.list.length>0 && L.state.pred.eng==='5' && L.state.me.avatar==='custom' && JSON.stringify(L.state.me.look)===myLook &&
       JSON.stringify(L.state.me.strengths)===${JSON.stringify(JSON.stringify(QA_STRENGTHS))};
-    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle,
+    // 每日人生: the day's student and shared luck (seed day-YYYY-MM-DD); 下一步 goes straight to the list with the day's grades shown
+    L.act('restart'); await until(()=>q('[data-act="daily"]')); q('[data-act="daily"]').click();
+    const dd=L.state.daily, dst=dd && window.LifePathsFun.dailyStudent(dd);
+    const dailyStart=!!dd && L.state.seed==='day-'+dd && !L.state.classCode && L.state.pred.chi===dst.pred.chi && L.state.pred.eng===dst.pred.eng &&
+      L.state.pred.math===dst.pred.math && L.state.step==='me';
+    q('[data-act="me-next"]').click();
+    const daily=dailyStart && L.state.step==='list' && !!q('.dailypill') && !q('.navrow [data-act="e-again"]');
+    return JSON.stringify({list, tags, wrongPill, evCol, picker, added, search, mouseDrag, touchDrag, arrows, meScreen, creatorOpen, designed, avWalk, avTitle, daily,
       stCards, stNeed, stTwo, stSummary, badges, idOpen, crownLocked, cohort, guessMatch, results, reflect, guessRes, scan, offerCard, offer, routes, meters, walk, payGuess,
       end, life, dataPage, titleCard, dreamCard, guesses, replaySame, whatIf, runs, share, retake, clearing, field, end2, age2, classMode, quick});`);
 }
@@ -341,6 +348,8 @@ for (const t of PAGES) {
         record(t.page, 'fun pack: character + dream screen, quick-start student (grades filled, list suggested, character kept)',
           r.meScreen && r.quick, got);
         record(t.page, '同屆 100 人: 100 classmates with the same grades and list are compared on the summary (own route highlighted)', r.cohort, got);
+        record(t.page, '每日人生: the day\'s student and shared luck (seed day-YYYY-MM-DD); 下一步 goes straight to the list with the day\'s grades shown',
+          r.daily, got);
         record(t.page, 'badges: new ones shown on the summary and saved on the device (如果當初 too); an earned badge\'s item becomes ' +
           'selectable in 自己設計, an unearned one stays locked', r.badges && r.idOpen && r.crownLocked, got);
         record(t.page, 'strengths: 8 cards; 下一步 waits for exactly two; a third is disabled; the two shape the life (same as the core), ' +

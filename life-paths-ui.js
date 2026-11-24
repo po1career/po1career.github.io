@@ -146,11 +146,23 @@
   function render() {
     renderSteps();
     var s = SCREENS[state.step] || SCREENS.intro;
-    $('screen').innerHTML = (state.classCode && state.step !== 'intro' ? classPill() : '') + s();
+    $('screen').innerHTML = (state.classCode && state.step !== 'intro' ? classPill() : '') +
+      (state.daily && state.step !== 'intro' ? dailyPill() : '') + s();
     if (state.step === 'list') renderList();
     afterRender();
   }
   function classPill() { return '<p class="classpill">👥 ' + esc(T.classMode.pill(state.classCode)) + '</p>'; }
+  /* ---------- 每日人生: the student of the day (grades + interests from the date) and shared luck ---------- */
+  function today() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function dayLabel(ymd) { var p = ymd.split('-'); return (+p[1]) + '月' + (+p[2]) + '日'; }
+  function gradesLine(pc) {
+    return ['chi', 'eng', 'math'].map(function (k) { return shortSubj(k) + ' ' + pc[k]; })
+      .concat((pc.elect || []).map(function (e) { return shortSubj(e.s) + ' ' + e.lv; })).join(' · ');
+  }
+  function dailyPill() { return '<p class="classpill dailypill">📅 ' + esc(T.daily.pill(dayLabel(state.daily), gradesLine(predClean()))) + '</p>'; }
   function backBtn() { return backTarget() ? btn('back', '← ' + T.common.back, { ghost: true }) : '<span></span>'; }
   function navRow(nextAct, nextLabel, extra) {
     return '<div class="navrow">' + backBtn() + (extra || '') + (nextAct ? btn(nextAct, nextLabel + ' →') : '') + '</div>';
@@ -238,7 +250,9 @@
         '<div class="row wrapping classrow"><input type="text" id="class-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false"' +
         ' aria-label="' + esc(K.label) + '" placeholder="' + esc(K.ph) + '" value="' + esc(code) + '">' + btn('class-gen', K.generate, { ghost: true }) + '</div>' +
         '<div id="class-err" class="err" role="alert"></div>' + big;
-      return how + '<h3 class="sub">' + esc(M.heading) + '</h3><div class="modes" role="group" aria-label="' + esc(M.heading) + '">' + modes + '</div>' + cls +
+      var D = T.daily, day = dayLabel(today());
+      var dl = '<h3 class="sub">📅 ' + esc(D.heading) + '</h3><p class="hint">' + esc(D.hint(day)) + '</p><div class="row">' + btn('daily', D.start(day), { ghost: true }) + '</div>';
+      return how + '<h3 class="sub">' + esc(M.heading) + '</h3><div class="modes" role="group" aria-label="' + esc(M.heading) + '">' + modes + '</div>' + dl + cls +
         '<div class="navrow"><span></span>' + btn('start', T.intro.start + ' →') + '</div></div>';
     },
 
@@ -264,7 +278,8 @@
 
     grades: function () {
       var p = state.pred, G = T.grades, Q = T.quick;
-      var quick = '<div class="quick"><h3 class="sub">' + esc(Q.heading) + '</h3><p class="hint">' + esc(Q.hint) + '</p><div class="row wrapping">' +
+      var quick = (state.daily ? '<p class="note">📅 ' + esc(T.daily.gradesNote) + '</p>' : '') +
+        '<div class="quick"><h3 class="sub">' + esc(Q.heading) + '</h3><p class="hint">' + esc(Q.hint) + '</p><div class="row wrapping">' +
         F.SAMPLE_IDS.map(function (id) { return btn('sample', Q.samples[id], { ghost: true, small: true, data: { id: id } }); }).join('') +
         btn('sample', Q.random, { small: true, data: { id: 'random' } }) + '</div></div><p class="hint small">' + esc(Q.or) + '</p>';
       function lvSel(attr, val) {
@@ -562,8 +577,10 @@
         body = '<h2>📘 ' + esc(X.heading) + '</h2>' + ch1 + badgeSection();
       }
       // class mode keeps the class luck: no "new luck" replay, and editing grades or the list keeps the same seed
-      return '<div class="panel endcard">' + body + dataPage() + runsSection() +
-        '<div class="row wrapping">' + (state.classCode ? '' : btn('e-again', '🎲 ' + X.again)) +
+      // 每日人生 keeps the day's luck too (no "new luck" replay), and invites a comparison with classmates
+      return '<div class="panel endcard">' + body + (state.daily ? '<p class="note">📅 ' + esc(T.daily.end(dayLabel(state.daily))) + '</p>' : '') +
+        dataPage() + runsSection() +
+        '<div class="row wrapping">' + (state.classCode || state.daily ? '' : btn('e-again', '🎲 ' + X.again)) +
         btn('e-edit', state.classCode ? T.classMode.againClass : X.edit, { ghost: !state.classCode }) + btn('restart', X.restart, { ghost: true }) + '</div>' +
         '<p class="real">' + esc(X.real) + X.realLinks.map(function (k) { return '<a href="' + k.href + '">' + esc(k.label) + '</a>'; }).join(' · ') + '</p>' +
         '<p class="hint">' + esc(X.teacher) + '</p><p class="small muted">' + esc(X.runCode) + '：' + esc(state.seed) + '</p></div>';
@@ -1308,6 +1325,16 @@
       if (code && !validCode(code)) { $('class-err').textContent = T.classMode.invalid; return; }
       state = keepMe(state, blank(state && state.mode, code || null)); resumeStep = null; codeDraft = null; go('me');
     },
+    // 每日人生: the date's student and shared luck; the character, strengths, dream and list are the player's own
+    daily: function () {
+      var ymd = today(), st = F.dailyStudent(ymd), el = st.pred.elect.map(function (e) { return { s: e.s, lv: e.lv }; });
+      while (el.length < 4) el.push({ s: '', lv: '' });
+      state = keepMe(state, blank(state && state.mode, null));
+      state.seed = 'day-' + ymd; state.daily = ymd;
+      state.pred = { chi: st.pred.chi, eng: st.pred.eng, math: st.pred.math, csd: st.pred.csd, elect: el };
+      state.cats = st.cats.slice(); state.me.dreamCat = null;               // the same interests for everyone that day
+      resumeStep = null; codeDraft = null; go('me');
+    },
     av: function (b) {
       var id = b.getAttribute('data-id');
       state.me.avatar = id;
@@ -1328,7 +1355,8 @@
       if (me.dreamCat) state.cats = state.cats.filter(function (k) { return k !== me.dreamCat; });   // undo the last dream's interest
       me.dream = id; me.dreamCat = null;
       var cat = id && F.DREAMS[id].cat;
-      if (cat && state.cats.indexOf(cat) < 0) { state.cats.unshift(cat); me.dreamCat = cat; }   // the dream's field becomes an interest
+      // the dream's field becomes an interest (not in 每日人生, where everyone that day keeps the same interests)
+      if (cat && !state.daily && state.cats.indexOf(cat) < 0) { state.cats.unshift(cat); me.dreamCat = cat; }
       save(); render();
     },
     // two strengths are needed before the grades (🎲 picks them for the undecided)
@@ -1339,6 +1367,7 @@
         if (g && g.scrollIntoView) g.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
         return;
       }
+      if (state.daily) { go('list'); listMsg(T.daily.ready); return; }     // 每日人生: the grades are the day's
       go('grades');
     },
     st: function (b) {
@@ -1354,6 +1383,7 @@
     // quick start: a ready-made (or random) student fills the grades and interests, then "suggest" builds the list
     sample: function (b) {
       var id = b.getAttribute('data-id'), s = id === 'random' ? F.randomStudent(Math.random) : F.SAMPLES[id];
+      state.daily = null;                                       // another student's grades: no longer the day's challenge
       var el = s.pred.elect.map(function (e) { return { s: e.s, lv: e.lv }; });
       while (el.length < 4) el.push({ s: '', lv: '' });
       state.pred = { chi: s.pred.chi, eng: s.pred.eng, math: s.pred.math, csd: s.pred.csd, elect: el };
@@ -1386,7 +1416,7 @@
       state = keepMe(state, blank(state && state.mode, state && state.classCode)); resumeStep = null; lastMsg = null; codeDraft = null; go('intro');
     },
     back: back,
-    csd: function (b) { state.pred.csd = b.getAttribute('data-v'); save(); render(); },
+    csd: function (b) { if (state.daily) state.daily = null; state.pred.csd = b.getAttribute('data-v'); save(); render(); },
     'g-next': function () {
       var p = state.pred, err = $('err');
       if (!p.chi || !p.eng || !p.math) { err.textContent = T.grades.needCores; return; }
@@ -1541,6 +1571,8 @@
     });
     scr.addEventListener('change', function (e) {
       var t = e.target;
+      // changing the day's grades ends 每日人生 for this game (the luck stays, but it no longer compares with others)
+      if (state.daily && (t.hasAttribute('data-core') || t.hasAttribute('data-el') || t.hasAttribute('data-ellv'))) { state.daily = null; save(); }
       if (t.hasAttribute('data-core')) { state.pred[t.getAttribute('data-core')] = t.value; save(); }
       else if (t.hasAttribute('data-el')) { state.pred.elect[+t.getAttribute('data-el')].s = t.value; save(); render(); }
       else if (t.hasAttribute('data-ellv')) { state.pred.elect[+t.getAttribute('data-ellv')].lv = t.value; save(); }

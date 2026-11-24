@@ -542,6 +542,14 @@ check('quick-start students: valid grades and interests, named, and "suggest" fi
     C.suggestList(F.SAMPLES[id].pred, F.SAMPLES[id].cats, DB).length > 0));
 let rs = 7; const rrand = () => (rs = (rs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
 check('500 random students are all valid', Array.from({ length: 500 }, () => F.randomStudent(rrand)).every((x) => validPred(x.pred) && x.cats.every(catOk)));
+{
+  // 每日人生: the student of the day — valid, the same all day, different from day to day
+  const ymd = (d) => { const t = new Date(2026, 10, 24 + d); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+  const days = Array.from({ length: 60 }, (_, d) => F.dailyStudent(ymd(d)));
+  check(`每日人生: the student of the day is valid, the same all day, and changes from day to day (${new Set(days.map((x) => JSON.stringify(x))).size}/60 different)`,
+    days.every((x) => validPred(x.pred) && x.cats.every(catOk)) && JSON.stringify(F.dailyStudent(ymd(0))) === JSON.stringify(days[0]) &&
+    new Set(days.map((x) => JSON.stringify(x))).size >= 55);
+}
 const dreamDist = Object.fromEntries(F.DREAM_IDS.map((id) => [id, [0, 0, 0, 0]])), personaN = {}, fpErr = [];
 for (let i = 0; i < 1500; i++) {
   try {
